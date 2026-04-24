@@ -1,0 +1,82 @@
+---
+// Hero — focused stack: eyebrow, title, subtitle, single directional link, marquee.
+---
+
+<section class="relative overflow-hidden bg-canvas">
+  <div class="absolute inset-0 grid-lines-light opacity-70 [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]"></div>
+
+  <div class="relative mx-auto max-w-[1360px] px-6 lg:px-10 pt-24 pb-24 lg:pt-36 lg:pb-36 2xl:pt-44 2xl:pb-44">
+    <!-- Title -->
+    <h1
+      class="font-display text-center mx-auto max-w-[16ch] text-[clamp(3rem,9.2vw,8.5rem)] leading-[0.92] font-medium tracking-[-0.04em] text-ink rise rise-1"
+      style="font-variation-settings: 'opsz' 96, 'wdth' 100;"
+    >
+      Aprenda
+      <span class="font-serif italic font-normal tracking-[-0.02em]" style="font-family: var(--font-serif);">frontend</span>,
+      <br />
+      do começo ao React.
+    </h1>
+
+    <!-- Subtitle -->
+    <p class="mx-auto max-w-[57ch] text-center mt-10 text-[17px] lg:text-[18.5px] leading-[1.55] text-ink/70 rise rise-2">
+      Oito módulos em ordem progressiva — de como a web funciona
+      até componentes em React com TypeScript.
+      Texto, exemplos e código em cada um.
+    </p>
+
+    <!-- Action pair -->
+    <div class="mt-12 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-3.5 rise rise-3">
+      <!-- Primary: forward to first module -->
+      <a
+        href="/how-the-web-works"
+        class="group inline-flex items-center gap-3 rounded-full bg-ink text-canvas h-11 pl-5 pr-4 transition-transform hover:translate-x-0.5"
+      >
+        <span class="text-[14px] font-medium">começar pelo módulo 01</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="transition-transform duration-300 group-hover:translate-x-0.5" aria-hidden="true">
+          <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <!-- Secondary: scroll to module index -->
+      <a
+        href="#modulos"
+        class="group inline-flex items-center gap-3 rounded-full border border-ink/15 text-ink/85 hover:border-ink hover:text-ink h-11 pl-5 pr-4 transition-colors"
+      >
+        <span class="text-[14px] font-medium">conheça os módulos</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="transition-transform duration-300 group-hover:translate-y-0.5" aria-hidden="true">
+          <path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <!-- Marquee bar -->
+  <div class="relative border-y border-line bg-bone/40 overflow-hidden">
+    <div class="flex whitespace-nowrap py-3" style="animation: marquee 48s linear infinite;">
+      {
+        Array.from({ length: 2 }).map(() => (
+          <div class="flex shrink-0 items-center">
+            {[
+              "html semântico",
+              "cascade & especificidade",
+              "closures",
+              "tipos estruturais",
+              "hooks",
+              "vitest",
+              "box model",
+              "event loop",
+              "useEffect",
+              "testing library",
+              "grid & flex",
+              "interfaces",
+            ].map((t) => (
+              <span class="flex items-center gap-5 px-5 mono text-[12.5px] text-ink/60">
+                <span>◦</span>
+                <span>{t}</span>
+              </span>
+            ))}
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

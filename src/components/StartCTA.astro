@@ -1,0 +1,50 @@
+---
+// Closing invitation — white band between the dark modules section and the dark footer.
+// Acts as a clear directional link to the first module, not a marketing CTA.
+---
+
+<section class="relative bg-canvas border-y border-line overflow-hidden">
+  <div class="absolute inset-0 grid-lines-light opacity-70 [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_75%)]"></div>
+
+  <div class="relative mx-auto max-w-[1360px] px-6 lg:px-10 py-24 lg:py-32">
+    <div class="flex items-center gap-4">
+      <span class="mono text-[11px] tracking-[0.2em] uppercase text-mute">módulo 01</span>
+      <span class="h-px w-12 bg-line"></span>
+      <span class="eyebrow text-ink/70 text-[15px]">por onde começar</span>
+    </div>
+
+    <div class="mt-10 grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-10 lg:gap-16 items-end">
+      <h2 class="font-display text-[clamp(3rem,9vw,8rem)] leading-[0.92] font-medium tracking-[-0.04em] text-ink max-w-[14ch]">
+        Vamos
+        <span class="font-serif italic font-normal tracking-[-0.02em]" style="font-family: var(--font-serif);">
+          começar?
+        </span>
+      </h2>
+
+      <div class="lg:pb-6">
+        <p class="text-[15.5px] leading-[1.6] text-ink/70 max-w-[44ch]">
+          O primeiro módulo explica o caminho entre digitar uma URL e a página aparecer na tela — é daí que tudo parte.
+        </p>
+
+        <a
+          href="/how-the-web-works"
+          class="group mt-8 inline-flex items-center gap-4 rounded-full bg-ink text-canvas pl-4 pr-2 py-2 transition-transform hover:translate-x-1"
+        >
+          <span class="mono text-[10.5px] tracking-[0.18em] uppercase text-canvas/60">
+            01
+          </span>
+          <span class="text-[14.5px] font-medium">
+            Como a web funciona
+          </span>
+          <span
+            class="flex h-9 w-9 items-center justify-center rounded-full bg-canvas text-ink transition-transform duration-500 group-hover:rotate-[-45deg]"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

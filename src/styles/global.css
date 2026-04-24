@@ -1,1 +1,347 @@
 @import "tailwindcss";
+
+@theme {
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-canvas: #ffffff;
+  --color-ink: #0a0a0b;
+  --color-night: #0a0a0b;
+  --color-night-2: #111115;
+  --color-night-3: #17171d;
+  --color-bone: #f4f2ed;
+  --color-mute: #6b6b72;
+  --color-line: #e8e7e3;
+  --color-line-dark: #1f1f26;
+
+  --color-web: #4c6ef5;
+  --color-html: #e4572e;
+  --color-css: #2563eb;
+  --color-js: #f0db4f;
+  --color-ts: #3178c6;
+  --color-react: #61dafb;
+  --color-test: #22c55e;
+  --color-next: #c084fc;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--color-canvas);
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: var(--color-canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "ss02", "cv01";
+}
+
+::selection {
+  background: var(--color-ink);
+  color: var(--color-bone);
+}
+
+.font-display {
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 100, "opsz" 96;
+  letter-spacing: -0.035em;
+}
+
+.eyebrow {
+  font-family: var(--font-serif);
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "ss02", "zero";
+}
+
+.noise {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.35); }
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(12px, -8px, 0); }
+}
+
+.rise {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: hero-rise 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.rise-1 { animation-delay: 80ms; }
+.rise-2 { animation-delay: 220ms; }
+.rise-3 { animation-delay: 380ms; }
+.rise-4 { animation-delay: 540ms; }
+.rise-5 { animation-delay: 700ms; }
+
+.module-block {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 900ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.module-block.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.grid-lines {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+
+.grid-lines-light {
+  background-image:
+    linear-gradient(to right, rgba(10, 10, 11, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(10, 10, 11, 0.055) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+
+/* ========================================================================
+   Module visual animations — narrative loops tied to each module's topic.
+   ======================================================================== */
+
+/* Web — request/response packet cycle */
+@keyframes web-out {
+  0%, 6% { left: 30%; opacity: 0; }
+  12% { left: 30%; opacity: 1; }
+  44% { left: 70%; opacity: 1; }
+  48%, 100% { left: 70%; opacity: 0; }
+}
+@keyframes web-in {
+  0%, 50% { left: 70%; opacity: 0; }
+  56% { left: 70%; opacity: 1; }
+  88% { left: 30%; opacity: 1; }
+  92%, 100% { left: 30%; opacity: 0; }
+}
+@keyframes web-server-pulse {
+  0%, 46% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+  50% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.25); }
+  58%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+@keyframes web-browser-pulse {
+  0%, 86% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+  90% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.18); }
+  98%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+}
+
+/* HTML — wireframe blocks appearing in document order */
+@keyframes html-block {
+  0%, 4% { opacity: 0; transform: translateY(8px) scaleY(0.5); transform-origin: top; }
+  14% { opacity: 1; transform: translateY(0) scaleY(1); }
+  82% { opacity: 1; transform: translateY(0) scaleY(1); }
+  92%, 100% { opacity: 0; transform: translateY(-2px); }
+}
+
+/* CSS — same wireframe gaining background, radius, shadow */
+@keyframes css-style {
+  0%, 25% {
+    background-color: rgba(255, 255, 255, 0.16);
+    border-radius: 0;
+    box-shadow: none;
+  }
+  50%, 85% {
+    background-color: var(--css-fill, rgba(255, 255, 255, 0.92));
+    border-radius: 6px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
+  }
+  100% {
+    background-color: rgba(255, 255, 255, 0.16);
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+@keyframes css-text-reveal {
+  0%, 30% { opacity: 0; }
+  55%, 85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* JavaScript — cursor → click → popup */
+@keyframes js-cursor {
+  0% { transform: translate(60px, 48px); opacity: 0; }
+  8% { opacity: 1; }
+  34% { transform: translate(0, 0); opacity: 1; }
+  41% { transform: translate(2px, 2px); }
+  47% { transform: translate(0, 0); }
+  82% { transform: translate(0, 0); opacity: 1; }
+  90%, 100% { opacity: 0; transform: translate(0, 0); }
+}
+@keyframes js-btn-press {
+  0%, 39% { transform: scale(1); }
+  43% { transform: scale(0.92); }
+  50% { transform: scale(1); }
+  100% { transform: scale(1); }
+}
+@keyframes js-popup {
+  0%, 47% { opacity: 0; transform: scale(0.85) translateY(8px); }
+  54% { opacity: 1; transform: scale(1) translateY(0); }
+  82% { opacity: 1; transform: scale(1) translateY(0); }
+  90%, 100% { opacity: 0; transform: scale(0.94) translateY(-3px); }
+}
+
+/* TypeScript — types appear, then bad call → fix cycle */
+@keyframes ts-type-a {
+  0%, 4% { opacity: 0; transform: translateX(-6px); }
+  12% { opacity: 1; transform: translateX(0); }
+  92% { opacity: 1; transform: translateX(0); }
+  97%, 100% { opacity: 0; transform: translateX(-2px); }
+}
+@keyframes ts-type-b {
+  0%, 10% { opacity: 0; transform: translateX(-6px); }
+  18% { opacity: 1; transform: translateX(0); }
+  92% { opacity: 1; transform: translateX(0); }
+  97%, 100% { opacity: 0; transform: translateX(-2px); }
+}
+@keyframes ts-type-r {
+  0%, 16% { opacity: 0; transform: translateX(-6px); }
+  24% { opacity: 1; transform: translateX(0); }
+  92% { opacity: 1; transform: translateX(0); }
+  97%, 100% { opacity: 0; transform: translateX(-2px); }
+}
+@keyframes ts-bad {
+  0%, 26% { opacity: 0; }
+  33%, 52% { opacity: 1; }
+  58%, 100% { opacity: 0; }
+}
+@keyframes ts-good {
+  0%, 56% { opacity: 0; }
+  62%, 90% { opacity: 1; }
+  95%, 100% { opacity: 0; }
+}
+@keyframes ts-squiggly {
+  0%, 32% { opacity: 0; transform: scaleX(0); }
+  38%, 52% { opacity: 1; transform: scaleX(1); }
+  58%, 100% { opacity: 0; transform: scaleX(0); }
+}
+@keyframes ts-tooltip {
+  0%, 36% { opacity: 0; transform: translateY(-2px); }
+  44%, 52% { opacity: 1; transform: translateY(0); }
+  58%, 100% { opacity: 0; }
+}
+@keyframes ts-check-in {
+  0%, 60% { opacity: 0; transform: scale(0.5); }
+  66% { opacity: 1; transform: scale(1.15); }
+  72%, 90% { opacity: 1; transform: scale(1); }
+  95%, 100% { opacity: 0; transform: scale(0.8); }
+}
+
+/* React — state updating on click */
+@keyframes react-num-0 {
+  0%, 42% { opacity: 1; transform: scale(1); }
+  46%, 92% { opacity: 0; transform: scale(0.7); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes react-num-1 {
+  0%, 46% { opacity: 0; transform: scale(0.7); }
+  52% { opacity: 1; transform: scale(1.1); }
+  58%, 88% { opacity: 1; transform: scale(1); }
+  92%, 100% { opacity: 0; transform: scale(0.7); }
+}
+@keyframes react-btn-press {
+  0%, 42% { transform: scale(1); }
+  46% { transform: scale(0.9); }
+  51% { transform: scale(1); }
+  100% { transform: scale(1); }
+}
+@keyframes react-flash {
+  0%, 46% { box-shadow: 0 0 0 0 rgba(97, 218, 251, 0); }
+  51% { box-shadow: 0 0 0 14px rgba(97, 218, 251, 0.45); }
+  62%, 100% { box-shadow: 0 0 0 0 rgba(97, 218, 251, 0); }
+}
+@keyframes react-render-chip {
+  0%, 44% { opacity: 0; transform: translateY(4px) scale(0.9); }
+  52% { opacity: 1; transform: translateY(0) scale(1); }
+  60% { opacity: 1; transform: translateY(0) scale(1); }
+  68%, 100% { opacity: 0; transform: translateY(-3px) scale(0.95); }
+}
+@keyframes react-cursor {
+  0% { transform: translate(55px, 38px); opacity: 0; }
+  8% { opacity: 1; }
+  38% { transform: translate(0, 0); opacity: 1; }
+  46% { transform: translate(2px, 2px); }
+  52% { transform: translate(0, 0); }
+  85% { transform: translate(0, 0); opacity: 1; }
+  92%, 100% { opacity: 0; }
+}
+
+/* Testing — tests running, checks appearing */
+@keyframes test-row {
+  0%, 6% { opacity: 0; transform: translateX(-6px); }
+  18% { opacity: 1; transform: translateX(0); }
+  88% { opacity: 1; transform: translateX(0); }
+  94%, 100% { opacity: 0; }
+}
+@keyframes test-spinner {
+  0%, 10% { opacity: 0; transform: rotate(0deg); }
+  18% { opacity: 1; }
+  34% { opacity: 1; transform: rotate(540deg); }
+  38%, 100% { opacity: 0; }
+}
+@keyframes test-check {
+  0%, 34% { opacity: 0; transform: scale(0.5); }
+  40% { opacity: 1; transform: scale(1.3); }
+  48%, 88% { opacity: 1; transform: scale(1); }
+  94%, 100% { opacity: 0; }
+}
+@keyframes test-summary {
+  0%, 34% { opacity: 0; transform: translateY(6px); }
+  42% { opacity: 1; transform: translateY(0); }
+  82% { opacity: 1; transform: translateY(0); }
+  92%, 100% { opacity: 0; transform: translateY(-2px); }
+}
+
+/* Next steps — cards sliding in from the right, forming a menu of options */
+@keyframes ns-card {
+  0%, 4% { opacity: 0; transform: translateX(22px); }
+  16% { opacity: 1; transform: translateX(0); }
+  82% { opacity: 1; transform: translateX(0); }
+  92%, 100% { opacity: 0; transform: translateX(-8px); }
+}
+@keyframes ns-arrow {
+  0%, 15% { opacity: 0; transform: translateX(-2px); }
+  28%, 82% { opacity: 1; transform: translateX(0); }
+  92%, 100% { opacity: 0; }
+}

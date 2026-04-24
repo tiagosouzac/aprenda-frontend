@@ -4,11 +4,44 @@ Every lesson page must follow this structure to keep the course consistent and s
 
 ## Required sections (in order)
 
-1. **Hero** — page title (`<h1>`) and a one-sentence description of what the student will learn
+1. **Hero** — eyebrow + page title (`<h1>`) + one-sentence description of what the student will learn (see pattern below)
 2. **Introduction** — 2–4 paragraphs explaining the concept and why it matters, before any code
 3. **Sections** — one `<section>` per major sub-topic, each with an `<h2>` heading
 4. **Code examples** — placed inside the relevant section, never standalone at the top
 5. **Summary** — brief recap (`<h2>Resumo</h2>`) of the key points covered
+
+## Lesson hero pattern
+
+Every lesson hero uses the same visual frame as the homepage hero (see `design-system.md`).
+
+- **Eyebrow** — three pieces: `/ módulo 0X` in mono · divider · `subtítulo editorial` in italic serif. The eyebrow must carry information the title doesn't (see `copy-voice.md`)
+- **Title** — `.font-display` with one word in italic serif (`var(--font-serif)`). Accent lands on the editorial word, never on the technical term
+- **Module accent color** — use the module's token (`--color-web`, `--color-html`, etc.) for the dot in the eyebrow and any small markers in the hero. Do not introduce a new color per page
+- **Description** — one short paragraph below the title, `text-ink/70` on light background, max ~52ch wide
+
+Example scaffold:
+
+```astro
+<section class="relative bg-canvas pt-24 pb-16 lg:pt-32">
+  <div class="mx-auto max-w-[1000px] px-6 lg:px-10">
+    <div class="flex items-center gap-3 mb-8">
+      <span class="mono text-[11px] tracking-[0.18em] uppercase text-mute">
+        <span style="color: var(--color-html);">●</span> / módulo 02
+      </span>
+      <span class="h-px w-10 bg-line"></span>
+      <span class="eyebrow text-[15px] text-ink">estrutura semântica</span>
+    </div>
+    <h1 class="font-display text-[clamp(2.5rem,7vw,5rem)] leading-[0.98] font-medium tracking-[-0.035em]">
+      HTML como
+      <span class="font-serif italic font-normal" style="font-family: var(--font-serif);">fundação</span>
+      semântica.
+    </h1>
+    <p class="mt-6 max-w-[52ch] text-[17px] leading-[1.6] text-ink/70">
+      Uma linha descrevendo o que o aluno vai aprender nesta lição.
+    </p>
+  </div>
+</section>
+```
 
 ## Section anatomy
 

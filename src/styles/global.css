@@ -140,6 +140,103 @@ body {
 }
 
 /* ========================================================================
+   Lesson reading prose — typographic container for body copy on lesson pages
+   ======================================================================== */
+
+.lesson-prose {
+  font-size: 17px;
+  line-height: 1.72;
+  color: rgba(10, 10, 11, 0.82);
+}
+.lesson-prose > * + * {
+  margin-top: 1.15em;
+}
+.lesson-prose p {
+  max-width: 62ch;
+}
+.lesson-prose strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.lesson-prose em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.02em;
+}
+.lesson-prose code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: rgba(10, 10, 11, 0.05);
+  padding: 0.12em 0.4em;
+  border-radius: 4px;
+  color: var(--color-ink);
+}
+.lesson-prose pre code {
+  color: var(--color-bone);
+  padding: 0;
+}
+.lesson-prose a {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(10, 10, 11, 0.25);
+  transition: text-decoration-color 200ms;
+}
+.lesson-prose a:hover {
+  text-decoration-color: var(--color-ink);
+}
+.lesson-prose ul {
+  list-style: none;
+  padding-left: 1em;
+  max-width: 62ch;
+}
+.lesson-prose ul > li {
+  position: relative;
+  padding-left: 0.75em;
+}
+.lesson-prose ul > li + li {
+  margin-top: 0.5em;
+}
+.lesson-prose ul > li::before {
+  content: "◦";
+  position: absolute;
+  left: -0.5em;
+  color: var(--color-mute);
+}
+.lesson-prose ol {
+  list-style: none;
+  counter-reset: lesson-step;
+  padding-left: 0;
+  max-width: 62ch;
+}
+.lesson-prose ol > li {
+  counter-increment: lesson-step;
+  position: relative;
+  padding-left: 2.6em;
+}
+.lesson-prose ol > li + li {
+  margin-top: 0.7em;
+}
+.lesson-prose ol > li::before {
+  content: counter(lesson-step, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 0.35em;
+  font-family: var(--font-mono);
+  font-size: 0.75em;
+  letter-spacing: 0.14em;
+  color: var(--color-mute);
+}
+.lesson-prose h3 {
+  font-family: var(--font-display);
+  font-size: 1.22em;
+  font-weight: 500;
+  color: var(--color-ink);
+  margin-top: 2em;
+  letter-spacing: -0.015em;
+}
+
+/* ========================================================================
    Module visual animations — narrative loops tied to each module's topic.
    ======================================================================== */
 

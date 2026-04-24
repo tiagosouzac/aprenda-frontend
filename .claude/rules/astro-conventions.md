@@ -4,17 +4,20 @@
 
 ```
 src/
-  pages/       # one .astro file per route, flat (no subdirectories)
-  layouts/     # Layout.astro — shared shell for all pages
-  components/  # reusable .astro components (Nav, CodeBlock, etc.)
+  pages/       # one .astro file per route — subdirectories allowed for sub-lessons (e.g., html/tags.astro → /html/tags)
+  layouts/     # Layout.astro (site shell) + LessonLayout.astro (lesson pages)
+  components/  # reusable .astro components (Nav, Footer, Sidebar, Toc, CodeBlock, LessonSection, etc.)
+  data/        # static data shared across pages (e.g., course.ts — the course structure)
+  styles/      # global.css with Tailwind import + design tokens
 ```
 
 ## Pages
 
-- One `.astro` file per route, named after the route slug (e.g., `how-the-web-works.astro`)
-- Every page must use `Layout.astro` via `<Layout title="...">` — no page-level `<html>` tags
-- The `title` prop must be in pt-BR (e.g., `title="Como a Web Funciona"`)
-- No client-side JS in page shells (`<script>` tags only inside code example blocks as inert text)
+- One `.astro` file per route. Sub-lesson routes (`/html/tags`) live in matching subdirectories (`src/pages/html/tags.astro`)
+- Lesson pages use `<LessonLayout currentHref="...">` — no page-level `<html>` tags, no manual hero/sidebar/breadcrumb/nav
+- Non-lesson pages (the homepage) use `<Layout title="...">` directly
+- The lesson `currentHref` must match an entry in `src/data/course.ts`
+- No client-side JS in page shells (`<script>` tags belong inside reusable components when needed)
 
 ## Components
 
@@ -32,11 +35,12 @@ const { title, href } = Astro.props;
 ---
 ```
 
-## Layout
+## Layouts
 
-- `Layout.astro` owns `<html>`, `<head>`, and `<body>`
-- Navigation is rendered by `Nav.astro`, included inside the layout — never duplicated in pages
-- Accepts a `title` prop; appends site name: `<title>{title} | Aprenda Frontend</title>`
+- `Layout.astro` owns `<html>`, `<head>` and `<body>`. It includes `Nav.astro` at the top and `Footer.astro` at the bottom. Used by the homepage and any non-lesson page.
+- `LessonLayout.astro` wraps `Layout` and adds the lesson chrome: left `Sidebar` (course tree), `Breadcrumb`, hero, content slot, `LessonNav` (prev/next), right `Toc`. Reads everything from `src/data/course.ts` based on the `currentHref` prop.
+- Navigation (`Nav.astro`) is included only in `Layout.astro` — never duplicate it in pages.
+- `Layout.astro` accepts a `title` prop and appends the site name: `<title>{title} | Aprenda Frontend</title>`.
 
 ## Styling
 

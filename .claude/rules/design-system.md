@@ -109,8 +109,39 @@ The home alternates: light (Hero) → dark (Modules) → light (StartCTA) → da
 - **Thematic illustrations**: prefer loop animations that narrate what the module teaches (see homepage module visuals). Avoid purely decorative motion
 - **Micro-interactions**: underline swap on hover, translate-x on arrow icons, scale on pill buttons
 
+## Lesson reading prose
+
+`.lesson-prose` is the typographic container for body copy on lesson pages, defined in `src/styles/global.css`. It styles:
+
+- Body paragraphs (max-width 62ch, line-height 1.72)
+- Ordered lists with mono `01 02 …` markers (decimal-leading-zero)
+- Unordered lists with `◦` bullet
+- Inline `<code>` with subtle gray background
+- `<em>` rendered in Instrument Serif italic
+- Links with a soft underline that darkens on hover
+- `<h3>` in display font, smaller than the section `<h2>`
+
+`LessonSection` already wraps its slot in `.lesson-prose`. Apply it manually only on the introduction block above the first `LessonSection`.
+
+## Lesson page composition (3-column)
+
+Lesson pages render in three columns at xl+ (1280px+):
+
+| Column | Width | Content |
+|---|---|---|
+| Left | 220px | `Sidebar.astro` — full course tree from `course.ts`, sticky, current module/lesson highlighted |
+| Center | up to 720px | `Breadcrumb`, hero, lesson body, `LessonNav` (prev/next) |
+| Right | 200px | `Toc.astro` — h2 titles of current page, sticky, scroll-spy |
+
+- At lg (1024–1279px), the TOC column drops; sidebar + content remain
+- Below lg, both side columns are hidden; content takes full width with prose maxing at 62ch
+
+`LessonLayout.astro` orchestrates this — pages don't deal with the grid directly.
+
 ## Where the rules live
 
-- Tokens, keyframes, utility classes: `src/styles/global.css`
-- Shared chrome (nav, footer, layout): `src/layouts/Layout.astro`, `src/components/Nav.astro`, `src/components/Footer.astro`
-- Homepage sections (reference implementations): `src/components/Hero.astro`, `src/components/ModulesSection.astro`, `src/components/StartCTA.astro`
+- Tokens, keyframes, utility classes (`.font-display`, `.eyebrow`, `.mono`, `.lesson-prose`, etc.): `src/styles/global.css`
+- Course structure (modules + lessons): `src/data/course.ts`
+- Site shell (nav, footer): `src/layouts/Layout.astro`, `src/components/Nav.astro`, `src/components/Footer.astro`
+- Lesson chrome: `src/layouts/LessonLayout.astro`, `src/components/Sidebar.astro`, `src/components/Toc.astro`, `src/components/Breadcrumb.astro`, `src/components/LessonNav.astro`, `src/components/LessonSection.astro`, `src/components/CodeBlock.astro`
+- Homepage sections (reference implementations of the visual language): `src/components/Hero.astro`, `src/components/ModulesSection.astro`, `src/components/StartCTA.astro`

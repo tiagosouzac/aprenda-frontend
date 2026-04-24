@@ -1,0 +1,109 @@
+---
+import Layout from "./Layout.astro";
+import Sidebar from "../components/Sidebar.astro";
+import Toc from "../components/Toc.astro";
+import Breadcrumb from "../components/Breadcrumb.astro";
+import LessonNav from "../components/LessonNav.astro";
+import {
+  findLesson,
+  findLessonModule,
+  findAdjacentLessons,
+} from "../data/course";
+
+interface Props {
+  currentHref: string;
+  metaTitle?: string;
+  metaDescription?: string;
+}
+
+const { currentHref, metaTitle, metaDescription } = Astro.props;
+
+const lesson = findLesson(currentHref);
+const courseModule = findLessonModule(currentHref);
+
+if (!lesson || !courseModule) {
+  throw new Error(`Lesson not found in course data: ${currentHref}`);
+}
+
+const hero = lesson.hero;
+const { prev, next } = findAdjacentLessons(currentHref);
+
+const pageTitle = metaTitle ?? lesson.title;
+const pageDescription =
+  metaDescription ?? hero?.description ?? `Aula sobre ${lesson.title}.`;
+
+const crumbs = [
+  { label: "aprenda frontend", href: "/" },
+  { label: courseModule.name, href: courseModule.rootHref },
+  { label: lesson.title },
+];
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+  <div class="relative bg-canvas">
+    <div
+      class="mx-auto max-w-[1360px] px-6 lg:px-10 lg:grid lg:grid-cols-[220px_minmax(0,680px)] xl:grid-cols-[1fr_minmax(0,720px)_1fr] lg:gap-10 xl:gap-14"
+    >
+      <!-- Left: course sidebar -->
+      <aside class="hidden lg:block">
+        <Sidebar currentHref={currentHref} />
+      </aside>
+
+      <!-- Center: main content -->
+      <main class="min-w-0 pt-10 lg:pt-12">
+        <Breadcrumb crumbs={crumbs} />
+
+        {
+          hero && (
+            <header class="pt-8 pb-12 lg:pt-16 lg:pb-14 border-b border-line/70">
+              <div class="flex items-center gap-3 mb-7 rise rise-1">
+                <span class="mono text-[11px] tracking-[0.18em] uppercase text-mute inline-flex items-center gap-2">
+                  <span
+                    class="inline-block h-1.5 w-1.5 rounded-full"
+                    style={`background:${courseModule.color}`}
+                  />
+                  módulo {courseModule.number}
+                </span>
+                <span class="h-px w-8 bg-line" />
+                <span class="eyebrow text-[15px] text-ink">
+                  {courseModule.label.toLowerCase()}
+                </span>
+              </div>
+
+              <h1
+                class="font-display text-[clamp(2.25rem,5.4vw,4.25rem)] leading-[1] font-medium tracking-[-0.03em] text-ink rise rise-2"
+                style="font-variation-settings: 'opsz' 96, 'wdth' 100;"
+              >
+                {hero.titleBefore}
+                <span
+                  class="font-serif italic font-normal"
+                  style="font-family: var(--font-serif);"
+                >
+                  {hero.titleAccent}
+                </span>
+                {hero.titleAfter}
+              </h1>
+
+              <p class="mt-6 max-w-[56ch] text-[17px] leading-[1.62] text-ink/70 rise rise-3">
+                {hero.description}
+              </p>
+            </header>
+          )
+        }
+
+        <div class="pt-10 pb-4">
+          <slot />
+        </div>
+
+        <LessonNav prev={prev} next={next} />
+
+        <div class="h-20"></div>
+      </main>
+
+      <!-- Right: in-page TOC (xl+ only) -->
+      <aside class="hidden xl:block">
+        <Toc />
+      </aside>
+    </div>
+  </div>
+</Layout>

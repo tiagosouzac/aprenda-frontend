@@ -31,10 +31,10 @@ Each page is a standalone lesson with explanations, code examples, and exercises
 
 ## Conventions
 
-- One `.astro` file per route under `src/pages/`
-- Shared layout in `src/layouts/Layout.astro` — all pages use it
-- Navigation component in `src/components/Nav.astro` — included in the layout
-- Code examples inline in the page, wrapped in `<pre><code>` blocks
+- One `.astro` file per route under `src/pages/`. Sub-lessons live in subdirectories matching the URL (e.g., `/html/tags` → `src/pages/html/tags.astro`)
+- Site shell in `src/layouts/Layout.astro` (nav + footer). Lesson pages use `src/layouts/LessonLayout.astro` which wraps `Layout` and adds sidebar / breadcrumb / hero / TOC / prev-next
+- Course structure (modules + lessons) lives in `src/data/course.ts` — the source of truth for the homepage modules list, lesson sidebar, breadcrumbs, and prev/next navigation. Edit this file *before* creating a new lesson page
+- Code examples use the `<CodeBlock />` component (renders `<pre><code class="language-X">` inside a styled frame)
 - Keep pages self-contained; avoid heavy client-side JS in the site shell
 
 ## Content outline

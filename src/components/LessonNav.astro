@@ -1,0 +1,103 @@
+---
+import type { AdjacentLesson } from "../data/course";
+
+interface Props {
+  prev?: AdjacentLesson;
+  next?: AdjacentLesson;
+}
+
+const { prev, next } = Astro.props;
+---
+
+<nav
+  aria-label="Navegação entre aulas"
+  class="mt-14 pt-10 border-t border-line grid grid-cols-1 sm:grid-cols-2 gap-3"
+>
+  {
+    prev ? (
+      <a
+        href={prev.lesson.href}
+        class="group flex items-center gap-4 rounded-xl border border-line px-5 py-4 hover:border-ink transition-colors"
+      >
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-canvas ring-1 ring-line text-ink/70 group-hover:bg-ink group-hover:text-canvas group-hover:ring-ink transition-colors">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            class="transition-transform group-hover:-translate-x-0.5"
+            aria-hidden="true"
+          >
+            <path
+              d="M19 12H5M12 5l-7 7 7 7"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </span>
+        <span class="min-w-0">
+          <span class="block mono text-[10.5px] tracking-[0.18em] uppercase text-mute">
+            aula anterior
+          </span>
+          <span class="mt-1 flex items-center gap-2">
+            <span
+              class="inline-block h-1.5 w-1.5 rounded-full shrink-0"
+              style={`background:${prev.module.color}`}
+            />
+            <span class="text-[14px] font-medium text-ink truncate">
+              {prev.lesson.title}
+            </span>
+          </span>
+        </span>
+      </a>
+    ) : (
+      <div />
+    )
+  }
+
+  {
+    next ? (
+      <a
+        href={next.lesson.href}
+        class="group flex items-center gap-4 rounded-xl border border-line px-5 py-4 hover:border-ink transition-colors sm:flex-row-reverse sm:text-right"
+      >
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-canvas ring-1 ring-line text-ink/70 group-hover:bg-ink group-hover:text-canvas group-hover:ring-ink transition-colors">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            class="transition-transform group-hover:translate-x-0.5"
+            aria-hidden="true"
+          >
+            <path
+              d="M5 12h14M13 5l7 7-7 7"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </span>
+        <span class="min-w-0">
+          <span class="block mono text-[10.5px] tracking-[0.18em] uppercase text-mute">
+            próxima aula
+          </span>
+          <span class="mt-1 flex items-center gap-2 sm:flex-row-reverse">
+            <span
+              class="inline-block h-1.5 w-1.5 rounded-full shrink-0"
+              style={`background:${next.module.color}`}
+            />
+            <span class="text-[14px] font-medium text-ink truncate">
+              {next.lesson.title}
+            </span>
+          </span>
+        </span>
+      </a>
+    ) : (
+      <div />
+    )
+  }
+</nav>

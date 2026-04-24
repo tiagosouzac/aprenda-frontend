@@ -1,0 +1,30 @@
+---
+interface Props {
+  lang: "html" | "css" | "js" | "ts" | "jsx" | "tsx" | "bash" | "json" | "http";
+  code: string;
+  caption?: string;
+}
+
+const { lang, code, caption } = Astro.props;
+---
+
+<figure class="my-8 not-prose">
+  <div class="rounded-xl overflow-hidden bg-night ring-1 ring-line-dark shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
+    <div class="flex items-center justify-between px-4 py-2.5 bg-white/[0.03] border-b border-white/10">
+      <span class="mono text-[10.5px] tracking-[0.18em] uppercase text-white/55">{lang}</span>
+      <div class="flex items-center gap-1">
+        <span class="h-1.5 w-1.5 rounded-full bg-white/20"></span>
+        <span class="h-1.5 w-1.5 rounded-full bg-white/20"></span>
+        <span class="h-1.5 w-1.5 rounded-full bg-white/20"></span>
+      </div>
+    </div>
+    <pre class="px-5 py-4 overflow-x-auto mono text-[13px] leading-[1.7] text-white/90"><code class={`language-${lang}`}>{code.trim()}</code></pre>
+  </div>
+  {
+    caption && (
+      <figcaption class="mt-3 text-[13.5px] leading-[1.55] text-mute italic">
+        {caption}
+      </figcaption>
+    )
+  }
+</figure>

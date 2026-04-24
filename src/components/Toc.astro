@@ -1,0 +1,83 @@
+---
+// Table of contents built at runtime from h2 headings of <section id> elements on the page.
+---
+
+<nav class="sticky top-[90px] pt-6 pb-20">
+  <div class="mono text-[10.5px] tracking-[0.2em] uppercase text-mute mb-6">
+    nesta página
+  </div>
+  <ul id="lessonTocList" class="ml-[3px] border-l border-line space-y-0.5" role="list"></ul>
+</nav>
+
+<script>
+  const list = document.getElementById("lessonTocList");
+  if (list) {
+    const sections = Array.from(
+      document.querySelectorAll<HTMLElement>("main section[id]")
+    );
+
+    type Item = {
+      el: HTMLElement;
+      link: HTMLAnchorElement;
+      bar: HTMLSpanElement;
+    };
+    const items: Item[] = [];
+
+    sections.forEach((s) => {
+      const h2 = s.querySelector("h2");
+      if (!h2 || !s.id) return;
+
+      const li = document.createElement("li");
+      li.className = "relative";
+
+      const a = document.createElement("a");
+      a.href = `#${s.id}`;
+      a.className =
+        "block pl-4 py-1 text-[13px] leading-[1.4] text-mute hover:text-ink transition-colors";
+      a.textContent = h2.textContent?.trim() ?? "";
+
+      const bar = document.createElement("span");
+      bar.className =
+        "absolute left-[-1px] top-[7px] bottom-[7px] w-[2px] bg-ink transition-opacity";
+      bar.style.opacity = "0";
+
+      li.appendChild(bar);
+      li.appendChild(a);
+      list.appendChild(li);
+
+      items.push({ el: s, link: a, bar });
+    });
+
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const anchor = window.innerHeight * 0.28;
+      let activeIdx = -1;
+      items.forEach((item, i) => {
+        const top = item.el.getBoundingClientRect().top;
+        if (top <= anchor) activeIdx = i;
+      });
+      if (activeIdx === -1 && items.length > 0) {
+        const firstTop = items[0].el.getBoundingClientRect().top;
+        if (firstTop < window.innerHeight) activeIdx = 0;
+      }
+      items.forEach((item, i) => {
+        const active = i === activeIdx;
+        item.link.classList.toggle("text-ink", active);
+        item.link.classList.toggle("text-mute", !active);
+        item.link.classList.toggle("font-medium", active);
+        item.bar.style.opacity = active ? "1" : "0";
+      });
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(update);
+        ticking = true;
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", update);
+    update();
+  }
+</script>

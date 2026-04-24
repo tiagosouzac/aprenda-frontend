@@ -8,17 +8,23 @@ Each example must teach exactly one concept. If an example needs a second concep
 
 ## Format
 
+Use the `<CodeBlock />` component from `src/components/CodeBlock.astro` — it renders the canonical `<pre><code class="language-X">` shape inside a styled dark frame with a language badge and an optional caption.
+
 ```astro
-<pre><code class="language-js">
-// pt-BR comment explaining the concept
+<CodeBlock
+  lang="js"
+  code={`// cria uma saudação e imprime no console
 const greeting = "Olá, mundo!";
-console.log(greeting); // Olá, mundo!
-</code></pre>
+console.log(greeting); // Olá, mundo!`}
+  caption="Variável declarada com const, impressa no console."
+/>
 ```
 
-- Always set `class="language-{lang}"` for syntax highlighting compatibility
-- Supported language tokens: `html`, `css`, `js`, `ts`, `jsx`, `tsx`, `bash`, `json`
-- Inline output comments (`// output`) are encouraged to show what code produces
+- `lang` — `html | css | js | ts | jsx | tsx | bash | json`
+- `code` — multi-line template literal; rendered as plain text inside the code block
+- `caption` — optional figcaption rendered below in italic
+
+Inline output comments (`// output`) are encouraged to show what the code produces.
 
 ## Content of examples
 

@@ -1,0 +1,75 @@
+---
+import { course } from "../data/course";
+
+interface Props {
+  currentHref: string;
+}
+
+const { currentHref } = Astro.props;
+---
+
+<nav class="sticky top-[90px] pt-6 pb-20 text-[14px]">
+  <div class="mono text-[10.5px] tracking-[0.2em] uppercase text-mute mb-6">
+    índice do curso
+  </div>
+
+  <ul class="space-y-3.5" role="list">
+    {
+      course.map((m) => {
+        const isCurrentModule = m.lessons.some((l) => l.href === currentHref);
+        const hasMultipleLessons = m.lessons.length > 1;
+        return (
+          <li>
+            <a
+              href={m.rootHref}
+              class:list={[
+                "flex items-center gap-2.5 py-0.5 transition-colors",
+                isCurrentModule ? "text-ink" : "text-ink/65 hover:text-ink",
+              ]}
+            >
+              <span
+                class="inline-block h-1.5 w-1.5 rounded-full shrink-0"
+                style={`background:${m.color}`}
+              />
+              <span class="mono text-[10.5px] tracking-[0.18em] uppercase text-mute shrink-0">
+                {m.number}
+              </span>
+              <span class:list={["text-[13.5px] tracking-tight", isCurrentModule && "font-medium"]}>
+                {m.name}
+              </span>
+            </a>
+
+            {isCurrentModule && hasMultipleLessons && (
+              <ul class="mt-2 ml-[7px] pl-0 border-l border-line space-y-0.5" role="list">
+                {m.lessons.map((lesson) => {
+                  const isCurrentLesson = lesson.href === currentHref;
+                  return (
+                    <li class="relative">
+                      <a
+                        href={lesson.href}
+                        class:list={[
+                          "block pl-4 py-1 text-[13px] leading-[1.4] transition-colors",
+                          isCurrentLesson
+                            ? "text-ink font-medium"
+                            : "text-mute hover:text-ink",
+                        ]}
+                      >
+                        {isCurrentLesson && (
+                          <span
+                            class="absolute left-[-1px] top-[7px] bottom-[7px] w-[2px]"
+                            style={`background:${m.color}`}
+                          />
+                        )}
+                        {lesson.title}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </li>
+        );
+      })
+    }
+  </ul>
+</nav>

@@ -1,82 +1,129 @@
 # Page Structure
 
-Every lesson page must follow this structure to keep the course consistent and scannable.
+How lesson pages are organized. All lessons use the same `LessonLayout` and share a small set of components — adding a new lesson is mostly a data + content task.
 
-## Required sections (in order)
+## URL convention
 
-1. **Hero** — eyebrow + page title (`<h1>`) + one-sentence description of what the student will learn (see pattern below)
-2. **Introduction** — 2–4 paragraphs explaining the concept and why it matters, before any code
-3. **Sections** — one `<section>` per major sub-topic, each with an `<h2>` heading
-4. **Code examples** — placed inside the relevant section, never standalone at the top
-5. **Summary** — brief recap (`<h2>Resumo</h2>`) of the key points covered
+- `/{module-slug}` — module landing / first lesson (e.g., `/how-the-web-works`, `/html`)
+- `/{module-slug}/{lesson-slug}` — sub-lesson within a module (e.g., `/html/tags`, `/html/semantica`)
 
-## Lesson hero pattern
+The page file mirrors the URL: `/html/tags` → `src/pages/html/tags.astro`.
 
-Every lesson hero uses the same visual frame as the homepage hero (see `design-system.md`).
+## Source of truth
 
-- **Eyebrow** — three pieces: `/ módulo 0X` in mono · divider · `subtítulo editorial` in italic serif. The eyebrow must carry information the title doesn't (see `copy-voice.md`)
-- **Title** — `.font-display` with one word in italic serif (`var(--font-serif)`). Accent lands on the editorial word, never on the technical term
-- **Module accent color** — use the module's token (`--color-web`, `--color-html`, etc.) for the dot in the eyebrow and any small markers in the hero. Do not introduce a new color per page
-- **Description** — one short paragraph below the title, `text-ink/70` on light background, max ~52ch wide
+The course structure lives in `src/data/course.ts`:
 
-Example scaffold:
+- Each `CourseModule` has metadata (`number`, `label`, `color`, `rootHref`) and an array of `lessons`
+- Each `Lesson` has `slug`, `title`, `href`, and an optional `hero` (`titleBefore`, `titleAccent`, `titleAfter`, `description`)
+- `LessonLayout` reads this file to render the sidebar, breadcrumb, hero and prev/next
+
+**Edit `course.ts` before creating a new page.**
+
+## Adding a new lesson — workflow
+
+1. Add a `Lesson` entry to the module's `lessons` array in `src/data/course.ts`.
+   - Include the `hero` block when the lesson should render a title + description above the content.
+2. Create the page at `src/pages/{href}.astro`.
+3. Render `<LessonLayout currentHref="/the/href">` — that's the only required prop.
+4. Inside the layout slot, write the lesson body using `LessonSection` and `CodeBlock`.
+
+Example minimum page:
 
 ```astro
-<section class="relative bg-canvas pt-24 pb-16 lg:pt-32">
-  <div class="mx-auto max-w-[1000px] px-6 lg:px-10">
-    <div class="flex items-center gap-3 mb-8">
-      <span class="mono text-[11px] tracking-[0.18em] uppercase text-mute">
-        <span style="color: var(--color-html);">●</span> / módulo 02
-      </span>
-      <span class="h-px w-10 bg-line"></span>
-      <span class="eyebrow text-[15px] text-ink">estrutura semântica</span>
-    </div>
-    <h1 class="font-display text-[clamp(2.5rem,7vw,5rem)] leading-[0.98] font-medium tracking-[-0.035em]">
-      HTML como
-      <span class="font-serif italic font-normal" style="font-family: var(--font-serif);">fundação</span>
-      semântica.
-    </h1>
-    <p class="mt-6 max-w-[52ch] text-[17px] leading-[1.6] text-ink/70">
-      Uma linha descrevendo o que o aluno vai aprender nesta lição.
-    </p>
+---
+import LessonLayout from "../layouts/LessonLayout.astro";
+import LessonSection from "../components/LessonSection.astro";
+---
+
+<LessonLayout currentHref="/html/tags">
+  <div class="lesson-prose">
+    <p>Introdução em 2-4 parágrafos.</p>
   </div>
-</section>
+
+  <LessonSection number="01" title="Tags básicas" id="tags-basicas">
+    <p>Conteúdo da seção em pt-BR.</p>
+  </LessonSection>
+
+  <LessonSection title="Resumo" id="resumo">
+    <ul>
+      <li>Recap do que foi visto.</li>
+    </ul>
+  </LessonSection>
+</LessonLayout>
 ```
+
+## Required body structure
+
+Inside the layout slot:
+
+1. **Introduction** — a `<div class="lesson-prose">` with 2–4 paragraphs framing the topic, before any `LessonSection`
+2. **Sections** — one `<LessonSection>` per sub-topic, in pedagogical order
+3. **Summary** — a final `<LessonSection title="Resumo">` (no `number`) recapping the key points
+
+The hero, breadcrumb, sidebar, TOC and prev/next nav are rendered automatically by `LessonLayout` — never duplicate them in pages.
 
 ## Section anatomy
 
 ```astro
-<section>
-  <h2>Nome do Subtópico</h2>
-  <p>Explanation in pt-BR...</p>
+<LessonSection number="03" title="HTTP — a conversa" id="http">
+  <p>Explicação em pt-BR.</p>
 
-  <pre><code class="language-html">
-    <!-- example code here -->
-  </code></pre>
-</section>
+  <CodeBlock
+    lang="bash"
+    code={httpRequest}
+    caption="Legenda opcional do exemplo."
+  />
+
+  <ul>
+    <li>Item de lista</li>
+  </ul>
+</LessonSection>
 ```
 
-## Heading hierarchy
+- `title` — required, rendered as `<h2>`
+- `id` — required for sections that should appear in the right-side TOC and the URL hash
+- `number` — optional mono prefix (`01`, `02`, …); omit on the Resumo section
 
-- `<h1>` — page title, once per page
-- `<h2>` — major section
-- `<h3>` — subsection within a major section
-- Never skip levels (no `<h1>` → `<h3>`)
+## Body copy
+
+All prose inside `LessonSection` is auto-styled by `.lesson-prose`:
+
+- Paragraphs and lists (max width 62ch)
+- Ordered lists with mono `01 02 …` markers
+- Unordered lists with `◦` bullet
+- Inline `<code>` with subtle gray background
+- `<em>` renders in Instrument Serif italic
+- `<strong>` for important terms
+- `<h3>` for subsections within a section (use sparingly)
+
+The introduction block (above the first section) is plain prose, so wrap it manually in `<div class="lesson-prose">`.
 
 ## Code examples
 
-- Wrapped in `<pre><code class="language-{lang}">` — always declare the language
-- Short and focused: illustrate one concept at a time
-- Include a pt-BR comment explaining what the example shows when it is not obvious
-- Prefer realistic over toy examples (real HTML tags, real CSS properties, real JS patterns)
+Use `<CodeBlock lang="..." code={...} caption="..." />` from `src/components/CodeBlock.astro`. See `code-examples.md` for content guidelines (what to put inside the code).
 
-## Navigation aids
+## Heading hierarchy
 
-- Each page must have a "breadcrumb" or back link to `/` at the top
-- At the bottom, a "próxima aula" link pointing to the next module in sequence
+- `<h1>` — page title, rendered by `LessonLayout` from the lesson `hero`
+- `<h2>` — section title, rendered by `<LessonSection title="...">`
+- `<h3>` — subsection inside a section's body
+- Never skip levels
+
+## Navigation aids (automatic)
+
+`LessonLayout` renders:
+
+- **Breadcrumb** at the top — `aprenda frontend / {module name} / {lesson title}`
+- **Sidebar** (lg+) — full course tree from `course.ts`, current module/lesson highlighted
+- **TOC** (xl+) — built at runtime from `<section id="...">` `<h2>` titles, with scroll-spy
+- **Prev / next lesson** — derived from the lesson's position in `course.ts`
+
+You don't write any of these in the page.
 
 ## What to avoid
 
-- Walls of text without code — always alternate explanation and example
+- Walls of text without code — alternate explanation and example
 - Exercises that require external tools not yet introduced in the course
-- Forward references to modules not yet covered (exception: a brief "you will learn this in the React module" mention is fine)
+- Forward references to modules not yet covered (a brief "você vai ver isso no módulo de React" is fine)
+- Hardcoding hero, breadcrumb, sidebar or nav inside pages — that lives in `course.ts`
+- Forgetting `id` on a section that should appear in the right TOC

@@ -22,6 +22,7 @@ const { currentHref } = Astro.props;
           <li>
             <a
               href={m.rootHref}
+              data-lesson-href={m.lessons.length === 1 ? m.rootHref : undefined}
               class:list={[
                 "flex items-center gap-2.5 py-0.5 transition-colors",
                 isCurrentModule ? "text-ink" : "text-ink/65 hover:text-ink",
@@ -34,8 +35,13 @@ const { currentHref } = Astro.props;
               <span class="mono text-[10.5px] tracking-[0.18em] uppercase text-mute shrink-0">
                 {m.number}
               </span>
-              <span class:list={["text-[13.5px] tracking-tight", isCurrentModule && "font-medium"]}>
+              <span class:list={["text-[13.5px] tracking-tight flex-1", isCurrentModule && "font-medium"]}>
                 {m.name}
+              </span>
+              <span class="progress-check opacity-0 transition-opacity" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
               </span>
             </a>
 
@@ -47,8 +53,9 @@ const { currentHref } = Astro.props;
                     <li class="relative">
                       <a
                         href={lesson.href}
+                        data-lesson-href={lesson.href}
                         class:list={[
-                          "block pl-4 py-1 text-[13px] leading-[1.4] transition-colors",
+                          "flex items-center pl-4 py-1 text-[13px] leading-[1.4] transition-colors",
                           isCurrentLesson
                             ? "text-ink font-medium"
                             : "text-mute hover:text-ink",
@@ -60,7 +67,12 @@ const { currentHref } = Astro.props;
                             style={`background:${m.color}`}
                           />
                         )}
-                        {lesson.title}
+                        <span class="flex-1">{lesson.title}</span>
+                        <span class="progress-check opacity-0 transition-opacity mr-1" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        </span>
                       </a>
                     </li>
                   );
@@ -73,3 +85,23 @@ const { currentHref } = Astro.props;
     }
   </ul>
 </nav>
+
+<script>
+  const STORAGE_KEY = "aprenda-progress";
+
+  function updateSidebarProgress() {
+    const completed = new Set<string>(
+      JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]")
+    );
+    document.querySelectorAll<HTMLElement>("[data-lesson-href]").forEach((el) => {
+      const href = el.getAttribute("data-lesson-href");
+      const check = el.querySelector<HTMLElement>(".progress-check");
+      if (check) {
+        check.style.opacity = href && completed.has(href) ? "1" : "0";
+      }
+    });
+  }
+
+  updateSidebarProgress();
+  document.addEventListener("progress-update", updateSidebarProgress);
+</script>

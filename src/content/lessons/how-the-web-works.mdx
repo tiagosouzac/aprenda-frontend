@@ -9,6 +9,60 @@ hero:
 
 import LessonSection from '../../components/LessonSection.astro';
 import CodeBlock from '../../components/CodeBlock.astro';
+import LessonQuiz from '../../components/LessonQuiz.astro';
+
+export const quizQuestions = [
+  {
+    question: "Qual é a função do DNS na web?",
+    options: [
+      "Traduzir nomes de domínio em endereços IP",
+      "Criptografar a conexão entre cliente e servidor",
+      "Armazenar uma cópia local das páginas visitadas",
+      "Verificar a segurança do site antes de carregar",
+    ],
+    correct: 0,
+  },
+  {
+    question: "O que um status code 404 indica?",
+    options: [
+      "A requisição foi processada com sucesso",
+      "O cliente não tem permissão para acessar o recurso",
+      "O recurso pedido não foi encontrado no servidor",
+      "O servidor encontrou um erro interno inesperado",
+    ],
+    correct: 2,
+  },
+  {
+    question: "Qual é a ordem correta das etapas de renderização do navegador?",
+    options: [
+      "Layout → Parse do HTML → Parse do CSS → Paint → Render tree",
+      "Parse do CSS → Parse do HTML → Layout → Render tree → Paint",
+      "Render tree → Parse do HTML → Paint → Layout → Parse do CSS",
+      "Parse do HTML → Parse do CSS → Render tree → Layout → Paint",
+    ],
+    correct: 3,
+  },
+  {
+    question: "Na arquitetura web, o que diferencia cliente de servidor?",
+    options: [
+      "O servidor exibe as páginas; o cliente armazena os dados",
+      "O cliente faz requisições; o servidor responde com recursos",
+      "Ambos têm a mesma função, mas em máquinas diferentes",
+      "O cliente é sempre mais rápido; o servidor, mais lento",
+    ],
+    correct: 1,
+  },
+  {
+    question: "Qual método HTTP é usado para buscar (ler) um recurso existente?",
+    options: [
+      "PUT",
+      "DELETE",
+      "POST",
+      "GET",
+    ],
+    correct: 3,
+  },
+];
 
 export const dnsLookup = `# Você pode consultar o DNS direto do terminal
 dig example.com +short
@@ -187,7 +241,7 @@ Content-Length: 1256
   </p>
 </LessonSection>
 
-<LessonSection title="Resumo" id="resumo">
+<LessonSection title="Resumo" id="resumo" >
   <ul>
     <li>Uma URL vira um endereço IP através do DNS.</li>
     <li>
@@ -208,3 +262,5 @@ Content-Length: 1256
     </li>
   </ul>
 </LessonSection>
+
+<LessonQuiz questions={quizQuestions} lessonHref="/how-the-web-works" />

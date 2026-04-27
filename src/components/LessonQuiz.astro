@@ -1,0 +1,630 @@
+---
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correct: number; // 0-based index in the original options array
+}
+
+interface Props {
+  questions: QuizQuestion[];
+  lessonHref: string;
+}
+
+const { questions, lessonHref } = Astro.props;
+---
+
+<section
+  class="quiz-root mt-16 pt-12 border-t border-line"
+  aria-label="Checkpoint da aula"
+>
+  <div class="flex items-center gap-3 mb-10">
+    <span class="mono text-[11px] tracking-[0.18em] uppercase text-mute">/ checkpoint</span>
+    <span class="h-px w-10 bg-line"></span>
+    <span class="eyebrow text-[15px] text-ink/70">verifique seu entendimento</span>
+  </div>
+
+  <div id="quiz-body" class="max-w-[58ch]"></div>
+</section>
+
+<!-- ─── styles ─── -->
+<style>
+  /* ── step header ── */
+  :global(.quiz-step-header) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.75rem;
+  }
+  :global(.quiz-step-counter) {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-mute);
+  }
+  :global(.quiz-dots) {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  :global(.quiz-dot) {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-line);
+    background: transparent;
+    transition: background 180ms, border-color 180ms, transform 180ms;
+  }
+  :global(.quiz-dot.done) {
+    border-color: var(--color-ink);
+    background: var(--color-ink);
+  }
+  :global(.quiz-dot.active) {
+    border-color: var(--color-ink);
+    transform: scale(1.35);
+  }
+
+  /* ── question ── */
+  :global(.quiz-question) {
+    margin-bottom: 1.5rem;
+  }
+  :global(.quiz-q-label) {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 0.875rem;
+  }
+  :global(.quiz-q-num) {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-mute);
+    padding-top: 0.3em;
+    flex-shrink: 0;
+  }
+  :global(.quiz-q-text) {
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--color-ink);
+    font-weight: 500;
+    margin: 0 0 1rem;
+    font-family: var(--font-sans);
+  }
+  :global(.quiz-opts) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  /* ── option button ── */
+  :global(.quiz-opt) {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    text-align: left;
+    padding: 0.8rem 1rem;
+    border-radius: 0.625rem;
+    border: 1px solid var(--color-line);
+    background: transparent;
+    color: rgba(10, 10, 11, 0.68);
+    font-size: 14.5px;
+    line-height: 1.45;
+    cursor: pointer;
+    transition: border-color 120ms, background 120ms, color 120ms, opacity 120ms;
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "ss02";
+  }
+  :global(.quiz-opt:hover:not(:disabled):not(.sel)) {
+    border-color: rgba(10, 10, 11, 0.22);
+    background: rgba(10, 10, 11, 0.025);
+    color: var(--color-ink);
+  }
+  :global(.quiz-opt.sel) {
+    border-color: var(--color-ink);
+    background: var(--color-ink);
+    color: #f4f2ed;
+  }
+  :global(.quiz-opt.opt-ok) {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.09);
+    color: #166534;
+    cursor: default;
+  }
+  :global(.quiz-opt.opt-wrong) {
+    border-color: #fca5a5;
+    background: #fef2f2;
+    color: #b91c1c;
+    text-decoration: line-through;
+    cursor: default;
+  }
+  :global(.quiz-opt.opt-dim) {
+    opacity: 0.32;
+    cursor: default;
+  }
+  :global(.quiz-opt:disabled) {
+    cursor: default;
+  }
+
+  /* ── nav footer ── */
+  :global(.quiz-nav) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  :global(.quiz-nav-prev) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 40px;
+    padding: 0 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-line);
+    background: transparent;
+    color: var(--color-mute);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: border-color 140ms, color 140ms;
+  }
+  :global(.quiz-nav-prev:hover:not(:disabled)) {
+    border-color: var(--color-ink);
+    color: var(--color-ink);
+  }
+  :global(.quiz-nav-prev:disabled) {
+    opacity: 0.22;
+    cursor: default;
+  }
+  :global(.quiz-nav-next) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 40px;
+    padding: 0 1.125rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-ink);
+    background: var(--color-ink);
+    color: #f4f2ed;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: opacity 140ms;
+  }
+  :global(.quiz-nav-next:hover:not(:disabled)) { opacity: 0.82; }
+  :global(.quiz-nav-next:disabled) { opacity: 0.28; cursor: not-allowed; }
+
+  /* ── submit ── */
+  :global(.quiz-submit) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 40px;
+    padding: 0 1.125rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-ink);
+    background: var(--color-ink);
+    color: #f4f2ed;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: opacity 140ms;
+  }
+  :global(.quiz-submit:hover:not(:disabled)) { opacity: 0.82; }
+  :global(.quiz-submit:disabled) { opacity: 0.28; cursor: not-allowed; }
+
+  /* ── error block ── */
+  :global(.quiz-err-block) {
+    margin-top: 2rem;
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    border: 1px solid #fecaca;
+    background: #fef9f9;
+  }
+  :global(.quiz-err-title) {
+    font-size: 15px;
+    font-weight: 600;
+    color: #991b1b;
+    font-family: var(--font-sans);
+    margin: 0 0 0.2rem;
+  }
+  :global(.quiz-err-sub) {
+    font-size: 13.5px;
+    color: #b91c1c;
+    margin: 0;
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+
+  /* ── retry ── */
+  :global(.quiz-retry) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    height: 38px;
+    padding: 0 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-line);
+    background: transparent;
+    color: var(--color-ink);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: border-color 140ms;
+  }
+  :global(.quiz-retry:hover) { border-color: var(--color-ink); }
+
+  /* ── success (centered) ── */
+  :global(.quiz-success) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2.5rem 0 1.5rem;
+    animation: quiz-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  :global(.quiz-check-ring) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1.5px solid #22c55e;
+    margin-bottom: 1.25rem;
+  }
+  :global(.check-path) {
+    stroke-dasharray: 24;
+    stroke-dashoffset: 24;
+    animation: draw-check 500ms 150ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  :global(.quiz-success-title) {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--color-ink);
+    margin: 0 0 0.35rem;
+    font-variation-settings: "opsz" 96, "wdth" 100;
+  }
+  :global(.quiz-success-sub) {
+    font-size: 14px;
+    color: var(--color-mute);
+    margin: 0 0 1.5rem;
+    font-family: var(--font-sans);
+  }
+
+  /* ── error result questions ── */
+  :global(.quiz-result-question) {
+    margin-bottom: 2rem;
+  }
+
+  /* ── outcome buttons row ── */
+  :global(.quiz-btns) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  /* ── results details ── */
+  :global(.quiz-results-details) {
+    width: 100%;
+    text-align: left;
+  }
+  :global(.quiz-results-details > summary) {
+    display: none;
+  }
+  :global(.quiz-results-list) {
+    border-top: 1px solid var(--color-line);
+    padding-top: 1.75rem;
+    margin-top: 1.75rem;
+    animation: quiz-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* ── X animation ── */
+  :global(.x-line-1) {
+    stroke-dasharray: 12;
+    stroke-dashoffset: 12;
+    animation: draw-x 320ms 80ms ease-out forwards;
+  }
+  :global(.x-line-2) {
+    stroke-dasharray: 12;
+    stroke-dashoffset: 12;
+    animation: draw-x 320ms 230ms ease-out forwards;
+  }
+
+  @keyframes quiz-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes draw-check {
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes draw-x {
+    to { stroke-dashoffset: 0; }
+  }
+</style>
+
+<!-- ─── logic ─── -->
+<script is:inline define:vars={{ initialQuestions: questions, lessonHref }}>
+(function () {
+  var STORAGE_KEY = "aprenda-progress";
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function getCompleted() {
+    return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"));
+  }
+
+  function markComplete() {
+    var s = getCompleted();
+    s.add(lessonHref);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(s)));
+    document.dispatchEvent(new CustomEvent("progress-update"));
+  }
+
+  var body = document.getElementById("quiz-body");
+  if (!body) return;
+
+  // ── state (before entry point) ────────────────────────────────
+  var qs = [];
+  var ans = {};
+  var step = 0;
+
+  // ── entry point ───────────────────────────────────────────────
+  if (getCompleted().has(lessonHref)) {
+    renderSuccess();
+  } else {
+    initQuiz();
+  }
+
+  // ── functions ─────────────────────────────────────────────────
+
+  function buildShuffled() {
+    return shuffle(initialQuestions.slice()).map(function (q) {
+      var idxs = shuffle(q.options.map(function (_, i) { return i; }));
+      return {
+        question: q.question,
+        options: idxs.map(function (i) { return q.options[i]; }),
+        correct: idxs.indexOf(q.correct),
+      };
+    });
+  }
+
+  function initQuiz() {
+    qs = buildShuffled();
+    ans = {};
+    step = 0;
+    renderStep();
+  }
+
+  function renderStep() {
+    body.innerHTML = "";
+
+    var q = qs[step];
+    var isFirst = step === 0;
+    var isLast = step === qs.length - 1;
+    var answered = ans[step] !== undefined;
+
+    // ── step header: counter + dots ──
+    var header = document.createElement("div");
+    header.className = "quiz-step-header";
+
+    var counter = document.createElement("span");
+    counter.className = "quiz-step-counter";
+    counter.textContent = "questão " + (step + 1) + " de " + qs.length;
+
+    var dotsWrap = document.createElement("div");
+    dotsWrap.className = "quiz-dots";
+    qs.forEach(function (_, i) {
+      var dot = document.createElement("span");
+      dot.className = "quiz-dot" +
+        (ans[i] !== undefined ? " done" : "") +
+        (i === step ? " active" : "");
+      dotsWrap.appendChild(dot);
+    });
+
+    header.appendChild(counter);
+    header.appendChild(dotsWrap);
+    body.appendChild(header);
+
+    // ── question + options ──
+    var qWrap = document.createElement("div");
+    qWrap.className = "quiz-question";
+
+    var qtxt = document.createElement("p");
+    qtxt.className = "quiz-q-text";
+    qtxt.textContent = q.question;
+    qWrap.appendChild(qtxt);
+
+    var optsWrap = document.createElement("div");
+    optsWrap.className = "quiz-opts";
+    q.options.forEach(function (opt, oi) {
+      var optBtn = document.createElement("button");
+      optBtn.className = "quiz-opt" + (ans[step] === oi ? " sel" : "");
+      optBtn.textContent = opt;
+      optBtn.addEventListener("click", (function (capturedOi) {
+        return function () { selectOpt(capturedOi); };
+      })(oi));
+      optsWrap.appendChild(optBtn);
+    });
+    qWrap.appendChild(optsWrap);
+    body.appendChild(qWrap);
+
+    // ── nav footer ──
+    var nav = document.createElement("div");
+    nav.className = "quiz-nav";
+
+    var prevBtn = document.createElement("button");
+    prevBtn.className = "quiz-nav-prev";
+    prevBtn.disabled = isFirst;
+    prevBtn.innerHTML =
+      '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7"/></svg> Anterior';
+    prevBtn.addEventListener("click", goPrev);
+    nav.appendChild(prevBtn);
+
+    if (isLast) {
+      var submitBtn = document.createElement("button");
+      submitBtn.className = "quiz-submit";
+      submitBtn.disabled = !answered;
+      submitBtn.innerHTML =
+        'Verificar respostas <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:middle"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+      submitBtn.addEventListener("click", handleSubmit);
+      nav.appendChild(submitBtn);
+    } else {
+      var nextBtn = document.createElement("button");
+      nextBtn.className = "quiz-nav-next";
+      nextBtn.disabled = !answered;
+      nextBtn.innerHTML =
+        'Próxima <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+      nextBtn.addEventListener("click", goNext);
+      nav.appendChild(nextBtn);
+    }
+
+    body.appendChild(nav);
+  }
+
+  function selectOpt(oi) {
+    ans[step] = oi;
+
+    // update option visuals
+    body.querySelectorAll(".quiz-opt").forEach(function (b) { b.classList.remove("sel"); });
+    body.querySelectorAll(".quiz-opt")[oi].classList.add("sel");
+
+    // enable next/submit
+    var actionBtn = body.querySelector(".quiz-nav-next, .quiz-submit");
+    if (actionBtn) actionBtn.disabled = false;
+
+    // mark current dot as done
+    var dots = body.querySelectorAll(".quiz-dot");
+    if (dots[step]) dots[step].classList.add("done");
+  }
+
+  function goNext() {
+    if (step < qs.length - 1) { step++; renderStep(); }
+  }
+
+  function goPrev() {
+    if (step > 0) { step--; renderStep(); }
+  }
+
+  function handleSubmit() {
+    var allOk = qs.every(function (q, qi) { return ans[qi] === q.correct; });
+    if (allOk) {
+      markComplete();
+      renderSuccess();
+    } else {
+      renderError();
+    }
+  }
+
+  function renderSuccess() {
+    var countLine = qs.length > 0
+      ? '<p class="quiz-success-sub">' + qs.length + " de " + qs.length + " questões certas.</p>"
+      : '<p class="quiz-success-sub">Todas as questões respondidas corretamente.</p>';
+
+    body.innerHTML =
+      '<div class="quiz-success">' +
+        '<div class="quiz-check-ring">' +
+          '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+            '<polyline class="check-path" points="20 6 9 17 4 12"/>' +
+          "</svg>" +
+        "</div>" +
+        '<p class="quiz-success-title">Aula concluída</p>' +
+        countLine +
+        '<button class="quiz-retry quiz-redo-btn">Refazer o quiz</button>' +
+      "</div>";
+
+    var redoBtn = body.querySelector(".quiz-redo-btn");
+    if (redoBtn) redoBtn.addEventListener("click", initQuiz);
+  }
+
+  function renderError() {
+    var wrongCount = qs.filter(function (q, qi) { return ans[qi] !== q.correct; }).length;
+
+    body.innerHTML =
+      '<div class="quiz-success">' +
+        '<div class="quiz-check-ring" style="border-color:#ef4444">' +
+          '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+            '<line class="x-line-1" x1="8" y1="8" x2="16" y2="16"/>' +
+            '<line class="x-line-2" x1="16" y1="8" x2="8" y2="16"/>' +
+          '</svg>' +
+        '</div>' +
+        '<p class="quiz-success-title">Quase lá.</p>' +
+        '<p class="quiz-success-sub">Você errou ' + wrongCount + ' de ' + qs.length + ' questões.</p>' +
+        '<div class="quiz-btns">' +
+          '<button class="quiz-retry quiz-toggle-btn">Ver os resultados</button>' +
+          '<button class="quiz-retry quiz-redo-btn">' +
+            '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>' +
+            ' Refazer o quiz' +
+          '</button>' +
+        '</div>' +
+        '<details class="quiz-results-details">' +
+          '<summary></summary>' +
+          '<div class="quiz-results-list"></div>' +
+        '</details>' +
+      '</div>';
+
+    // populate results list
+    var list = body.querySelector(".quiz-results-list");
+    qs.forEach(function (q, qi) {
+      var wrap = document.createElement("div");
+      wrap.className = "quiz-result-question";
+
+      var label = document.createElement("div");
+      label.className = "quiz-q-label";
+      var num = document.createElement("span");
+      num.className = "quiz-q-num";
+      num.textContent = String(qi + 1).padStart(2, "0");
+      var txt = document.createElement("p");
+      txt.className = "quiz-q-text";
+      txt.style.margin = "0";
+      txt.textContent = q.question;
+      label.appendChild(num);
+      label.appendChild(txt);
+      wrap.appendChild(label);
+
+      var optsWrap = document.createElement("div");
+      optsWrap.className = "quiz-opts";
+      optsWrap.style.paddingLeft = "2.25rem";
+      q.options.forEach(function (opt, oi) {
+        var optBtn = document.createElement("button");
+        optBtn.className = "quiz-opt";
+        optBtn.textContent = opt;
+        optBtn.disabled = true;
+        if (oi === q.correct) { optBtn.classList.add("opt-ok"); }
+        else if (ans[qi] === oi) { optBtn.classList.add("opt-wrong"); }
+        else { optBtn.classList.add("opt-dim"); }
+        optsWrap.appendChild(optBtn);
+      });
+      wrap.appendChild(optsWrap);
+      list.appendChild(wrap);
+    });
+
+    // toggle results
+    var details = body.querySelector(".quiz-results-details");
+    var toggleBtn = body.querySelector(".quiz-toggle-btn");
+    toggleBtn.addEventListener("click", function () {
+      details.open = !details.open;
+      toggleBtn.textContent = details.open ? "Ocultar resultados" : "Ver os resultados";
+    });
+
+    body.querySelector(".quiz-redo-btn").addEventListener("click", initQuiz);
+  }
+
+})();
+</script>

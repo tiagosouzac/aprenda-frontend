@@ -1,0 +1,37 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Página não encontrada">
+  <main class="flex min-h-[70vh] items-center justify-center px-6">
+    <div class="text-center max-w-[42ch]">
+      <div class="flex items-center justify-center gap-3 mb-10">
+        <span class="mono text-[11px] tracking-[0.18em] uppercase text-mute">/ erro</span>
+        <span class="h-px w-10 bg-line"></span>
+        <span class="eyebrow text-[15px] text-ink">página não encontrada</span>
+      </div>
+
+      <p
+        class="font-display text-[clamp(5rem,18vw,10rem)] leading-none font-medium tracking-[-0.04em] text-ink/10 select-none"
+        style="font-variation-settings: 'opsz' 96, 'wdth' 100;"
+        aria-hidden="true"
+      >
+        404
+      </p>
+
+      <p class="mt-8 text-[17px] leading-[1.65] text-ink/65 max-w-[38ch] mx-auto">
+        Esta página não existe. Pode ter sido removida ou o endereço está incorreto.
+      </p>
+
+      <a
+        href="/"
+        class="inline-flex items-center gap-2 mt-10 h-11 px-5 rounded-lg border border-line text-[14px] font-medium text-ink/80 hover:border-ink hover:text-ink transition-colors"
+      >
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 12H5M12 5l-7 7 7 7" />
+        </svg>
+        voltar ao início
+      </a>
+    </div>
+  </main>
+</Layout>

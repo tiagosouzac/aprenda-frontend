@@ -12,7 +12,7 @@ const modules = [
 ---
 
 <header
-  class="sticky top-0 z-50 bg-canvas/85 backdrop-blur-md border-b border-line"
+  class="relative sticky top-0 z-50 bg-canvas/85 backdrop-blur-md border-b border-line"
 >
   <div class="mx-auto max-w-[1360px] px-6 lg:px-10 h-[66px] flex items-center justify-between">
     <a href="/" class="flex items-center gap-2.5 group">
@@ -50,13 +50,77 @@ const modules = [
           ></path>
         </svg>
       </a>
+
+      <!-- desktop: jump to modules section on home -->
       <a
-        href="#modulos"
-        class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md border border-line text-[13px] font-medium text-ink/80 hover:border-ink hover:text-ink transition-colors"
+        href="/#modulos"
+        class="hidden lg:inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md border border-line text-[13px] font-medium text-ink/80 hover:border-ink hover:text-ink transition-colors"
       >
         módulos
         <span class="mono text-[11px] text-mute">·8</span>
       </a>
+
+      <!-- mobile: hamburger button -->
+      <button
+        id="nav-toggle"
+        class="lg:hidden flex items-center justify-center h-9 w-9 rounded-md text-ink/60 hover:text-ink hover:bg-ink/5 transition-colors"
+        aria-label="Abrir menu"
+        aria-expanded="false"
+        aria-controls="nav-mobile-menu"
+      >
+        <svg id="nav-icon-open" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+          <path d="M3 6h18M3 12h18M3 18h18" />
+        </svg>
+        <svg id="nav-icon-close" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" class="hidden">
+          <path d="M6 6l12 12M6 18L18 6" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- mobile dropdown menu -->
+  <div
+    id="nav-mobile-menu"
+    class="hidden lg:hidden absolute top-full left-0 right-0 bg-canvas border-b border-line shadow-md z-50"
+    role="navigation"
+    aria-label="Módulos do curso"
+  >
+    <div class="mx-auto max-w-[1360px] px-6 py-4 grid grid-cols-2 gap-x-6 gap-y-0.5">
+      {
+        modules.map((m) => (
+          <a
+            href={m.href}
+            class="px-2 py-2.5 text-[14px] text-ink/75 hover:text-ink transition-colors rounded-md hover:bg-ink/5"
+          >
+            {m.label}
+          </a>
+        ))
+      }
     </div>
   </div>
 </header>
+
+<script>
+  const toggle = document.getElementById("nav-toggle");
+  const menu = document.getElementById("nav-mobile-menu");
+  const iconOpen = document.getElementById("nav-icon-open");
+  const iconClose = document.getElementById("nav-icon-close");
+
+  toggle?.addEventListener("click", () => {
+    const isOpen = !menu?.classList.contains("hidden");
+    menu?.classList.toggle("hidden", isOpen);
+    toggle.setAttribute("aria-expanded", String(!isOpen));
+    iconOpen?.classList.toggle("hidden", !isOpen);
+    iconClose?.classList.toggle("hidden", isOpen);
+  });
+
+  // close menu when a link is clicked
+  menu?.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      menu.classList.add("hidden");
+      toggle?.setAttribute("aria-expanded", "false");
+      iconOpen?.classList.remove("hidden");
+      iconClose?.classList.add("hidden");
+    });
+  });
+</script>

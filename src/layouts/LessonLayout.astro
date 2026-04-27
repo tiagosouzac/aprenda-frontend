@@ -10,13 +10,21 @@ import {
   findAdjacentLessons,
 } from "../data/course";
 
+interface LessonHero {
+  titleBefore: string;
+  titleAccent: string;
+  titleAfter: string;
+  description: string;
+}
+
 interface Props {
   currentHref: string;
+  hero?: LessonHero;
   metaTitle?: string;
   metaDescription?: string;
 }
 
-const { currentHref, metaTitle, metaDescription } = Astro.props;
+const { currentHref, hero, metaTitle, metaDescription } = Astro.props;
 
 const lesson = findLesson(currentHref);
 const courseModule = findLessonModule(currentHref);
@@ -25,7 +33,6 @@ if (!lesson || !courseModule) {
   throw new Error(`Lesson not found in course data: ${currentHref}`);
 }
 
-const hero = lesson.hero;
 const { prev, next } = findAdjacentLessons(currentHref);
 
 const pageTitle = metaTitle ?? lesson.title;
@@ -56,7 +63,7 @@ const crumbs = [
         {
           hero && (
             <header class="pt-8 pb-12 lg:pt-16 lg:pb-14 border-b border-line/70">
-              <div class="flex items-center gap-3 mb-7 rise rise-1">
+              <div class="flex items-center gap-3 mb-7">
                 <span class="mono text-[11px] tracking-[0.18em] uppercase text-mute inline-flex items-center gap-2">
                   <span
                     class="inline-block h-1.5 w-1.5 rounded-full"
@@ -71,7 +78,7 @@ const crumbs = [
               </div>
 
               <h1
-                class="font-display text-[clamp(2.25rem,5.4vw,4.25rem)] leading-[1] font-medium tracking-[-0.03em] text-ink rise rise-2"
+                class="font-display text-[clamp(2.25rem,5.4vw,4.25rem)] leading-[1] font-medium tracking-[-0.03em] text-ink"
                 style="font-variation-settings: 'opsz' 96, 'wdth' 100;"
               >
                 {hero.titleBefore}
@@ -84,7 +91,7 @@ const crumbs = [
                 {hero.titleAfter}
               </h1>
 
-              <p class="mt-6 max-w-[56ch] text-[17px] leading-[1.62] text-ink/70 rise rise-3">
+              <p class="mt-6 max-w-[56ch] text-[17px] leading-[1.62] text-ink/70">
                 {hero.description}
               </p>
             </header>

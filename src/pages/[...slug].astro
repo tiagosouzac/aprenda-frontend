@@ -1,0 +1,24 @@
+---
+import { getCollection, render } from 'astro:content';
+import LessonLayout from '../layouts/LessonLayout.astro';
+
+export async function getStaticPaths() {
+  const lessons = await getCollection('lessons');
+  return lessons.map((lesson) => ({
+    params: { slug: lesson.id },
+    props: { lesson },
+  }));
+}
+
+const { lesson } = Astro.props;
+const { Content } = await render(lesson);
+const href = `/${lesson.id}`;
+
+const hero = lesson.data.hero
+  ? { ...lesson.data.hero, description: lesson.data.description }
+  : undefined;
+---
+
+<LessonLayout currentHref={href} hero={hero} metaDescription={lesson.data.description}>
+  <Content />
+</LessonLayout>

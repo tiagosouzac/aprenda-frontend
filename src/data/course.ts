@@ -1,15 +1,7 @@
-export interface LessonHero {
-  titleBefore: string;
-  titleAccent: string;
-  titleAfter: string;
-  description: string;
-}
-
 export interface Lesson {
   slug: string;
   title: string;
   href: string;
-  hero?: LessonHero;
 }
 
 export interface CourseModule {
@@ -35,13 +27,6 @@ export const course: CourseModule[] = [
         slug: "intro",
         title: "Como a web funciona",
         href: "/how-the-web-works",
-        hero: {
-          titleBefore: "Como a web",
-          titleAccent: "realmente",
-          titleAfter: "funciona.",
-          description:
-            "O que acontece entre digitar uma URL e ver a página carregar — DNS, HTTP, status codes e o pipeline de renderização do navegador.",
-        },
       },
     ],
   },

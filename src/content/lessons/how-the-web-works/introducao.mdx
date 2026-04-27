@@ -7,9 +7,9 @@ hero:
   titleAfter: "funciona."
 ---
 
-import LessonSection from '../../components/LessonSection.astro';
-import CodeBlock from '../../components/CodeBlock.astro';
-import LessonQuiz from '../../components/LessonQuiz.astro';
+import LessonSection from '../../../components/LessonSection.astro';
+import CodeBlock from '../../../components/CodeBlock.astro';
+import LessonQuiz from '../../../components/LessonQuiz.astro';
 
 export const quizQuestions = [
   {
@@ -263,4 +263,4 @@ Content-Length: 1256
   </ul>
 </LessonSection>
 
-<LessonQuiz questions={quizQuestions} lessonHref="/how-the-web-works" />
+<LessonQuiz questions={quizQuestions} lessonHref="/how-the-web-works/introducao" />

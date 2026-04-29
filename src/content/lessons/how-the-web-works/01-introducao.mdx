@@ -1,0 +1,152 @@
+---
+title: "Como a web funciona"
+description: "O que acontece entre digitar uma URL e ver a página carregar — DNS, HTTP, status codes e o pipeline de renderização do navegador."
+order: 1
+hero:
+  titleBefore: "Como a web"
+  titleAccent: "realmente"
+  titleAfter: "funciona."
+quiz:
+  - question: "Qual é a função do DNS na web?"
+    options:
+      - "Traduzir nomes de domínio em endereços IP"
+      - "Criptografar a conexão entre cliente e servidor"
+      - "Armazenar uma cópia local das páginas visitadas"
+      - "Verificar a segurança do site antes de carregar"
+    correct: 0
+  - question: "O que um status code 404 indica?"
+    options:
+      - "A requisição foi processada com sucesso"
+      - "O cliente não tem permissão para acessar o recurso"
+      - "O recurso pedido não foi encontrado no servidor"
+      - "O servidor encontrou um erro interno inesperado"
+    correct: 2
+  - question: "Qual é a ordem correta das etapas de renderização do navegador?"
+    options:
+      - "Layout → Parse do HTML → Parse do CSS → Paint → Render tree"
+      - "Parse do CSS → Parse do HTML → Layout → Render tree → Paint"
+      - "Render tree → Parse do HTML → Paint → Layout → Parse do CSS"
+      - "Parse do HTML → Parse do CSS → Render tree → Layout → Paint"
+    correct: 3
+  - question: "Na arquitetura web, o que diferencia cliente de servidor?"
+    options:
+      - "O servidor exibe as páginas; o cliente armazena os dados"
+      - "O cliente faz requisições; o servidor responde com recursos"
+      - "Ambos têm a mesma função, mas em máquinas diferentes"
+      - "O cliente é sempre mais rápido; o servidor, mais lento"
+    correct: 1
+  - question: "Qual método HTTP é usado para buscar (ler) um recurso existente?"
+    options:
+      - "PUT"
+      - "DELETE"
+      - "POST"
+      - "GET"
+    correct: 3
+---
+
+Todo site que você abre — Google, YouTube, seu banco — passa pelas mesmas peças invisíveis no momento em que você pressiona Enter na barra de endereço. Nomes viram endereços numéricos, o navegador conversa com um servidor, bytes atravessam a rede e um documento de texto vira a página na sua tela.
+
+Entender esse caminho muda como você vai escrever HTML, CSS e JavaScript nos próximos módulos. Quando um site quebra, quando carrega devagar, quando algo não aparece — a resposta quase sempre mora em uma dessas peças.
+
+Este módulo percorre a sequência inteira, do endereço digitado até o pixel pintado.
+
+## O caminho de uma URL
+
+Quando você digita `example.com` e pressiona Enter, uma sequência acontece em poucos segundos:
+
+1. O navegador extrai o host da URL e pede ao DNS o IP do servidor.
+2. Abre uma conexão TCP com esse IP.
+3. Se a URL for HTTPS, negocia TLS (o cadeado na barra de endereço).
+4. Envia uma requisição HTTP pedindo o recurso — geralmente a raiz, `/`.
+5. O servidor responde com um status, headers e o conteúdo (normalmente HTML).
+6. O navegador começa a parsear o HTML e baixa os recursos referenciados (CSS, JS, imagens).
+7. Monta a árvore de renderização, calcula o layout e pinta a página.
+
+Cada peça dessa sequência aparece nas próximas seções.
+
+## DNS — do nome ao endereço
+
+Computadores se comunicam usando IPs (endereços numéricos). Pessoas lembram de nomes. O DNS (*Domain Name System*) é a lista telefônica da internet: traduz `example.com` em algo como `93.184.216.34`.
+
+O processo é rápido e invisível. Seu navegador pergunta ao sistema operacional, que consulta o servidor DNS configurado (normalmente o do seu provedor). Esse servidor pode já ter a resposta em cache, ou perguntar para servidores acima dele até chegar no servidor autoritativo do domínio.
+
+```bash title="No terminal, dig resolve o nome e mostra o IP correspondente."
+# Você pode consultar o DNS direto do terminal
+dig example.com +short
+# 93.184.216.34
+```
+
+## HTTP — a conversa entre cliente e servidor
+
+HTTP é o protocolo que define como cliente e servidor conversam. A conversa tem um padrão fixo: o cliente faz uma **requisição**; o servidor devolve uma **resposta**.
+
+A requisição tem um método (o verbo da ação), um caminho (o que se quer), headers (metadados) e, às vezes, um corpo com dados:
+
+```http title="Uma requisição HTTP pedindo a página inicial de example.com."
+GET /index.html HTTP/1.1
+Host: example.com
+Accept: text/html
+User-Agent: Mozilla/5.0
+```
+
+A resposta tem um status (como foi), headers e um corpo com o conteúdo pedido:
+
+```http title="A resposta do servidor, começando pelo status 200 OK e seguindo com o HTML."
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+Content-Length: 1256
+
+<!doctype html>
+<html>...
+```
+
+Os métodos que você vai ver com mais frequência:
+
+- `GET` — buscar um recurso (ler)
+- `POST` — enviar dados para criar algo
+- `PUT` — substituir um recurso existente
+- `DELETE` — remover um recurso
+
+A maior parte do que você abre no navegador é `GET`. Formulários e APIs usam os outros.
+
+## Status codes — o que o servidor está dizendo
+
+Toda resposta começa com um status — três dígitos que resumem o que aconteceu. O primeiro dígito classifica a categoria:
+
+- **2xx — sucesso.** `200 OK`, `201 Created`.
+- **3xx — redirecionamento.** `301 Moved Permanently`, `304 Not Modified`.
+- **4xx — erro do cliente.** `404 Not Found`, `401 Unauthorized`, `403 Forbidden`.
+- **5xx — erro do servidor.** `500 Internal Server Error`, `503 Service Unavailable`.
+
+Você vai encontrar esses códigos o tempo todo na aba Network do devtools. Um 404 significa que o caminho pedido não existe no servidor; um 500, que o servidor encontrou um erro processando a requisição.
+
+## Como o navegador monta a página
+
+Receber o HTML é só o começo. O navegador ainda precisa transformar esse texto numa página visível, e o processo tem etapas bem definidas:
+
+1. **Parse do HTML.** O navegador lê o HTML e monta o DOM (*Document Object Model*), uma árvore em memória que representa a estrutura do documento.
+2. **Parse do CSS.** Em paralelo, as folhas de estilo são lidas e combinadas em outra árvore, o CSSOM (*CSS Object Model*).
+3. **Render tree.** DOM e CSSOM são combinados em uma terceira árvore, só com os elementos visíveis e seus estilos aplicados.
+4. **Layout.** O navegador calcula a posição e o tamanho de cada elemento (também chamado de *reflow*).
+5. **Paint.** Os pixels são desenhados na tela.
+
+Quando você edita um elemento com JavaScript (mudar uma cor, mover algo, adicionar um nó), o navegador pode precisar refazer partes desse pipeline. Por isso certas mudanças são mais caras que outras — assunto que volta no módulo de CSS.
+
+## Cliente vs. servidor
+
+Os termos aparecem o tempo todo e têm uma separação simples:
+
+- **Cliente** é quem pede. Na web, o cliente geralmente é o navegador.
+- **Servidor** é quem responde. Roda em alguma máquina na internet, espera requisições HTTP e devolve conteúdo.
+
+O HTML, CSS e JavaScript que este curso ensina rodam no cliente, no navegador do usuário — por isso são chamados de *frontend*. Do outro lado da requisição, outras linguagens (Node.js, Python, Ruby, Go) rodam no servidor e são chamadas de *backend*.
+
+Frontend e backend não são lados opostos; são camadas complementares separadas pela fronteira da requisição HTTP.
+
+## Resumo
+
+- Uma URL vira um endereço IP através do DNS.
+- O navegador faz uma requisição HTTP para esse IP e recebe uma resposta com status, headers e corpo.
+- O status code resume o que aconteceu — 2xx sucesso, 3xx redirecionamento, 4xx erro do cliente, 5xx erro do servidor.
+- O HTML recebido é parseado em DOM, combinado com o CSS em um render tree, posicionado no layout e pintado na tela.
+- O que roda no navegador é frontend; o que roda do outro lado é backend. A fronteira é a requisição HTTP.

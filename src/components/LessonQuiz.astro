@@ -2,7 +2,7 @@
 export interface QuizQuestion {
   question: string;
   options: string[];
-  correct: number; // 0-based index in the original options array
+  correct: number;
 }
 
 interface Props {
@@ -23,608 +23,447 @@ const { questions, lessonHref } = Astro.props;
     <span class="eyebrow text-[15px] text-ink/70">verifique seu entendimento</span>
   </div>
 
-  <div id="quiz-body" class="max-w-[58ch]"></div>
+  <div data-quiz data-lesson-href={lessonHref}>
+    <!-- Active phase: header + steps + nav -->
+    <div data-quiz-active>
+      <div class="flex items-center justify-between mb-7">
+        <span class="mono text-[10.5px] tracking-[0.18em] uppercase text-mute" data-quiz-counter>
+          questão 1 de {questions.length}
+        </span>
+        <div class="flex items-center gap-[5px]" data-quiz-dots>
+          {questions.map((_, i) => (
+            <span
+              data-dot-index={i}
+              class:list={[
+                "h-[6px] w-[6px] rounded-full border-[1.5px] border-line bg-transparent transition-[background,border-color,transform] duration-200",
+                i === 0 && "border-ink scale-[1.35]",
+              ]}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div data-quiz-steps>
+        {questions.map((q, i) => (
+          <div data-quiz-step={i} class:list={[i !== 0 && "hidden"]}>
+            <p class="text-[16px] leading-[1.55] text-ink font-medium mb-4">{q.question}</p>
+            <div class="flex flex-col gap-[0.45rem]" data-quiz-options>
+              {q.options.map((opt, oi) => (
+                <button
+                  type="button"
+                  data-quiz-option
+                  data-correct={oi === q.correct ? "true" : "false"}
+                  class="quiz-opt flex items-center w-full text-left px-4 py-[0.8rem] rounded-[0.625rem] border border-line bg-transparent text-ink/[0.68] text-[14.5px] leading-[1.45] cursor-pointer transition-[border-color,background,color,opacity] duration-150 hover:border-ink/[0.22] hover:bg-ink/[0.025] hover:text-ink"
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="flex items-center justify-between gap-3 mt-6">
+        <button
+          type="button"
+          data-quiz-prev
+          class="inline-flex items-center gap-[0.4rem] h-10 px-4 rounded-lg border border-line bg-transparent text-mute text-[13px] font-medium cursor-pointer hover:border-ink hover:text-ink transition-colors disabled:opacity-[0.22] disabled:cursor-default"
+          disabled
+        >
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 12H5M12 5l-7 7 7 7" />
+          </svg>
+          Anterior
+        </button>
+        <button
+          type="button"
+          data-quiz-next
+          class="inline-flex items-center gap-2 h-10 px-[1.125rem] rounded-lg border border-ink bg-ink text-bone text-[13px] font-medium cursor-pointer hover:opacity-[0.82] disabled:opacity-[0.28] disabled:cursor-not-allowed transition-opacity"
+          disabled
+        >
+          Próxima
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          data-quiz-submit
+          class="hidden items-center gap-2 h-10 px-[1.125rem] rounded-lg border border-ink bg-ink text-bone text-[13px] font-medium cursor-pointer hover:opacity-[0.82] disabled:opacity-[0.28] disabled:cursor-not-allowed transition-opacity"
+          disabled
+        >
+          Verificar respostas
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Outcome host: filled by script via templates -->
+    <div data-quiz-outcome></div>
+
+    <!-- Success template -->
+    <template data-quiz-success-template>
+      <div class="quiz-fade flex flex-col items-center text-center pt-10 pb-6">
+        <div class="flex items-center justify-center w-[52px] h-[52px] rounded-full border-[1.5px] border-emerald-500 mb-5">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline class="quiz-draw-check" points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <p class="font-display text-[1.5rem] font-medium tracking-[-0.02em] text-ink mb-1" style="font-variation-settings: 'opsz' 96, 'wdth' 100;">
+          Aula concluída
+        </p>
+        <p class="text-[14px] text-mute mb-6" data-success-sub></p>
+        <button
+          type="button"
+          data-quiz-redo
+          class="inline-flex items-center gap-[0.45rem] h-[38px] px-4 rounded-lg border border-line bg-transparent text-ink text-[13px] font-medium cursor-pointer hover:border-ink transition-colors"
+        >
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          Refazer o quiz
+        </button>
+      </div>
+    </template>
+
+    <!-- Error template -->
+    <template data-quiz-error-template>
+      <div class="quiz-fade flex flex-col items-center text-center pt-10 pb-6">
+        <div class="flex items-center justify-center w-[52px] h-[52px] rounded-full border-[1.5px] border-red-500 mb-5">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line class="quiz-draw-x quiz-draw-x-1" x1="8" y1="8" x2="16" y2="16"/>
+            <line class="quiz-draw-x quiz-draw-x-2" x1="16" y1="8" x2="8" y2="16"/>
+          </svg>
+        </div>
+        <p class="font-display text-[1.5rem] font-medium tracking-[-0.02em] text-ink mb-1" style="font-variation-settings: 'opsz' 96, 'wdth' 100;">
+          Quase lá.
+        </p>
+        <p class="text-[14px] text-mute mb-6" data-error-sub></p>
+        <div class="flex items-center justify-center gap-2 flex-wrap">
+          <button
+            type="button"
+            data-quiz-toggle-results
+            class="inline-flex items-center gap-[0.45rem] h-[38px] px-4 rounded-lg border border-line bg-transparent text-ink text-[13px] font-medium cursor-pointer hover:border-ink transition-colors"
+          >
+            Ver os resultados
+          </button>
+          <button
+            type="button"
+            data-quiz-redo
+            class="inline-flex items-center gap-[0.45rem] h-[38px] px-4 rounded-lg border border-line bg-transparent text-ink text-[13px] font-medium cursor-pointer hover:border-ink transition-colors"
+          >
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+            </svg>
+            Refazer o quiz
+          </button>
+        </div>
+        <div class="quiz-fade-fast w-full text-left border-t border-line pt-7 mt-7 hidden" data-results-list></div>
+      </div>
+    </template>
+
+    <!-- Result row template -->
+    <template data-quiz-result-row-template>
+      <div class="mb-8">
+        <div class="flex items-start gap-4 mb-[0.875rem]">
+          <span class="mono text-[10.5px] tracking-[0.18em] uppercase text-mute pt-[0.3em] shrink-0" data-row-num></span>
+          <p class="text-[16px] leading-[1.55] text-ink font-medium m-0" data-row-question></p>
+        </div>
+        <div class="flex flex-col gap-[0.45rem] pl-[2.25rem]" data-row-options></div>
+      </div>
+    </template>
+  </div>
 </section>
 
-<!-- ─── styles ─── -->
 <style>
-  /* ── step header ── */
-  :global(.quiz-step-header) {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.75rem;
-  }
-  :global(.quiz-step-counter) {
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--color-mute);
-  }
-  :global(.quiz-dots) {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  :global(.quiz-dot) {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    border: 1.5px solid var(--color-line);
-    background: transparent;
-    transition: background 180ms, border-color 180ms, transform 180ms;
-  }
-  :global(.quiz-dot.done) {
+  .quiz-opt.is-selected {
     border-color: var(--color-ink);
     background: var(--color-ink);
+    color: var(--color-bone);
   }
-  :global(.quiz-dot.active) {
-    border-color: var(--color-ink);
-    transform: scale(1.35);
-  }
-
-  /* ── question ── */
-  :global(.quiz-question) {
-    margin-bottom: 1.5rem;
-  }
-  :global(.quiz-q-label) {
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-    margin-bottom: 0.875rem;
-  }
-  :global(.quiz-q-num) {
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--color-mute);
-    padding-top: 0.3em;
-    flex-shrink: 0;
-  }
-  :global(.quiz-q-text) {
-    font-size: 16px;
-    line-height: 1.55;
-    color: var(--color-ink);
-    font-weight: 500;
-    margin: 0 0 1rem;
-    font-family: var(--font-sans);
-  }
-  :global(.quiz-opts) {
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
-  }
-
-  /* ── option button ── */
-  :global(.quiz-opt) {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    text-align: left;
-    padding: 0.8rem 1rem;
-    border-radius: 0.625rem;
-    border: 1px solid var(--color-line);
-    background: transparent;
-    color: rgba(10, 10, 11, 0.68);
-    font-size: 14.5px;
-    line-height: 1.45;
-    cursor: pointer;
-    transition: border-color 120ms, background 120ms, color 120ms, opacity 120ms;
-    font-family: var(--font-sans);
-    font-feature-settings: "ss01", "ss02";
-  }
-  :global(.quiz-opt:hover:not(:disabled):not(.sel)) {
-    border-color: rgba(10, 10, 11, 0.22);
-    background: rgba(10, 10, 11, 0.025);
-    color: var(--color-ink);
-  }
-  :global(.quiz-opt.sel) {
+  .quiz-opt.is-selected:hover {
     border-color: var(--color-ink);
     background: var(--color-ink);
-    color: #f4f2ed;
-  }
-  :global(.quiz-opt.opt-ok) {
-    border-color: #22c55e;
-    background: rgba(34, 197, 94, 0.09);
-    color: #166534;
-    cursor: default;
-  }
-  :global(.quiz-opt.opt-wrong) {
-    border-color: #fca5a5;
-    background: #fef2f2;
-    color: #b91c1c;
-    text-decoration: line-through;
-    cursor: default;
-  }
-  :global(.quiz-opt.opt-dim) {
-    opacity: 0.32;
-    cursor: default;
-  }
-  :global(.quiz-opt:disabled) {
-    cursor: default;
+    color: var(--color-bone);
   }
 
-  /* ── nav footer ── */
-  :global(.quiz-nav) {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin-top: 1.5rem;
-  }
-  :global(.quiz-nav-prev) {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    height: 40px;
-    padding: 0 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--color-line);
-    background: transparent;
-    color: var(--color-mute);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    font-family: var(--font-sans);
-    transition: border-color 140ms, color 140ms;
-  }
-  :global(.quiz-nav-prev:hover:not(:disabled)) {
-    border-color: var(--color-ink);
-    color: var(--color-ink);
-  }
-  :global(.quiz-nav-prev:disabled) {
-    opacity: 0.22;
-    cursor: default;
-  }
-  :global(.quiz-nav-next) {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    height: 40px;
-    padding: 0 1.125rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--color-ink);
-    background: var(--color-ink);
-    color: #f4f2ed;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    font-family: var(--font-sans);
-    transition: opacity 140ms;
-  }
-  :global(.quiz-nav-next:hover:not(:disabled)) { opacity: 0.82; }
-  :global(.quiz-nav-next:disabled) { opacity: 0.28; cursor: not-allowed; }
+  .quiz-fade { animation: quiz-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .quiz-fade-fast { animation: quiz-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both; }
 
-  /* ── submit ── */
-  :global(.quiz-submit) {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    height: 40px;
-    padding: 0 1.125rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--color-ink);
-    background: var(--color-ink);
-    color: #f4f2ed;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    font-family: var(--font-sans);
-    transition: opacity 140ms;
-  }
-  :global(.quiz-submit:hover:not(:disabled)) { opacity: 0.82; }
-  :global(.quiz-submit:disabled) { opacity: 0.28; cursor: not-allowed; }
-
-  /* ── error block ── */
-  :global(.quiz-err-block) {
-    margin-top: 2rem;
-    padding: 1.25rem;
-    border-radius: 0.75rem;
-    border: 1px solid #fecaca;
-    background: #fef9f9;
-  }
-  :global(.quiz-err-title) {
-    font-size: 15px;
-    font-weight: 600;
-    color: #991b1b;
-    font-family: var(--font-sans);
-    margin: 0 0 0.2rem;
-  }
-  :global(.quiz-err-sub) {
-    font-size: 13.5px;
-    color: #b91c1c;
-    margin: 0;
-    font-family: var(--font-sans);
-    line-height: 1.5;
-  }
-
-  /* ── retry ── */
-  :global(.quiz-retry) {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    height: 38px;
-    padding: 0 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--color-line);
-    background: transparent;
-    color: var(--color-ink);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    font-family: var(--font-sans);
-    transition: border-color 140ms;
-  }
-  :global(.quiz-retry:hover) { border-color: var(--color-ink); }
-
-  /* ── success (centered) ── */
-  :global(.quiz-success) {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 2.5rem 0 1.5rem;
-    animation: quiz-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-  :global(.quiz-check-ring) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    border: 1.5px solid #22c55e;
-    margin-bottom: 1.25rem;
-  }
-  :global(.check-path) {
+  .quiz-draw-check {
     stroke-dasharray: 24;
     stroke-dashoffset: 24;
-    animation: draw-check 500ms 150ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: quiz-draw 500ms 150ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
-  :global(.quiz-success-title) {
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    color: var(--color-ink);
-    margin: 0 0 0.35rem;
-    font-variation-settings: "opsz" 96, "wdth" 100;
-  }
-  :global(.quiz-success-sub) {
-    font-size: 14px;
-    color: var(--color-mute);
-    margin: 0 0 1.5rem;
-    font-family: var(--font-sans);
-  }
-
-  /* ── error result questions ── */
-  :global(.quiz-result-question) {
-    margin-bottom: 2rem;
-  }
-
-  /* ── outcome buttons row ── */
-  :global(.quiz-btns) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  /* ── results details ── */
-  :global(.quiz-results-details) {
-    width: 100%;
-    text-align: left;
-  }
-  :global(.quiz-results-details > summary) {
-    display: none;
-  }
-  :global(.quiz-results-list) {
-    border-top: 1px solid var(--color-line);
-    padding-top: 1.75rem;
-    margin-top: 1.75rem;
-    animation: quiz-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-
-  /* ── X animation ── */
-  :global(.x-line-1) {
+  .quiz-draw-x {
     stroke-dasharray: 12;
     stroke-dashoffset: 12;
-    animation: draw-x 320ms 80ms ease-out forwards;
+    animation: quiz-draw 320ms ease-out forwards;
   }
-  :global(.x-line-2) {
-    stroke-dasharray: 12;
-    stroke-dashoffset: 12;
-    animation: draw-x 320ms 230ms ease-out forwards;
-  }
+  .quiz-draw-x-1 { animation-delay: 80ms; }
+  .quiz-draw-x-2 { animation-delay: 230ms; }
 
   @keyframes quiz-in {
     from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
+    to { opacity: 1; transform: translateY(0); }
   }
-  @keyframes draw-check {
-    to { stroke-dashoffset: 0; }
-  }
-  @keyframes draw-x {
+  @keyframes quiz-draw {
     to { stroke-dashoffset: 0; }
   }
 </style>
 
-<!-- ─── logic ─── -->
-<script is:inline define:vars={{ initialQuestions: questions, lessonHref }}>
-(function () {
-  var STORAGE_KEY = "aprenda-progress";
+<script>
+  type Outcome = "active" | "success" | "error";
 
-  function shuffle(arr) {
-    var a = arr.slice();
-    for (var i = a.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  interface OptionState {
+    el: HTMLButtonElement;
+    isCorrect: boolean;
+    text: string;
+  }
+
+  interface StepState {
+    el: HTMLElement;
+    questionText: string;
+    options: OptionState[];
+    selected: number | null;
+  }
+
+  const STORAGE_KEY = "aprenda-progress";
+
+  function shuffleInPlace<T>(arr: T[]): T[] {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-    return a;
+    return arr;
   }
 
-  function getCompleted() {
-    return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"));
+  function getCompleted(): Set<string> {
+    return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]"));
   }
 
-  function markComplete() {
-    var s = getCompleted();
-    s.add(lessonHref);
+  function markComplete(href: string) {
+    const s = getCompleted();
+    s.add(href);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(s)));
     document.dispatchEvent(new CustomEvent("progress-update"));
   }
 
-  var body = document.getElementById("quiz-body");
-  if (!body) return;
+  document.querySelectorAll<HTMLElement>("[data-quiz]").forEach((root) => {
+    const lessonHref = root.dataset.lessonHref!;
+    const activePhase = root.querySelector<HTMLElement>("[data-quiz-active]")!;
+    const stepsEl = root.querySelector<HTMLElement>("[data-quiz-steps]")!;
+    const counterEl = root.querySelector<HTMLElement>("[data-quiz-counter]")!;
+    const dotsEl = root.querySelector<HTMLElement>("[data-quiz-dots]")!;
+    const prevBtn = root.querySelector<HTMLButtonElement>("[data-quiz-prev]")!;
+    const nextBtn = root.querySelector<HTMLButtonElement>("[data-quiz-next]")!;
+    const submitBtn = root.querySelector<HTMLButtonElement>("[data-quiz-submit]")!;
+    const outcomeEl = root.querySelector<HTMLElement>("[data-quiz-outcome]")!;
+    const successTpl = root.querySelector<HTMLTemplateElement>("[data-quiz-success-template]")!;
+    const errorTpl = root.querySelector<HTMLTemplateElement>("[data-quiz-error-template]")!;
+    const resultRowTpl = root.querySelector<HTMLTemplateElement>("[data-quiz-result-row-template]")!;
 
-  // ── state (before entry point) ────────────────────────────────
-  var qs = [];
-  var ans = {};
-  var step = 0;
-
-  // ── entry point ───────────────────────────────────────────────
-  if (getCompleted().has(lessonHref)) {
-    renderSuccess();
-  } else {
-    initQuiz();
-  }
-
-  // ── functions ─────────────────────────────────────────────────
-
-  function buildShuffled() {
-    return shuffle(initialQuestions.slice()).map(function (q) {
-      var idxs = shuffle(q.options.map(function (_, i) { return i; }));
+    const originalSteps: StepState[] = Array.from(
+      stepsEl.querySelectorAll<HTMLElement>("[data-quiz-step]"),
+    ).map((stepEl) => {
+      const optionEls = Array.from(
+        stepEl.querySelectorAll<HTMLButtonElement>("[data-quiz-option]"),
+      );
       return {
-        question: q.question,
-        options: idxs.map(function (i) { return q.options[i]; }),
-        correct: idxs.indexOf(q.correct),
+        el: stepEl,
+        questionText: stepEl.querySelector("p")?.textContent?.trim() ?? "",
+        options: optionEls.map((el) => ({
+          el,
+          isCorrect: el.dataset.correct === "true",
+          text: el.textContent?.trim() ?? "",
+        })),
+        selected: null,
       };
     });
-  }
 
-  function initQuiz() {
-    qs = buildShuffled();
-    ans = {};
-    step = 0;
-    renderStep();
-  }
+    let steps: StepState[] = [];
+    let current = 0;
 
-  function renderStep() {
-    body.innerHTML = "";
-
-    var q = qs[step];
-    var isFirst = step === 0;
-    var isLast = step === qs.length - 1;
-    var answered = ans[step] !== undefined;
-
-    // ── step header: counter + dots ──
-    var header = document.createElement("div");
-    header.className = "quiz-step-header";
-
-    var counter = document.createElement("span");
-    counter.className = "quiz-step-counter";
-    counter.textContent = "questão " + (step + 1) + " de " + qs.length;
-
-    var dotsWrap = document.createElement("div");
-    dotsWrap.className = "quiz-dots";
-    qs.forEach(function (_, i) {
-      var dot = document.createElement("span");
-      dot.className = "quiz-dot" +
-        (ans[i] !== undefined ? " done" : "") +
-        (i === step ? " active" : "");
-      dotsWrap.appendChild(dot);
-    });
-
-    header.appendChild(counter);
-    header.appendChild(dotsWrap);
-    body.appendChild(header);
-
-    // ── question + options ──
-    var qWrap = document.createElement("div");
-    qWrap.className = "quiz-question";
-
-    var qtxt = document.createElement("p");
-    qtxt.className = "quiz-q-text";
-    qtxt.textContent = q.question;
-    qWrap.appendChild(qtxt);
-
-    var optsWrap = document.createElement("div");
-    optsWrap.className = "quiz-opts";
-    q.options.forEach(function (opt, oi) {
-      var optBtn = document.createElement("button");
-      optBtn.className = "quiz-opt" + (ans[step] === oi ? " sel" : "");
-      optBtn.textContent = opt;
-      optBtn.addEventListener("click", (function (capturedOi) {
-        return function () { selectOpt(capturedOi); };
-      })(oi));
-      optsWrap.appendChild(optBtn);
-    });
-    qWrap.appendChild(optsWrap);
-    body.appendChild(qWrap);
-
-    // ── nav footer ──
-    var nav = document.createElement("div");
-    nav.className = "quiz-nav";
-
-    var prevBtn = document.createElement("button");
-    prevBtn.className = "quiz-nav-prev";
-    prevBtn.disabled = isFirst;
-    prevBtn.innerHTML =
-      '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7"/></svg> Anterior';
-    prevBtn.addEventListener("click", goPrev);
-    nav.appendChild(prevBtn);
-
-    if (isLast) {
-      var submitBtn = document.createElement("button");
-      submitBtn.className = "quiz-submit";
-      submitBtn.disabled = !answered;
-      submitBtn.innerHTML =
-        'Verificar respostas <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:middle"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
-      submitBtn.addEventListener("click", handleSubmit);
-      nav.appendChild(submitBtn);
-    } else {
-      var nextBtn = document.createElement("button");
-      nextBtn.className = "quiz-nav-next";
-      nextBtn.disabled = !answered;
-      nextBtn.innerHTML =
-        'Próxima <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
-      nextBtn.addEventListener("click", goNext);
-      nav.appendChild(nextBtn);
-    }
-
-    body.appendChild(nav);
-  }
-
-  function selectOpt(oi) {
-    ans[step] = oi;
-
-    // update option visuals
-    body.querySelectorAll(".quiz-opt").forEach(function (b) { b.classList.remove("sel"); });
-    body.querySelectorAll(".quiz-opt")[oi].classList.add("sel");
-
-    // enable next/submit
-    var actionBtn = body.querySelector(".quiz-nav-next, .quiz-submit");
-    if (actionBtn) actionBtn.disabled = false;
-
-    // mark current dot as done
-    var dots = body.querySelectorAll(".quiz-dot");
-    if (dots[step]) dots[step].classList.add("done");
-  }
-
-  function goNext() {
-    if (step < qs.length - 1) { step++; renderStep(); }
-  }
-
-  function goPrev() {
-    if (step > 0) { step--; renderStep(); }
-  }
-
-  function handleSubmit() {
-    var allOk = qs.every(function (q, qi) { return ans[qi] === q.correct; });
-    if (allOk) {
-      markComplete();
-      renderSuccess();
-    } else {
-      renderError();
-    }
-  }
-
-  function renderSuccess() {
-    var countLine = qs.length > 0
-      ? '<p class="quiz-success-sub">' + qs.length + " de " + qs.length + " questões certas.</p>"
-      : '<p class="quiz-success-sub">Todas as questões respondidas corretamente.</p>';
-
-    body.innerHTML =
-      '<div class="quiz-success">' +
-        '<div class="quiz-check-ring">' +
-          '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
-            '<polyline class="check-path" points="20 6 9 17 4 12"/>' +
-          "</svg>" +
-        "</div>" +
-        '<p class="quiz-success-title">Aula concluída</p>' +
-        countLine +
-        '<button class="quiz-retry quiz-redo-btn">Refazer o quiz</button>' +
-      "</div>";
-
-    var redoBtn = body.querySelector(".quiz-redo-btn");
-    if (redoBtn) redoBtn.addEventListener("click", initQuiz);
-  }
-
-  function renderError() {
-    var wrongCount = qs.filter(function (q, qi) { return ans[qi] !== q.correct; }).length;
-
-    body.innerHTML =
-      '<div class="quiz-success">' +
-        '<div class="quiz-check-ring" style="border-color:#ef4444">' +
-          '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
-            '<line class="x-line-1" x1="8" y1="8" x2="16" y2="16"/>' +
-            '<line class="x-line-2" x1="16" y1="8" x2="8" y2="16"/>' +
-          '</svg>' +
-        '</div>' +
-        '<p class="quiz-success-title">Quase lá.</p>' +
-        '<p class="quiz-success-sub">Você errou ' + wrongCount + ' de ' + qs.length + ' questões.</p>' +
-        '<div class="quiz-btns">' +
-          '<button class="quiz-retry quiz-toggle-btn">Ver os resultados</button>' +
-          '<button class="quiz-retry quiz-redo-btn">' +
-            '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>' +
-            ' Refazer o quiz' +
-          '</button>' +
-        '</div>' +
-        '<details class="quiz-results-details">' +
-          '<summary></summary>' +
-          '<div class="quiz-results-list"></div>' +
-        '</details>' +
-      '</div>';
-
-    // populate results list
-    var list = body.querySelector(".quiz-results-list");
-    qs.forEach(function (q, qi) {
-      var wrap = document.createElement("div");
-      wrap.className = "quiz-result-question";
-
-      var label = document.createElement("div");
-      label.className = "quiz-q-label";
-      var num = document.createElement("span");
-      num.className = "quiz-q-num";
-      num.textContent = String(qi + 1).padStart(2, "0");
-      var txt = document.createElement("p");
-      txt.className = "quiz-q-text";
-      txt.style.margin = "0";
-      txt.textContent = q.question;
-      label.appendChild(num);
-      label.appendChild(txt);
-      wrap.appendChild(label);
-
-      var optsWrap = document.createElement("div");
-      optsWrap.className = "quiz-opts";
-      optsWrap.style.paddingLeft = "2.25rem";
-      q.options.forEach(function (opt, oi) {
-        var optBtn = document.createElement("button");
-        optBtn.className = "quiz-opt";
-        optBtn.textContent = opt;
-        optBtn.disabled = true;
-        if (oi === q.correct) { optBtn.classList.add("opt-ok"); }
-        else if (ans[qi] === oi) { optBtn.classList.add("opt-wrong"); }
-        else { optBtn.classList.add("opt-dim"); }
-        optsWrap.appendChild(optBtn);
+    function reshuffle() {
+      steps = shuffleInPlace([...originalSteps]);
+      // Reorder DOM steps
+      steps.forEach((s) => stepsEl.appendChild(s.el));
+      // Reorder DOM options within each step
+      steps.forEach((step) => {
+        const optionsContainer = step.el.querySelector<HTMLElement>("[data-quiz-options]")!;
+        const shuffledOpts = shuffleInPlace([...step.options]);
+        step.options = shuffledOpts;
+        shuffledOpts.forEach((opt) => optionsContainer.appendChild(opt.el));
       });
-      wrap.appendChild(optsWrap);
-      list.appendChild(wrap);
+    }
+
+    function reset() {
+      steps.forEach((step) => {
+        step.selected = null;
+        step.options.forEach((opt) => {
+          opt.el.classList.remove("is-selected");
+          opt.el.disabled = false;
+          opt.el.style.opacity = "";
+          opt.el.style.cursor = "";
+          opt.el.style.textDecoration = "";
+        });
+      });
+      current = 0;
+      outcomeEl.replaceChildren();
+      activePhase.classList.remove("hidden");
+      render();
+    }
+
+    function render() {
+      steps.forEach((step, i) => step.el.classList.toggle("hidden", i !== current));
+
+      counterEl.textContent = `questão ${current + 1} de ${steps.length}`;
+
+      // Update dots — DOM order is stable; we map via index
+      Array.from(dotsEl.children).forEach((dot, i) => {
+        const el = dot as HTMLElement;
+        const done = steps[i]?.selected !== null;
+        const active = i === current;
+        el.classList.toggle("bg-ink", done);
+        el.classList.toggle("border-ink", done || active);
+        el.classList.toggle("border-line", !done && !active);
+        el.classList.toggle("scale-[1.35]", active);
+      });
+
+      const isLast = current === steps.length - 1;
+      const answered = steps[current].selected !== null;
+
+      prevBtn.disabled = current === 0;
+
+      if (isLast) {
+        nextBtn.classList.add("hidden");
+        nextBtn.classList.remove("inline-flex");
+        submitBtn.classList.remove("hidden");
+        submitBtn.classList.add("inline-flex");
+        submitBtn.disabled = !answered;
+      } else {
+        nextBtn.classList.remove("hidden");
+        nextBtn.classList.add("inline-flex");
+        submitBtn.classList.add("hidden");
+        submitBtn.classList.remove("inline-flex");
+        nextBtn.disabled = !answered;
+      }
+    }
+
+    function selectOption(stepIdx: number, optIdx: number) {
+      const step = steps[stepIdx];
+      step.selected = optIdx;
+      step.options.forEach((opt, i) => {
+        opt.el.classList.toggle("is-selected", i === optIdx);
+      });
+      render();
+    }
+
+    function go(delta: number) {
+      const target = current + delta;
+      if (target < 0 || target >= steps.length) return;
+      current = target;
+      render();
+    }
+
+    function showOutcome(kind: Outcome) {
+      activePhase.classList.add("hidden");
+      outcomeEl.replaceChildren();
+
+      if (kind === "success") {
+        const node = successTpl.content.cloneNode(true) as DocumentFragment;
+        const sub = node.querySelector("[data-success-sub]");
+        if (sub) sub.textContent = `${steps.length} de ${steps.length} questões certas.`;
+        node.querySelector<HTMLButtonElement>("[data-quiz-redo]")?.addEventListener("click", reset);
+        outcomeEl.appendChild(node);
+      } else {
+        const wrong = steps.filter((s) => s.options[s.selected ?? -1]?.isCorrect !== true).length;
+        const node = errorTpl.content.cloneNode(true) as DocumentFragment;
+        const sub = node.querySelector("[data-error-sub]");
+        if (sub) sub.textContent = `Você errou ${wrong} de ${steps.length} questões.`;
+
+        const list = node.querySelector<HTMLElement>("[data-results-list]")!;
+        steps.forEach((step, i) => {
+          const row = resultRowTpl.content.cloneNode(true) as DocumentFragment;
+          const numEl = row.querySelector("[data-row-num]");
+          if (numEl) numEl.textContent = String(i + 1).padStart(2, "0");
+          const qEl = row.querySelector("[data-row-question]");
+          if (qEl) qEl.textContent = step.questionText;
+
+          const optsContainer = row.querySelector<HTMLElement>("[data-row-options]")!;
+          step.options.forEach((opt) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.disabled = true;
+            btn.textContent = opt.text;
+            btn.className =
+              "flex items-center w-full text-left px-4 py-[0.8rem] rounded-[0.625rem] border text-[14.5px] leading-[1.45]";
+            if (opt.isCorrect) {
+              btn.className += " border-emerald-500 bg-emerald-500/[0.09] text-emerald-800 cursor-default";
+            } else if (step.options.indexOf(opt) === step.selected) {
+              btn.className += " border-red-300 bg-red-50 text-red-700 line-through cursor-default";
+            } else {
+              btn.className += " border-line text-ink/[0.68] opacity-[0.32] cursor-default";
+            }
+            optsContainer.appendChild(btn);
+          });
+          list.appendChild(row);
+        });
+
+        const toggleBtn = node.querySelector<HTMLButtonElement>("[data-quiz-toggle-results]")!;
+        toggleBtn.addEventListener("click", () => {
+          const isHidden = list.classList.toggle("hidden");
+          toggleBtn.textContent = isHidden ? "Ver os resultados" : "Ocultar resultados";
+        });
+        node.querySelector<HTMLButtonElement>("[data-quiz-redo]")?.addEventListener("click", reset);
+        outcomeEl.appendChild(node);
+      }
+    }
+
+    function submit() {
+      const allOk = steps.every((s) => s.options[s.selected ?? -1]?.isCorrect === true);
+      if (allOk) {
+        markComplete(lessonHref);
+        showOutcome("success");
+      } else {
+        showOutcome("error");
+      }
+    }
+
+    // Wire option clicks once (they don't change after shuffle)
+    originalSteps.forEach((step, _stepIdx) => {
+      step.options.forEach((_opt, _optIdx) => {
+        // Capture per-element click; we resolve indexes against current state at click time
+      });
     });
 
-    // toggle results
-    var details = body.querySelector(".quiz-results-details");
-    var toggleBtn = body.querySelector(".quiz-toggle-btn");
-    toggleBtn.addEventListener("click", function () {
-      details.open = !details.open;
-      toggleBtn.textContent = details.open ? "Ocultar resultados" : "Ver os resultados";
+    // Use delegation so we don't re-bind after shuffle
+    stepsEl.addEventListener("click", (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-quiz-option]");
+      if (!btn) return;
+      const stepEl = btn.closest<HTMLElement>("[data-quiz-step]");
+      if (!stepEl) return;
+      const stepIdx = steps.findIndex((s) => s.el === stepEl);
+      const optIdx = steps[stepIdx].options.findIndex((o) => o.el === btn);
+      if (stepIdx === -1 || optIdx === -1) return;
+      selectOption(stepIdx, optIdx);
     });
 
-    body.querySelector(".quiz-redo-btn").addEventListener("click", initQuiz);
-  }
+    prevBtn.addEventListener("click", () => go(-1));
+    nextBtn.addEventListener("click", () => go(1));
+    submitBtn.addEventListener("click", submit);
 
-})();
+    // Entry point
+    if (getCompleted().has(lessonHref)) {
+      reshuffle();
+      showOutcome("success");
+    } else {
+      reshuffle();
+      render();
+    }
+  });
 </script>

@@ -1,0 +1,14 @@
+---
+interface Props {
+  id?: string;
+}
+
+const { id } = Astro.props;
+---
+
+<div class="lesson-h2-row" data-section-heading>
+  <span class="lesson-h2-number mono" aria-hidden="true"></span>
+  <h2 id={id} class="lesson-h2 font-display">
+    <slot />
+  </h2>
+</div>

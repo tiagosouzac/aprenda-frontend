@@ -1,129 +1,152 @@
 # Page Structure
 
-How lesson pages are organized. All lessons use the same `LessonLayout` and share a small set of components — adding a new lesson is mostly a data + content task.
+Every lesson is a single MDX file in `src/content/lessons/<module-slug>/<NN-slug>.mdx`. There are no per-lesson `.astro` files — `src/pages/[...slug].astro` is the only lesson route, and it consumes the content collection.
 
 ## URL convention
 
-- `/{module-slug}` — module landing / first lesson (e.g., `/how-the-web-works`, `/html`)
-- `/{module-slug}/{lesson-slug}` — sub-lesson within a module (e.g., `/html/tags`, `/html/semantica`)
-
-The page file mirrors the URL: `/html/tags` → `src/pages/html/tags.astro`.
+- `/<module-slug>/<lesson-slug>` — every lesson lives at this depth (e.g., `/html/tags`, `/how-the-web-works/dns`).
+- `/<module-slug>` — redirects to the first lesson of the module (configured in `src/data/modules.ts` via `firstLessonSlug`).
+- The filename uses a numeric prefix for filesystem ordering (`03-tags.mdx`); the URL **strips** the prefix (`/html/tags`).
 
 ## Source of truth
 
-The course structure lives in `src/data/course.ts`:
+| What | Where |
+|---|---|
+| Lesson title, description, hero, quiz, order | MDX frontmatter |
+| Lesson body | MDX content |
+| Module color, label, number, name, card visuals, first-lesson slug | `src/data/modules.ts` |
+| Course shape (modules + ordered lessons), navigation helpers | `src/data/course.ts` (derives async from collection + `modules.ts`) |
+| URL of the lesson | filename + folder, normalized by `[...slug].astro` |
 
-- Each `CourseModule` has metadata (`number`, `label`, `color`, `rootHref`) and an array of `lessons`
-- Each `Lesson` has `slug`, `title`, `href`, and an optional `hero` (`titleBefore`, `titleAccent`, `titleAfter`, `description`)
-- `LessonLayout` reads this file to render the sidebar, breadcrumb, hero and prev/next
+To add a new lesson, **only the MDX file is touched**. The sidebar, breadcrumb, prev/next, sitemap, and TOC all populate themselves.
 
-**Edit `course.ts` before creating a new page.**
+## Frontmatter schema
 
-## Adding a new lesson — workflow
+Defined in `src/content.config.ts` and validated by Zod:
 
-1. Add a `Lesson` entry to the module's `lessons` array in `src/data/course.ts`.
-   - Include the `hero` block when the lesson should render a title + description above the content.
-2. Create the page at `src/pages/{href}.astro`.
-3. Render `<LessonLayout currentHref="/the/href">` — that's the only required prop.
-4. Inside the layout slot, write the lesson body using `LessonSection` and `CodeBlock`.
-
-Example minimum page:
-
-```astro
+```yaml
 ---
-import LessonLayout from "../layouts/LessonLayout.astro";
-import LessonSection from "../components/LessonSection.astro";
+title: "HTML em geral"            # required
+description: "Frase curta..."     # required, used in <meta description> + breadcrumb fallback
+order: 1                          # required, ordering within the module
+hero:                             # optional — renders the lesson hero
+  titleBefore: "HTML como"
+  titleAccent: "fundação"
+  titleAfter: "semântica."
+quiz:                             # optional — renders <LessonQuiz> automatically
+  - question: "O que..."
+    options:
+      - "A primeira"
+      - "A segunda"
+    correct: 0
+comingSoon: true                  # optional — renders the placeholder, body is ignored
 ---
-
-<LessonLayout currentHref="/html/tags">
-  <div class="lesson-prose">
-    <p>Introdução em 2-4 parágrafos.</p>
-  </div>
-
-  <LessonSection number="01" title="Tags básicas" id="tags-basicas">
-    <p>Conteúdo da seção em pt-BR.</p>
-  </LessonSection>
-
-  <LessonSection title="Resumo" id="resumo">
-    <ul>
-      <li>Recap do que foi visto.</li>
-    </ul>
-  </LessonSection>
-</LessonLayout>
 ```
 
-## Required body structure
+## Authoring a new lesson — workflow
 
-Inside the layout slot:
+1. Pick the module folder (`src/content/lessons/<module-slug>/`).
+2. Pick the next available numeric prefix (look at the existing files).
+3. Create `NN-<slug>.mdx` with the frontmatter above.
+4. Write the body as plain markdown. There is no need to import a layout, a section component, or a quiz component — the catch-all route handles all of that.
 
-1. **Introduction** — a `<div class="lesson-prose">` with 2–4 paragraphs framing the topic, before any `LessonSection`
-2. **Sections** — one `<LessonSection>` per sub-topic, in pedagogical order
-3. **Summary** — a final `<LessonSection title="Resumo">` (no `number`) recapping the key points
+A complete lesson:
 
-The hero, breadcrumb, sidebar, TOC and prev/next nav are rendered automatically by `LessonLayout` — never duplicate them in pages.
+````mdx
+---
+title: "Tags, elementos e atributos"
+description: "Como escrever marcação válida..."
+order: 3
+hero:
+  titleBefore: "Tags,"
+  titleAccent: "elementos"
+  titleAfter: "e atributos."
+quiz:
+  - question: "Qual atributo identifica unicamente um elemento?"
+    options: ["class", "id", "name", "role"]
+    correct: 1
+---
 
-## Section anatomy
+Parágrafo de introdução em pt-BR, sem nenhum wrapper. O layout aplica `.lesson-prose` automaticamente.
 
-```astro
-<LessonSection number="03" title="HTTP — a conversa" id="http">
-  <p>Explicação em pt-BR.</p>
+Pode ter dois ou três parágrafos antes da primeira seção.
 
-  <CodeBlock
-    lang="bash"
-    code={httpRequest}
-    caption="Legenda opcional do exemplo."
-  />
+## Tags básicas
 
-  <ul>
-    <li>Item de lista</li>
-  </ul>
-</LessonSection>
+Texto da seção. O número `01` aparece automaticamente via CSS counter, e o anchor `#tags-basicas` é gerado pelo `rehype-slug` a partir do título.
+
+```html title="Estrutura mínima de um documento."
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <p>Olá, mundo</p>
+  </body>
+</html>
 ```
 
-- `title` — required, rendered as `<h2>`
-- `id` — required for sections that should appear in the right-side TOC and the URL hash
-- `number` — optional mono prefix (`01`, `02`, …); omit on the Resumo section
+Outro parágrafo da seção.
 
-## Body copy
+## Atributos
 
-All prose inside `LessonSection` is auto-styled by `.lesson-prose`:
+Conteúdo da próxima seção…
 
-- Paragraphs and lists (max width 62ch)
-- Ordered lists with mono `01 02 …` markers
-- Unordered lists with `◦` bullet
-- Inline `<code>` with subtle gray background
-- `<em>` renders in Instrument Serif italic
-- `<strong>` for important terms
-- `<h3>` for subsections within a section (use sparingly)
+## Resumo
 
-The introduction block (above the first section) is plain prose, so wrap it manually in `<div class="lesson-prose">`.
+- Recapitulação em bullet points.
+- O número `04` aparecerá no eyebrow desta seção também — todas as `##` são numeradas.
+````
 
-## Code examples
+## What the layout adds
 
-Use `<CodeBlock lang="..." code={...} caption="..." />` from `src/components/CodeBlock.astro`. See `code-examples.md` for content guidelines (what to put inside the code).
+`src/pages/[...slug].astro` and `src/layouts/LessonLayout.astro` together apply automatically:
+
+- The lesson hero (when `hero` is set in frontmatter)
+- The `.lesson-prose` wrapper around `<Content />`
+- `<Content components={{ h2: SectionHeading, pre: MdxPre }} />` — every `##` becomes the styled section header (with auto-numbered eyebrow), every fenced block becomes the dark-framed code card with copy button
+- The breadcrumb (`aprenda frontend / <module> / <lesson title>`)
+- The course sidebar (lg+) with current module/lesson highlighted
+- The right-rail TOC (xl+) — built from `render(lesson).headings`, filtering `depth === 2`, with scroll-spy
+- The prev/next nav at the bottom — derived from the collection in course order
+- The quiz section, when `quiz:` is set in frontmatter
+
+You don't write any of these in the MDX.
+
+## Section conventions
+
+- Every `##` becomes a numbered section. There is no way to skip the number on a single section — embrace consistency.
+- Avoid `###` unless you really need a subsection. The lesson should be a flat list of sections under the page title (`<h1>`, rendered in the hero).
+- Don't add explicit `id` to headings. `rehype-slug` slugifies the text. If you change a heading's text, the anchor changes — that's expected.
+
+## Stub lessons
+
+For a not-yet-written lesson, set `comingSoon: true` in frontmatter and leave the body empty:
+
+```mdx
+---
+title: "Tipografia e cores"
+description: "..."
+order: 9
+comingSoon: true
+---
+```
+
+`[...slug].astro` renders a placeholder paragraph. The lesson still appears in the sidebar/footer/redirects so URLs work end to end.
 
 ## Heading hierarchy
 
-- `<h1>` — page title, rendered by `LessonLayout` from the lesson `hero`
-- `<h2>` — section title, rendered by `<LessonSection title="...">`
-- `<h3>` — subsection inside a section's body
-- Never skip levels
-
-## Navigation aids (automatic)
-
-`LessonLayout` renders:
-
-- **Breadcrumb** at the top — `aprenda frontend / {module name} / {lesson title}`
-- **Sidebar** (lg+) — full course tree from `course.ts`, current module/lesson highlighted
-- **TOC** (xl+) — built at runtime from `<section id="...">` `<h2>` titles, with scroll-spy
-- **Prev / next lesson** — derived from the lesson's position in `course.ts`
-
-You don't write any of these in the page.
+- `<h1>` — the lesson title, rendered by `LessonLayout` from `hero.title*`.
+- `<h2>` — section title, written as `##` in MDX. Auto-numbered, anchored, in the right TOC.
+- `<h3>` — subsection inside a section. Use sparingly. Not in the TOC.
+- Never skip levels.
 
 ## What to avoid
 
-- Walls of text without code — alternate explanation and example
-- Exercises that require external tools not yet introduced in the course
-- Forward references to modules not yet covered (a brief "você vai ver isso no módulo de React" is fine)
-- Hardcoding hero, breadcrumb, sidebar or nav inside pages — that lives in `course.ts`
-- Forgetting `id` on a section that should appear in the right TOC
+- Importing `LessonSection`, `LessonQuiz`, or `CodeBlock` in MDX. None of those should exist after the refactor — the layout handles their roles.
+- Adding entries to `src/data/course.ts` by hand. The course is derived from the collection.
+- Writing a `.astro` file under `src/pages/<module>/...` for a lesson. Only the catch-all route exists.
+- Manually wrapping content in `<div class="lesson-prose">`. The layout already does this.
+- Manually generating the TOC, sidebar, breadcrumb, or prev/next.
+- Forward references to modules later in the curriculum (a brief "você vai ver isso no módulo de React" is fine; full code samples are not).

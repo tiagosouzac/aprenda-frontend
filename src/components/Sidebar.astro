@@ -1,11 +1,12 @@
 ---
-import { course } from "../data/course";
+import { getCourseModules } from "../data/course";
 
 interface Props {
   currentHref: string;
 }
 
 const { currentHref } = Astro.props;
+const course = await getCourseModules();
 ---
 
 <nav class="sticky top-[90px] pt-6 pb-20 text-[14px]">

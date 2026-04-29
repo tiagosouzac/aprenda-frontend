@@ -4,13 +4,8 @@ import tailwindcss from "@tailwindcss/vite";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 
-import { course } from "./src/data/course";
-
-const moduleRedirects = Object.fromEntries(
-  course
-    .filter((m) => m.lessons.length > 0)
-    .map((m) => [m.rootHref, m.lessons[0].href]),
-);
+import { moduleRedirects } from "./src/data/modules";
+import { transformerCodeTitle } from "./src/lib/shiki-code-title";
 
 // https://astro.build/config
 export default defineConfig({
@@ -18,6 +13,12 @@ export default defineConfig({
   site: "https://aprenda-frontend.dev",
 
   redirects: moduleRedirects,
+
+  markdown: {
+    shikiConfig: {
+      transformers: [transformerCodeTitle],
+    },
+  },
 
   vite: {
     plugins: [tailwindcss()],

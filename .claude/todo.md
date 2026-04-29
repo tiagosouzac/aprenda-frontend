@@ -22,25 +22,22 @@
 
 # Planejamento de conteúdo
 
-Plano de aulas por módulo. Cada aula vira um arquivo MDX dentro de `src/content/lessons/<modulo>/<slug>.mdx` e é registrada em `src/data/course.ts`.
+Plano de aulas por módulo. Cada aula é um arquivo MDX dentro de `src/content/lessons/<modulo>/NN-<slug>.mdx`, com frontmatter validado pela schema da collection. Não há registro manual em nenhum array — a estrutura do curso é derivada da collection + `src/data/modules.ts`.
 
 ## Convenções
 
 ### URLs
 - **Todas as aulas em subrotas.** Não há aula no root do módulo.
 - **O root do módulo redireciona para a primeira aula** (ex.: `/html` → `/html/introducao`).
-- **Redirect dinâmico via `course.ts`.** Uma rota `src/pages/[module]/index.astro` com `getStaticPaths()` lê `course.ts`, gera um arquivo HTML por módulo no build com meta refresh para a primeira lesson daquele módulo. Adicionar/remover módulos não exige editar `astro.config.mjs`.
+- **Redirects** são compostos em `astro.config.ts` a partir de `src/data/modules.ts` (`firstLessonSlug` por módulo). Adicionar uma aula nova nunca exige editar o config.
 - **Slugs em pt-BR sem acentos** (`introducao`, `seletores`, `funcoes`). Termos técnicos universais ficam no original (`jsx`, `dom-selecao`, `flexbox`, `grid`, `props`, `fetch`, `async-await`, `vitest`, `playwright`, `mocks`, `arrays`, `strings`, `promises`, `generics`, `context`).
+- **O filename usa um prefixo numérico** (`01-introducao.mdx`) só para legibilidade do diretório. A URL final ignora o prefixo.
 
 ### Conteúdo
-- **Pasta por módulo:** `src/content/lessons/<modulo>/<slug>.mdx`.
+- **Pasta por módulo:** `src/content/lessons/<modulo>/`.
+- **Frontmatter obrigatório:** `title`, `description`, `order`. Ver `rules/page-structure.md` para a schema completa.
 - **Conteúdo das aulas em pt-BR**, identificadores e nomes de arquivo seguem `language.md`.
-- **Aula de "Resumo do módulo"** (`resumo.mdx`) ao fim de cada módulo.
-
-### Migração inicial (aprovada)
-- Mover `src/content/lessons/how-the-web-works.mdx` → `src/content/lessons/how-the-web-works/introducao.mdx`.
-- Atualizar `src/data/course.ts` para usar a nova href `/how-the-web-works/introducao`.
-- Ajustar a rota dinâmica em `src/pages/[...slug].astro` se necessário para casar com a nova estrutura de pastas.
+- **Aula de "Resumo do módulo"** ao fim de cada módulo, com a última posição em `order`.
 
 ---
 

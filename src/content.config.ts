@@ -7,6 +7,7 @@ const lessons = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string(),
+    order: z.number().int().positive(),
     hero: z
       .object({
         titleBefore: z.string(),
@@ -14,6 +15,16 @@ const lessons = defineCollection({
         titleAfter: z.string(),
       })
       .optional(),
+    quiz: z
+      .array(
+        z.object({
+          question: z.string(),
+          options: z.array(z.string()).min(2),
+          correct: z.number().int().nonnegative(),
+        }),
+      )
+      .optional(),
+    comingSoon: z.boolean().optional(),
   }),
 });
 

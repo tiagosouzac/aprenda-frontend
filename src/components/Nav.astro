@@ -1,14 +1,7 @@
 ---
-const modules = [
-  { label: "Web", href: "/how-the-web-works" },
-  { label: "HTML", href: "/html" },
-  { label: "CSS", href: "/css" },
-  { label: "JavaScript", href: "/javascript" },
-  { label: "TypeScript", href: "/typescript" },
-  { label: "React", href: "/react" },
-  { label: "Testes", href: "/testing" },
-  { label: "Próximos passos", href: "/next-steps" },
-];
+import { modules } from "../data/modules";
+
+const navModules = modules.map((m) => ({ label: m.name, href: `/${m.slug}` }));
 ---
 
 <header
@@ -27,7 +20,7 @@ const modules = [
 
     <nav class="hidden lg:flex items-center gap-1">
       {
-        modules.map((m) => (
+        navModules.map((m) => (
           <a
             href={m.href}
             class="px-3 py-1.5 text-[13.5px] text-ink/70 hover:text-ink transition-colors rounded-md hover:bg-ink/5"
@@ -57,7 +50,7 @@ const modules = [
         class="hidden lg:inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md border border-line text-[13px] font-medium text-ink/80 hover:border-ink hover:text-ink transition-colors"
       >
         módulos
-        <span class="mono text-[11px] text-mute">·8</span>
+        <span class="mono text-[11px] text-mute">·{navModules.length}</span>
       </a>
 
       <!-- mobile: hamburger button -->
@@ -87,7 +80,7 @@ const modules = [
   >
     <div class="mx-auto max-w-[1360px] px-6 py-4 grid grid-cols-2 gap-x-6 gap-y-0.5">
       {
-        modules.map((m) => (
+        navModules.map((m) => (
           <a
             href={m.href}
             class="px-2 py-2.5 text-[14px] text-ink/75 hover:text-ink transition-colors rounded-md hover:bg-ink/5"

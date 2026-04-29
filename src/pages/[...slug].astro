@@ -1,24 +1,53 @@
 ---
 import { getCollection, render } from 'astro:content';
 import LessonLayout from '../layouts/LessonLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import MdxPre from '../components/MdxPre.astro';
+import LessonQuiz from '../components/LessonQuiz.astro';
 
 export async function getStaticPaths() {
   const lessons = await getCollection('lessons');
-  return lessons.map((lesson) => ({
-    params: { slug: lesson.id },
-    props: { lesson },
-  }));
+  return lessons.map((lesson) => {
+    const parts = lesson.id.split('/');
+    const moduleSlug = parts[0];
+    const filename = parts[parts.length - 1];
+    const lessonSlug = filename.replace(/^\d+-/, '');
+    return {
+      params: { slug: `${moduleSlug}/${lessonSlug}` },
+      props: { lesson },
+    };
+  });
 }
 
 const { lesson } = Astro.props;
-const { Content } = await render(lesson);
-const href = `/${lesson.id}`;
+const { Content, headings } = await render(lesson);
+const href = `/${Astro.params.slug}`;
 
 const hero = lesson.data.hero
   ? { ...lesson.data.hero, description: lesson.data.description }
   : undefined;
+
+const quiz = lesson.data.quiz;
+const comingSoon = lesson.data.comingSoon ?? false;
 ---
 
-<LessonLayout currentHref={href} hero={hero} metaDescription={lesson.data.description}>
-  <Content />
+<LessonLayout
+  currentHref={href}
+  hero={hero}
+  metaDescription={lesson.data.description}
+  headings={headings}
+>
+  {
+    comingSoon ? (
+      <div class="lesson-prose">
+        <p class="text-mute italic">Conteúdo em construção.</p>
+      </div>
+    ) : (
+      <div class="lesson-prose">
+        <Content components={{ h2: SectionHeading, pre: MdxPre }} />
+      </div>
+    )
+  }
+
+  {quiz && quiz.length > 0 && <LessonQuiz questions={quiz} lessonHref={href} />}
 </LessonLayout>

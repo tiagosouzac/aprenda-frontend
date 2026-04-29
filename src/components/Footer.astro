@@ -1,38 +1,21 @@
 ---
+import { modules } from "../data/modules";
+
 interface FooterLink {
   label: string;
   href: string;
   external?: boolean;
 }
-interface FooterColumn {
-  heading: string;
-  links: FooterLink[];
-  cols?: number;
-}
 
-const columns: FooterColumn[] = [
-  {
-    heading: "módulos",
-    cols: 2,
-    links: [
-      { label: "Como a web funciona", href: "/how-the-web-works" },
-      { label: "HTML", href: "/html" },
-      { label: "CSS", href: "/css" },
-      { label: "JavaScript", href: "/javascript" },
-      { label: "TypeScript", href: "/typescript" },
-      { label: "React", href: "/react" },
-      { label: "Testes", href: "/testing" },
-      { label: "Próximos passos", href: "/next-steps" },
-    ],
-  },
-  {
-    heading: "projeto",
-    links: [
-      { label: "GitHub", href: "https://github.com", external: true },
-      { label: "Feedback", href: "https://github.com", external: true },
-      { label: "Changelog", href: "https://github.com", external: true },
-    ],
-  },
+const moduleLinks: FooterLink[] = modules.map((m) => ({
+  label: m.name,
+  href: `/${m.slug}`,
+}));
+
+const projectLinks: FooterLink[] = [
+  { label: "GitHub", href: "https://github.com", external: true },
+  { label: "Feedback", href: "https://github.com", external: true },
+  { label: "Changelog", href: "https://github.com", external: true },
 ];
 ---
 
@@ -57,40 +40,50 @@ const columns: FooterColumn[] = [
         </p>
       </div>
 
-      {
-        columns.map((col) => (
-          <div>
-            <h3 class="mono text-[10.5px] tracking-[0.22em] uppercase text-white/40">
-              {col.heading}
-            </h3>
-            <ul
-              class:list={[
-                "mt-5",
-                col.cols === 2
-                  ? "grid grid-flow-col grid-rows-4 gap-x-8 gap-y-2.5"
-                  : "space-y-2.5",
-              ]}
-            >
-              {col.links.map((l) => (
-                <li>
-                  <a
-                    href={l.href}
-                    class="inline-flex items-center gap-1.5 text-[13.5px] text-white/75 hover:text-white transition-colors"
-                    {...l.external ? { target: "_blank", rel: "noopener" } : {}}
-                  >
-                    {l.label}
-                    {l.external && (
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M7 17L17 7M8 7h9v9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
-                    )}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))
-      }
+      <div>
+        <h3 class="mono text-[10.5px] tracking-[0.22em] uppercase text-white/40">
+          módulos
+        </h3>
+        <ul class="mt-5 grid grid-flow-col grid-rows-4 gap-x-8 gap-y-2.5">
+          {
+            moduleLinks.map((l) => (
+              <li>
+                <a
+                  href={l.href}
+                  class="inline-flex items-center gap-1.5 text-[13.5px] text-white/75 hover:text-white transition-colors"
+                >
+                  {l.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="mono text-[10.5px] tracking-[0.22em] uppercase text-white/40">
+          projeto
+        </h3>
+        <ul class="mt-5 space-y-2.5">
+          {
+            projectLinks.map((l) => (
+              <li>
+                <a
+                  href={l.href}
+                  target="_blank"
+                  rel="noopener"
+                  class="inline-flex items-center gap-1.5 text-[13.5px] text-white/75 hover:text-white transition-colors"
+                >
+                  {l.label}
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 17L17 7M8 7h9v9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
     </div>
 
     <!-- Bottom bar -->

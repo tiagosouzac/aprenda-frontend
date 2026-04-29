@@ -120,8 +120,9 @@ The home alternates: light (Hero) → dark (Modules) → light (StartCTA) → da
 - `<em>` rendered in Instrument Serif italic
 - Links with a soft underline that darkens on hover
 - `<h3>` in display font, smaller than the section `<h2>`
+- Section `<h2>` (rendered through `SectionHeading` via `Content components`) — display font with an auto-numbered eyebrow via CSS counter. Authors don't pass numbers manually.
 
-`LessonSection` already wraps its slot in `.lesson-prose`. Apply it manually only on the introduction block above the first `LessonSection`.
+The `[...slug].astro` route applies `.lesson-prose` to the entire MDX output once. **Do not wrap content in `<div class="lesson-prose">`** inside MDX files — it's already applied.
 
 ## Lesson page composition (3-column)
 
@@ -131,7 +132,7 @@ Lesson pages render in three columns at xl+ (1280px+):
 |---|---|---|
 | Left | 220px | `Sidebar.astro` — full course tree from `course.ts`, sticky, current module/lesson highlighted |
 | Center | up to 720px | `Breadcrumb`, hero, lesson body, `LessonNav` (prev/next) |
-| Right | 200px | `Toc.astro` — h2 titles of current page, sticky, scroll-spy |
+| Right | 200px | `Toc.astro` — h2 titles of current page, sticky, scroll-spy. Server-rendered from `render(lesson).headings` filtered to `depth === 2`. |
 
 - At lg (1024–1279px), the TOC column drops; sidebar + content remain
 - Below lg, both side columns are hidden; content takes full width with prose maxing at 62ch
@@ -140,8 +141,10 @@ Lesson pages render in three columns at xl+ (1280px+):
 
 ## Where the rules live
 
-- Tokens, keyframes, utility classes (`.font-display`, `.eyebrow`, `.mono`, `.lesson-prose`, etc.): `src/styles/global.css`
-- Course structure (modules + lessons): `src/data/course.ts`
+- Tokens, keyframes, utility classes (`.font-display`, `.eyebrow`, `.mono`, `.lesson-prose`, lesson `h2` counter, etc.): `src/styles/global.css`
+- Module visual metadata (color, label, number, card, redirect target): `src/data/modules.ts`
+- Course shape (combines collection + modules.ts): `src/data/course.ts` async helpers
 - Site shell (nav, footer): `src/layouts/Layout.astro`, `src/components/Nav.astro`, `src/components/Footer.astro`
-- Lesson chrome: `src/layouts/LessonLayout.astro`, `src/components/Sidebar.astro`, `src/components/Toc.astro`, `src/components/Breadcrumb.astro`, `src/components/LessonNav.astro`, `src/components/LessonSection.astro`, `src/components/CodeBlock.astro`
+- Lesson chrome: `src/layouts/LessonLayout.astro`, `src/components/Sidebar.astro`, `src/components/Toc.astro`, `src/components/Breadcrumb.astro`, `src/components/LessonNav.astro`, `src/components/SectionHeading.astro`, `src/components/MdxPre.astro`
+- Lesson route (the only page that renders MDX): `src/pages/[...slug].astro`
 - Homepage sections (reference implementations of the visual language): `src/components/Hero.astro`, `src/components/ModulesSection.astro`, `src/components/StartCTA.astro`

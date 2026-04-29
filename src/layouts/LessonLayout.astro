@@ -1,4 +1,5 @@
 ---
+import type { MarkdownHeading } from "astro";
 import Layout from "./Layout.astro";
 import Sidebar from "../components/Sidebar.astro";
 import Toc from "../components/Toc.astro";
@@ -22,18 +23,19 @@ interface Props {
   hero?: LessonHero;
   metaTitle?: string;
   metaDescription?: string;
+  headings?: MarkdownHeading[];
 }
 
-const { currentHref, hero, metaTitle, metaDescription } = Astro.props;
+const { currentHref, hero, metaTitle, metaDescription, headings = [] } = Astro.props;
 
-const lesson = findLesson(currentHref);
-const courseModule = findLessonModule(currentHref);
+const lesson = await findLesson(currentHref);
+const courseModule = await findLessonModule(currentHref);
 
 if (!lesson || !courseModule) {
   throw new Error(`Lesson not found in course data: ${currentHref}`);
 }
 
-const { prev, next } = findAdjacentLessons(currentHref);
+const { prev, next } = await findAdjacentLessons(currentHref);
 
 const pageTitle = metaTitle ?? lesson.title;
 const pageDescription =
@@ -109,7 +111,7 @@ const crumbs = [
 
       <!-- Right: in-page TOC (xl+ only) -->
       <aside class="hidden xl:block">
-        <Toc />
+        <Toc headings={headings} />
       </aside>
     </div>
   </div>

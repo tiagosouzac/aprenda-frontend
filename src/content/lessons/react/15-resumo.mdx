@@ -1,6 +1,121 @@
 ---
 title: "Resumo do módulo"
-description: "Checklist final: componentes pequenos, estado no nível certo, dependências do useEffect honestas, tipagem de props sempre."
-comingSoon: true
+description: "O blog React completo revisitado. Checklist de boas práticas: componentes pequenos, estado no nível certo, dependências do useEffect honestas, keys estáveis, props tipadas."
 order: 15
+hero:
+  titleBefore: "Fim do módulo"
+  titleAccent: "React"
+  titleAfter: "— o que você aprendeu."
+quiz:
+  - question: "Qual das afirmações sobre keys em listas React está correta?"
+    options:
+      - "Keys devem ser únicas no contexto da lista e estáveis entre renders. Use o id do dado, não o índice — índice causa bugs ao reordenar porque React não consegue distinguir quais itens mudaram"
+      - "Keys são opcionais — React funciona sem elas"
+      - "Keys devem ser únicas em toda a aplicação"
+      - "Keys são passadas como prop para o componente filho"
+    correct: 0
+  - question: "Qual é a principal diferença entre usar useState local e Context?"
+    options:
+      - "Context é mais performático que useState"
+      - "Context não pode ser usado com TypeScript"
+      - "useState local é para estado que pertence a um componente específico. Context é para estado que precisa ser compartilhado por componentes em vários níveis da árvore sem prop drilling. Context não substitui useState — usa useState internamente"
+      - "useState local não funciona com efeitos"
+    correct: 2
+  - question: "Por que os testes serão o próximo passo no curso?"
+    options:
+      - "Porque React não funciona sem testes"
+      - "Porque o próximo módulo é sobre TypeScript"
+      - "Testes são opcionais — o próximo passo é Next.js"
+      - "Os componentes do blog foram testados apenas manualmente até agora. Testes automatizados garantem que uma mudança em LikeButton não quebra ArticleCard silenciosamente — e documentam o comportamento esperado de cada peça de forma executável"
+    correct: 3
 ---
+
+O módulo de React construiu o blog do módulo de JavaScript como aplicação React com TypeScript. Ao longo das quinze lições, cada conceito foi introduzido no contexto desse projeto — de forma que a aplicação final é a soma de todas as peças aprendidas.
+
+## O blog React revisitado
+
+A aplicação completa tem esta estrutura de componentes e responsabilidades:
+
+```
+App
+├── TemaProvider              ← createContext + useState + localStorage
+├── CurtidasProvider          ← createContext + useState + localStorage
+│   ├── HomePage
+│   │   ├── Header            ← lê tema via useTema()
+│   │   │   └── ThemeToggle   ← chama alternarTema() via useTema()
+│   │   ├── SearchInput       ← input controlado, query em HomePage
+│   │   ├── TagFilter         ← tagAtiva em HomePage
+│   │   └── ArticleList       ← recebe artigos já filtrados
+│   │       └── ArticleCard   ← lê curtidos via useCurtidas()
+│   │           └── LikeButton ← controlado — sem estado próprio
+│   └── ArticlePage
+│       ├── Header
+│       ├── ProgressBar       ← progresso em ArticlePage
+│       ├── ArticleBody
+│       └── LikeButton
+```
+
+O estado de cada coisa vive no lugar certo:
+
+| Estado | Onde vive | Por quê |
+|---|---|---|
+| `tema` | `TemaProvider` (Context) | Lido por Header, ThemeToggle, e aplicado no documento |
+| `curtidos` | `CurtidasProvider` (Context) | Compartilhado entre HomePage e ArticlePage |
+| `query` | `HomePage` | Só HomePage usa para filtrar |
+| `tagAtiva` | `HomePage` | Idem |
+| `artigos` | `useArtigos` (hook) | Isolado em hook, compartilhado via props |
+| `progresso` | `ArticlePage` | Só a barra de progresso usa |
+
+## O que React tornou mais fácil
+
+Comparando o blog em React com a versão em DOM puro do módulo de JavaScript:
+
+**Sincronização de estado e UI**: em DOM puro, curtir um artigo exigia atualizar o botão, o contador e o `localStorage` manualmente — três lugares para não esquecer. Em React, `toggleCurtida` atualiza o estado; todos os componentes que consomem `useCurtidas()` re-renderizam automaticamente com o novo valor.
+
+**Reutilização**: `LikeButton` é o mesmo componente em `ArticleCard` e em `ArticlePage`. Em DOM puro, a lógica de curtida estava duplicada ou acoplada à estrutura específica do DOM.
+
+**Raciocínio local**: cada componente pode ser lido isoladamente. `ProgressBar` recebe `valor` e renderiza uma barra — sem conhecimento de scroll, de artigo, ou de qualquer outro contexto. Em DOM puro, funções frequentemente tinham acesso a variáveis globais e ao DOM inteiro.
+
+**O que DOM puro ainda faz melhor**: para páginas simples e estáticas — um formulário de contato, uma landing page com pouca interação — a fricção de configurar React (Vite, JSX, TypeScript, bundler) não se justifica. React faz sentido quando a UI é complexa e o estado é não trivial.
+
+## Checklist de boas práticas
+
+Antes de considerar um componente React pronto, passe por este checklist:
+
+**Componentes pequenos com uma responsabilidade.** Se um componente faz muitas coisas — busca dados, filtra, renderiza lista e gerencia formulário — divida. A regra prática: se você não consegue nomear o componente com uma palavra ou duas que descrevem o que ele faz, ele está fazendo demais.
+
+**Estado no nível certo — não mais acima do necessário.** Estado local fica no componente que o usa. Sobe para o pai quando dois filhos precisam. Vai para Context quando muitos componentes em níveis diferentes precisam. Não ponha tudo no `App` por precaução — isso força prop drilling ou Context onde não é necessário.
+
+**Dependências do `useEffect` honestas.** Declare tudo que o efeito usa e pode mudar. O ESLint com `eslint-plugin-react-hooks` avisa quando faltam. Suprimir o aviso com `// eslint-disable-line` esconde bugs — investigue o motivo.
+
+**Keys estáveis em listas.** Use o `id` do dado, não o índice do array. Índice causa comportamento inesperado ao reordenar — estado de inputs e animações ficam presos na posição, não no item.
+
+**Props tipadas com TypeScript.** Uma interface por componente, com todos os campos relevantes. Props opcionais marcadas com `?` e valor padrão na desestruturação. TypeScript pega erros na hora de escrever o componente — não na hora de debugar em produção.
+
+**Componentes controlados quando possível.** Componentes sem estado próprio (`LikeButton`, `ProgressBar`) são mais fáceis de testar e reutilizar. O pai controla, o filho renderiza.
+
+**Nunca mute estado diretamente.** React compara por referência. `setArtigo(prev => ({ ...prev, curtidas: prev.curtidas + 1 }))` — sempre um novo objeto.
+
+## O que vem a seguir
+
+O blog React funciona — mas foi testado apenas manualmente. Toda vez que você muda o `LikeButton`, precisa abrir o browser e curtir um artigo para verificar que ainda funciona. Isso escala mal: à medida que o projeto cresce, testar tudo manualmente a cada mudança fica inviável.
+
+O próximo módulo — **testes automatizados** — cobre exatamente isso:
+
+- Testar `formatarData` com Vitest (função pura — o caso mais simples)
+- Testar `ArticleCard` com Testing Library (renderiza o componente, verifica o que aparece)
+- Testar o fluxo de curtir (clica o botão, verifica que o estado muda)
+- Uma introdução a testes end-to-end com Playwright
+
+Os componentes que você acabou de construir são o material dos testes.
+
+## Resumo
+
+- React é **declarativo**: você descreve como a UI deve ser dado o estado — React garante que o DOM corresponde.
+- **Componentes** são funções que retornam JSX. Composição é o modelo fundamental.
+- **Props** descem, **eventos** sobem via callbacks. Fluxo unidirecional.
+- **`useState`** dispara re-render quando o estado muda. Nunca mute diretamente.
+- **`useEffect`** para operações fora do render: fetch, localStorage, listeners. Array de dependências honesto, cleanup quando necessário.
+- **Context** distribui estado sem prop drilling. Use para estado global de baixa frequência.
+- **Custom hooks** encapsulam lógica reutilizável — `useFetch`, `useTema`, `useCurtidas`.
+- Estado no nível certo, componentes pequenos, keys estáveis, props tipadas — o checklist que separa código que funciona de código que se mantém.

@@ -1,6 +1,242 @@
 ---
 title: "Fetch — falando com servidores"
-description: "Requisições HTTP no navegador com fetch. Leitura de resposta JSON, envio de dados via POST, tratamento de erros, cancelamento."
-comingSoon: true
+description: "A API fetch para requisições HTTP. Estrutura de uma requisição GET e POST. Verificar erros HTTP. Implementar o carregamento dinâmico de artigos."
 order: 15
+hero:
+  titleBefore: "Fetch:"
+  titleAccent: "HTTP"
+  titleAfter: "do JavaScript."
+quiz:
+  - question: "Por que fetch não rejeita automaticamente para respostas 4xx e 5xx?"
+    options:
+      - "É um bug do fetch que será corrigido"
+      - "Porque 4xx e 5xx não são erros reais do HTTP"
+      - "Por design: fetch rejeita apenas em erros de rede (sem conexão, DNS falhou). Um servidor respondendo com 404 ou 500 é uma resposta válida do ponto de vista do protocolo HTTP — você precisa verificar response.ok manualmente"
+      - "Porque fetch só funciona com APIs que retornam 2xx"
+    correct: 2
+  - question: "Por que há dois awaits em: const dados = await (await fetch(url)).json()?"
+    options:
+      - "O segundo await é um erro — await só pode ser usado uma vez por linha"
+      - "O primeiro await baixa o arquivo; o segundo o descomprime"
+      - "São equivalentes — qualquer um dos dois é suficiente"
+      - "O primeiro await espera os headers da resposta chegarem. O segundo await espera o body ser completamente recebido e parseado como JSON — são duas operações assíncronas distintas"
+    correct: 3
+  - question: "O que o header Content-Type: application/json faz em uma requisição POST?"
+    options:
+      - "Define o formato da resposta esperada"
+      - "Informa ao servidor que o body da requisição está no formato JSON — o servidor usa isso para saber como parsear os dados recebidos"
+      - "Converte o body para JSON automaticamente"
+      - "É obrigatório apenas com PUT, não com POST"
+    correct: 1
+  - question: "O que é response.ok?"
+    options:
+      - "true se o status HTTP está entre 200 e 299 — indica sucesso"
+      - "true se a resposta foi recebida em menos de 200ms"
+      - "true se o body da resposta não está vazio"
+      - "true se a requisição usou HTTPS"
+    correct: 0
 ---
+
+`fetch` é a API do navegador para fazer requisições HTTP. É o mecanismo que permite ao JavaScript buscar dados de servidores, enviar formulários sem recarregar a página e interagir com APIs externas. É o que transforma o blog de um documento estático em um sistema que busca e exibe dados dinamicamente.
+
+## O que é `fetch`
+
+`fetch(url, opções)` inicia uma requisição HTTP e retorna uma Promise que se resolve com um objeto `Response`. A Promise só **rejeita** em erros de rede (sem conexão, DNS falhou, timeout) — não para respostas HTTP com status de erro como 404 ou 500. Verificar o status é responsabilidade do código que chama o fetch.
+
+```js title="Uma requisição GET básica — a estrutura com dois awaits."
+// fetch retorna Promise<Response>
+// response.json() retorna Promise<any>
+// por isso: dois awaits
+
+async function buscarArtigos() {
+  const response = await fetch("/artigos.json");
+  const artigos = await response.json();
+  return artigos;
+}
+
+// versão compacta — quando não precisa inspecionar o response
+const artigos = await (await fetch("/artigos.json")).json();
+```
+
+Por que dois `await`s? Porque são duas operações assíncronas distintas. O primeiro `await` espera os **headers** da resposta chegarem — você sabe que o servidor respondeu, mas o body (o conteúdo) ainda pode estar chegando. O segundo `await` espera o **body** ser completamente recebido e parseado como JSON.
+
+## Verificar erros HTTP
+
+O erro mais comum com `fetch` é não verificar o status da resposta. Como `fetch` não rejeita para 4xx/5xx, um `fetch("/artigos.json")` que retorna 404 parece "bem-sucedido" — a Promise se resolve, mas com uma resposta de erro.
+
+A verificação correta usa `response.ok` — que é `true` para qualquer status entre 200 e 299:
+
+```js title="Verificar response.ok — tratamento correto de erros HTTP."
+async function carregarArtigos() {
+  try {
+    const response = await fetch("/artigos.json");
+
+    // response.ok é false para 4xx e 5xx
+    if (!response.ok) {
+      throw new Error(`Erro do servidor: ${response.status} ${response.statusText}`);
+    }
+
+    const artigos = await response.json();
+    return artigos;
+
+  } catch (erro) {
+    // captura tanto erros de rede quanto o Error lançado acima
+    console.error("Falha ao carregar artigos:", erro.message);
+    throw erro; // propagar para o chamador tratar na UI
+  }
+}
+```
+
+`response.status` é o código numérico (200, 404, 500). `response.statusText` é a mensagem textual ("OK", "Not Found", "Internal Server Error").
+
+## Enviar dados com POST
+
+Para POST, PUT, PATCH — qualquer método que envia dados — você passa um segundo argumento com as opções:
+
+```js title="Requisição POST — enviar os dados do formulário de contato."
+async function enviarFormulario(dados) {
+  const response = await fetch("/contato", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      // outros headers quando necessário:
+      // "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify(dados),
+    // JSON.stringify converte o objeto em string JSON:
+    // { nome: "Dev", email: "dev@ex.com" } → '{"nome":"Dev","email":"dev@ex.com"}'
+  });
+
+  if (!response.ok) throw new Error(`Erro ${response.status}`);
+
+  return response.json(); // ler a resposta do servidor
+}
+
+// usar no handler do formulário
+formContato.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const dados = {
+    nome: document.getElementById("nome").value,
+    email: document.getElementById("email").value,
+    mensagem: document.getElementById("mensagem").value,
+  };
+
+  try {
+    await enviarFormulario(dados);
+    exibirNotificacao("sucesso", "Mensagem enviada!");
+    event.target.reset(); // limpar o formulário
+  } catch (erro) {
+    exibirNotificacao("erro", "Falha ao enviar. Tente novamente.");
+  }
+});
+```
+
+O header `Content-Type: application/json` informa ao servidor o formato do body — sem ele, muitos servidores não sabem como parsear o JSON recebido.
+
+## Implementando o carregamento de artigos
+
+Para o blog, você vai criar um arquivo `artigos.json` com os dados dos artigos e uma função que busca esse arquivo e insere os cards no DOM.
+
+```json title="artigos.json — array de artigos na pasta pública."
+[
+  {
+    "id": 1,
+    "titulo": "CSS em geral",
+    "autor": "Dev Aprendiz",
+    "descricao": "O que é CSS, anatomia de uma regra e como conectar ao HTML.",
+    "tags": ["css", "frontend"],
+    "curtidas": 42,
+    "publicado": true,
+    "publicadoEm": "2025-03-15"
+  },
+  {
+    "id": 2,
+    "titulo": "Flexbox",
+    "autor": "Dev Aprendiz",
+    "descricao": "Layout em uma dimensão com display: flex.",
+    "tags": ["css", "layout"],
+    "curtidas": 87,
+    "publicado": true,
+    "publicadoEm": "2025-03-22"
+  }
+]
+```
+
+```js title="Implementação completa — fetch, loading state, erro e inserção no DOM."
+async function carregarArtigos() {
+  const lista = document.getElementById("lista-artigos");
+  if (!lista) return;
+
+  // estado de carregamento
+  lista.innerHTML = `
+    <div class="carregando" aria-live="polite">
+      <p>Carregando artigos…</p>
+    </div>
+  `;
+
+  try {
+    const response = await fetch("/artigos.json");
+
+    if (!response.ok) {
+      throw new Error(`Falha ao buscar artigos (${response.status})`);
+    }
+
+    const artigos = await response.json();
+    const publicados = artigos.filter(a => a.publicado);
+
+    if (publicados.length === 0) {
+      lista.innerHTML = "<p>Nenhum artigo publicado ainda.</p>";
+      return;
+    }
+
+    // recuperar curtidos do localStorage para atualizar os botões
+    const curtidos = JSON.parse(localStorage.getItem("curtidos")) ?? [];
+
+    lista.innerHTML = publicados.map(artigo => {
+      const curtido = curtidos.includes(artigo.id);
+      const dataFormatada = new Intl.DateTimeFormat("pt-BR").format(new Date(artigo.publicadoEm));
+
+      return `
+        <article class="card-artigo" data-id="${artigo.id}">
+          <h2 class="card-titulo">${artigo.titulo}</h2>
+          <p class="card-descricao">${artigo.descricao}</p>
+          <div class="card-meta">
+            <span>Por ${artigo.autor}</span>
+            <time datetime="${artigo.publicadoEm}">${dataFormatada}</time>
+          </div>
+          <div class="card-tags">
+            ${artigo.tags.map(t => `<span class="tag-artigo">${t}</span>`).join("")}
+          </div>
+          <button
+            class="botao-curtir"
+            aria-pressed="${curtido}"
+          >
+            ${curtido ? "❤️" : "🤍"} ${artigo.curtidas + (curtido ? 1 : 0)} curtidas
+          </button>
+        </article>
+      `;
+    }).join("");
+
+  } catch (erro) {
+    console.error(erro);
+    lista.innerHTML = `
+      <div class="erro-carregamento" role="alert">
+        <p>Não foi possível carregar os artigos.</p>
+        <button onclick="carregarArtigos()">Tentar novamente</button>
+      </div>
+    `;
+  }
+}
+
+// chamar ao carregar a página
+carregarArtigos();
+```
+
+## Resumo
+
+- **`fetch(url)`** retorna `Promise<Response>`. Dois `await`s para GET com JSON: um para a resposta, outro para o body.
+- **Não rejeita para 4xx/5xx** — verifique `response.ok` manualmente e lance um erro com `throw new Error(...)` se necessário.
+- **POST com corpo**: segundo argumento `{ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(dados) }`.
+- `response.status` é o código numérico. `response.ok` é `true` para 200–299.
+- Sempre implemente **loading state** (feedback enquanto aguarda), **tratamento de erro** (mensagem amigável + opção de retry) e **estado vazio** (quando não há dados).

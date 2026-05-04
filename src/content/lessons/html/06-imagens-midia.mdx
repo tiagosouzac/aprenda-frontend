@@ -1,6 +1,202 @@
 ---
 title: "Imagens e mídia"
-description: "img com alt, dimensões, loading=lazy, formatos modernos como webp e avif. Vídeo e áudio com video e audio."
-comingSoon: true
+description: "img com alt, dimensões e loading lazy. Formatos modernos, picture com múltiplas fontes e vídeo e áudio nativos."
 order: 6
+hero:
+  titleBefore: "Imagens e"
+  titleAccent: "mídia"
+  titleAfter: "no HTML."
+quiz:
+  - question: "Por que o atributo alt é obrigatório em imagens informativas?"
+    options:
+      - "Porque sem ele a imagem não carrega"
+      - "Para melhorar a velocidade de carregamento"
+      - "Para descrever a imagem a quem não pode vê-la — leitores de tela e falhas de carregamento"
+      - "Porque o CSS não consegue estilizar imagens sem alt"
+    correct: 2
+  - question: "Por que declarar width e height em imagens HTML?"
+    options:
+      - "Para aumentar a qualidade da imagem"
+      - "Porque sem esses atributos a imagem não aparece"
+      - "Para comprimir a imagem automaticamente"
+      - "Para que o navegador reserve o espaço correto antes da imagem carregar, evitando layout shift"
+    correct: 3
+  - question: "Quando usar alt='' (alt vazio)?'"
+    options:
+      - "Quando a imagem é grande e demoraria para carregar"
+      - "Quando a imagem é decorativa e não acrescenta informação ao conteúdo"
+      - "Quando não se sabe qual texto escrever no alt"
+      - "Quando a imagem já tem uma legenda visível"
+    correct: 1
+  - question: "O que o atributo loading='lazy' faz?"
+    options:
+      - "Adia o carregamento da imagem até ela estar próxima da viewport"
+      - "Aplica um efeito de blur enquanto a imagem carrega"
+      - "Carrega a imagem em baixa resolução primeiro e depois em alta"
+      - "Desativa o cache da imagem no navegador"
+    correct: 0
 ---
+
+O artigo "Meu primeiro projeto web" tem uma imagem de capa mostrando o projeto finalizado, uma foto do autor e algumas imagens inline ilustrando pontos do texto. Cada uma dessas imagens precisa de marcação cuidadosa: o atributo `alt` correto, dimensões declaradas, e o formato adequado para o tipo de imagem.
+
+Imagens são frequentemente o maior problema de performance em páginas web — e também uma fonte comum de problemas de acessibilidade. Esta lição cobre como usar `<img>` corretamente, quando usar `<picture>` para múltiplas fontes, e como adicionar vídeo e áudio com os controles nativos do navegador.
+
+## A tag `<img>` e seus atributos essenciais
+
+`<img>` é um elemento vazio — sem tag de fechamento — que incorpora uma imagem na página. Dois atributos são essenciais em quase todos os casos: `src` e `alt`.
+
+**`src`** (*source*) define o caminho para o arquivo da imagem. Pode ser uma URL relativa (para arquivos no mesmo servidor) ou uma URL absoluta (para imagens em outros servidores):
+
+**`alt`** (*alternative text*) fornece uma descrição textual da imagem. Ele cumpre três funções: é o que leitores de tela anunciam para usuários com deficiência visual; é o que aparece na tela se a imagem falha ao carregar; e é o que mecanismos de busca leem para entender o conteúdo da imagem.
+
+```html title="Imagem de capa do artigo com alt descritivo."
+<!-- imagem informativa: alt descreve o conteúdo e o contexto -->
+<img
+  src="/imagens/projeto-finalizado.png"
+  alt="Screenshot da página inicial do projeto, mostrando o header azul e a lista de artigos"
+  width="800"
+  height="450"
+/>
+```
+
+Um bom `alt` descreve o que está sendo mostrado **e por que importa naquele contexto**. "imagem", "foto" e "screenshot" são descrições que não acrescentam nada. A pergunta útil é: "se eu não pudesse ver essa imagem, qual informação eu perderia?" — é isso que o `alt` deve transmitir.
+
+Quando a imagem é **decorativa** — existe apenas por efeito visual e não acrescenta informação ao conteúdo — o `alt` deve ser vazio: `alt=""`. Isso instrui o leitor de tela a ignorar a imagem completamente, o que é o comportamento correto:
+
+```html title="Imagem decorativa com alt vazio — o leitor de tela a ignora."
+<!-- separador visual entre seções — nenhuma informação a transmitir -->
+<img src="/imagens/divisor-decorativo.svg" alt="" />
+```
+
+Omitir o `alt` completamente é diferente de `alt=""`. Um `alt` ausente é um erro — o leitor de tela pode anunciar o nome do arquivo como fallback, que é inútil para o usuário.
+
+## Dimensões e performance
+
+Sempre declare `width` e `height` em imagens, com os valores reais em pixels do arquivo:
+
+```html title="Dimensões declaradas evitam layout shift durante o carregamento."
+<!-- width e height reservam o espaço antes da imagem carregar -->
+<img
+  src="/imagens/projeto-finalizado.png"
+  alt="Screenshot do projeto finalizado"
+  width="800"
+  height="450"
+/>
+```
+
+A razão é o **layout shift** — quando uma imagem sem dimensões declaradas termina de carregar e empurra o conteúdo abaixo dela para baixo. Isso é visualmente irritante e piora a pontuação de Core Web Vitals (métricas de performance do Google). Com `width` e `height`, o navegador reserva o espaço correto para a imagem antes mesmo de ela chegar, então o layout não muda quando ela aparece.
+
+O tamanho visual da imagem é controlado pelo CSS — declarar `width="800"` no HTML não significa que ela vai aparecer com 800px de largura na tela. O CSS pode redimensioná-la como precisar. O `width` e `height` no HTML são apenas informação para o navegador calcular o *aspect ratio* e reservar o espaço.
+
+O atributo `loading` controla quando a imagem é baixada:
+
+- **`loading="eager"`** é o padrão — a imagem é baixada imediatamente, junto com o resto da página. Use para imagens visíveis no primeiro momento da página (acima da dobra).
+- **`loading="lazy"`** adia o carregamento até a imagem estar próxima da viewport — o usuário vai rolar para lá. Use para todas as imagens que ficam abaixo da dobra:
+
+```html title="Imagem de capa eager; imagens do conteúdo lazy."
+<!-- imagem de capa — visível imediatamente, carrega com prioridade -->
+<img
+  src="/imagens/capa.jpg"
+  alt="Capa do artigo"
+  width="1200"
+  height="630"
+  loading="eager"
+/>
+
+<!-- imagens no corpo do artigo — carregam quando o usuário rolar -->
+<img
+  src="/imagens/passo-1.png"
+  alt="Configuração inicial do projeto no editor"
+  width="960"
+  height="540"
+  loading="lazy"
+/>
+```
+
+## Formatos modernos
+
+O formato de imagem afeta o tamanho do arquivo e, portanto, a velocidade de carregamento. Cada formato tem seus pontos fortes:
+
+**JPEG** é o formato tradicional para fotografias. Compressão com perda — qualidade configurável. Bom para imagens com muitos gradientes e cores.
+
+**PNG** suporta transparência (canal alpha) e usa compressão sem perda. É o formato certo para ícones, screenshots com texto e imagens que precisam de fundos transparentes.
+
+**WebP** é um formato moderno do Google que combina o melhor dos dois: suporta transparência como PNG e compressão eficiente como JPEG. Para a mesma qualidade visual, um WebP costuma ter 25-35% menos bytes do que o equivalente JPEG ou PNG. É suportado por todos os navegadores modernos.
+
+**AVIF** é ainda mais eficiente que WebP, mas com suporte mais recente. Navegadores mais antigos (Safari antes de 2022) não o suportam.
+
+**SVG** é o formato vetorial — descrito por coordenadas matemáticas, não por pixels. Escala sem perda de qualidade para qualquer tamanho, o que o torna ideal para ícones, logos e ilustrações.
+
+## `<picture>` e múltiplas fontes
+
+O elemento `<picture>` permite oferecer versões alternativas de uma imagem para que o navegador escolha a melhor suportada. Ele não exibe nada por si mesmo — é um contêiner que envolve um ou mais `<source>` e um `<img>` de fallback.
+
+```html title="Imagem com fallback AVIF → WebP → JPEG — o navegador escolhe o melhor suportado."
+<picture>
+  <!-- primeira opção: AVIF — menor tamanho, suporte mais recente -->
+  <source type="image/avif" srcset="/imagens/projeto.avif" />
+
+  <!-- segunda opção: WebP — boa compressão, amplo suporte -->
+  <source type="image/webp" srcset="/imagens/projeto.webp" />
+
+  <!-- fallback: JPEG — funciona em qualquer navegador -->
+  <img
+    src="/imagens/projeto.jpg"
+    alt="Screenshot do projeto finalizado"
+    width="800"
+    height="450"
+    loading="lazy"
+  />
+</picture>
+```
+
+O navegador verifica os `<source>` em ordem e usa o primeiro formato que consegue processar. Se nenhum `<source>` for compatível, usa o `<img>` de fallback. O `alt`, `width`, `height` e `loading` ficam sempre no `<img>` — o `<picture>` e os `<source>` são invisíveis para leitores de tela.
+
+## Vídeo e áudio
+
+HTML tem elementos nativos para vídeo e áudio que funcionam sem nenhum plugin ou biblioteca externa.
+
+**`<video>`** incorpora um player de vídeo. O atributo `controls` exibe os controles nativos do navegador (play, pause, volume, barra de progresso). O `poster` define uma imagem exibida antes do vídeo iniciar — importante para que o usuário entenda o que vai ver antes de clicar:
+
+```html title="Video com poster, múltiplas fontes e legenda acessível."
+<video
+  controls
+  width="960"
+  height="540"
+  poster="/imagens/thumbnail-demo.jpg"
+>
+  <!-- WebM para navegadores modernos -->
+  <source src="/videos/demo-projeto.webm" type="video/webm" />
+  <!-- MP4 como fallback universal -->
+  <source src="/videos/demo-projeto.mp4" type="video/mp4" />
+
+  <!-- legenda acessível para surdos e ambientes sem áudio -->
+  <track
+    kind="subtitles"
+    src="/legendas/demo-pt.vtt"
+    srclang="pt"
+    label="Português"
+    default
+  />
+</video>
+```
+
+O `<track>` com `kind="subtitles"` adiciona legendas acessíveis — essencial para usuários surdos e para quem assiste sem áudio. O arquivo `.vtt` (*WebVTT*) contém as legendas com marcações de tempo.
+
+**`<audio>`** funciona de forma similar, mas para som:
+
+```html title="Player de áudio com controles nativos e múltiplas fontes."
+<audio controls>
+  <source src="/audio/entrevista.ogg" type="audio/ogg" />
+  <source src="/audio/entrevista.mp3" type="audio/mpeg" />
+</audio>
+```
+
+## Resumo
+
+- `<img src="..." alt="...">` é o elemento de imagem; `alt` é obrigatório em imagens informativas e descreve o conteúdo para quem não pode ver; `alt=""` instrui o leitor de tela a ignorar imagens decorativas.
+- Declare sempre `width` e `height` com os valores reais da imagem para evitar layout shift durante o carregamento.
+- `loading="lazy"` adia o carregamento de imagens fora da viewport; `loading="eager"` (padrão) carrega imediatamente — use na imagem de capa.
+- Formatos: JPEG para fotos, PNG para transparência, WebP para boa compressão com amplo suporte, SVG para vetoriais.
+- `<picture>` com múltiplos `<source>` permite oferecer AVIF e WebP com fallback JPEG; o `<img>` dentro do `<picture>` é o fallback e onde ficam `alt`, `width`, `height` e `loading`.
+- `<video controls poster="...">` e `<audio controls>` criam players nativos; use múltiplos `<source>` para compatibilidade e `<track>` para legendas acessíveis.

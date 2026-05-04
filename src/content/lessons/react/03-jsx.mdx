@@ -1,6 +1,253 @@
 ---
 title: "JSX"
 description: "Sintaxe que mistura HTML e JS. Expressões dentro de chaves, atributos (className, htmlFor), fragmentos (<>...</>), comentários."
-comingSoon: true
 order: 3
+hero:
+  titleBefore: "JSX:"
+  titleAccent: "HTML"
+  titleAfter: "dentro do JavaScript."
+quiz:
+  - question: "O que é JSX na prática?"
+    options:
+      - "Açúcar sintático sobre React.createElement() — o compilador transforma JSX em chamadas de função JavaScript. O browser nunca vê JSX diretamente"
+      - "Uma versão melhorada de HTML criada pelo Facebook"
+      - "Um arquivo separado que descreve a estrutura visual"
+      - "Uma linguagem de template que roda no servidor"
+    correct: 0
+  - question: "Por que class vira className em JSX?"
+    options:
+      - "Por convenção de estilo do React"
+      - "Porque className é mais rápido de processar"
+      - "Porque class é uma palavra reservada do JavaScript — como JSX compila para JavaScript, os atributos precisam ser identificadores JS válidos"
+      - "Porque class só funciona em elementos HTML nativos"
+    correct: 2
+  - question: "Qual é o problema de usar {0 && <Componente />} para renderização condicional?"
+    options:
+      - "Não há problema — funciona corretamente"
+      - "O componente é renderizado mesmo quando a condição é falsy"
+      - "JSX não suporta o operador &&"
+      - "Quando a condição é 0 (número), React renderiza o 0 no DOM — porque 0 é um valor falsy que ainda é renderizável. Use Boolean(0) ou 0 > 0 para evitar"
+    correct: 3
+  - question: "Quando usar um fragmento (<>...</>) em vez de uma <div> como wrapper?"
+    options:
+      - "Sempre — fragmentos são mais rápidos"
+      - "Quando você precisa retornar múltiplos elementos mas não quer adicionar um nó extra ao DOM — uma <div> extra pode quebrar layouts CSS que dependem da estrutura de elementos"
+      - "Apenas em listas"
+      - "Fragmentos só funcionam em componentes de página"
+    correct: 1
 ---
+
+JSX é a sintaxe que permite escrever estrutura de UI dentro do JavaScript. Parece HTML — mas não é. O compilador (Babel ou esbuild) transforma JSX em chamadas `React.createElement()` antes do código chegar ao browser. Entender o que JSX é e o que não é evita erros comuns com atributos, expressões e renderização condicional.
+
+## O que é JSX
+
+```tsx title="JSX e o equivalente em React.createElement — o que o compilador faz."
+// você escreve isso
+const card = (
+  <article className="card-artigo">
+    <h2>CSS em geral</h2>
+    <p>O que é CSS</p>
+  </article>
+);
+
+// o compilador gera isso
+const card = React.createElement(
+  "article",
+  { className: "card-artigo" },
+  React.createElement("h2", null, "CSS em geral"),
+  React.createElement("p", null, "O que é CSS")
+);
+```
+
+O browser nunca vê JSX — só JavaScript. JSX é açúcar sintático que torna a estrutura mais legível. A razão para preferir JSX é prática: escrever `React.createElement` aninhado para UIs complexas é ilegível.
+
+## Diferenças em relação ao HTML
+
+JSX parece HTML mas tem regras diferentes — porque compila para JavaScript:
+
+**`className` em vez de `class`**: `class` é palavra reservada do JavaScript. Em JSX, o atributo para classes CSS é `className`.
+
+**`htmlFor` em vez de `for`**: `for` também é reservada. Em `<label>`, use `htmlFor`.
+
+**Atributos em camelCase**: eventos e atributos compostos seguem a convenção JavaScript. `onclick` vira `onClick`, `tabindex` vira `tabIndex`, `aria-label` continua com hífen (ARIA attributes são exceção).
+
+**Tags precisam ser fechadas**: em HTML, `<img>` e `<input>` são válidos sem fechar. Em JSX, todas as tags precisam ser fechadas — `<img />` ou `<input />`.
+
+**`style` recebe objeto**: em HTML, `style` é uma string. Em JSX, é um objeto JavaScript com propriedades em camelCase:
+
+```tsx title="Diferenças JSX vs HTML — o que muda na prática."
+// HTML original
+// <div class="card" for="nome" style="font-size: 16px; background-color: red">
+//   <img src="foto.jpg">
+// </div>
+
+// JSX equivalente
+<div className="card" htmlFor="nome" style={{ fontSize: 16, backgroundColor: "red" }}>
+  <img src="foto.jpg" />
+</div>
+```
+
+## Expressões dentro de JSX
+
+Qualquer expressão JavaScript pode ir dentro de `{}` no JSX. O resultado é interpolado no output:
+
+```tsx title="Expressões em JSX — variáveis, chamadas de função e ternários."
+function ArticleCard({ artigo }: { artigo: Artigo }) {
+  const dataFormatada = new Intl.DateTimeFormat("pt-BR").format(
+    new Date(artigo.publicadoEm ?? "")
+  );
+
+  return (
+    <article className="card-artigo" data-id={artigo.id}>
+      {/* interpolação de variável */}
+      <h2>{artigo.titulo}</h2>
+
+      {/* chamada de função */}
+      <p>{truncar(artigo.descricao, 120)}</p>
+
+      {/* ternário — dois estados diferentes */}
+      <span className={artigo.publicado ? "badge-publicado" : "badge-rascunho"}>
+        {artigo.publicado ? "Publicado" : "Rascunho"}
+      </span>
+
+      {/* expressão para exibir data */}
+      <time dateTime={artigo.publicadoEm ?? ""}>{dataFormatada}</time>
+
+      {/* renderização de lista */}
+      <div className="tags">
+        {artigo.tags.map(tag => (
+          <span key={tag} className="tag">{tag}</span>
+        ))}
+      </div>
+    </article>
+  );
+}
+```
+
+**JSX aceita expressões, não declarações**. Você não pode usar `if`, `for`, `while` diretamente dentro de `{}`. Para condicionais, use ternário ou `&&`. Para listas, use `.map()`. Se a lógica for complexa, extraia para uma variável antes do `return`:
+
+```tsx title="Lógica complexa antes do return — sem declarações dentro de JSX."
+function ArticleCard({ artigo }: { artigo: Artigo }) {
+  // lógica fica antes do return — pode usar if, for, etc.
+  const diasDesdePublicacao = artigo.publicadoEm
+    ? Math.floor((Date.now() - new Date(artigo.publicadoEm).getTime()) / 86400000)
+    : null;
+
+  const isNovo = diasDesdePublicacao !== null && diasDesdePublicacao <= 7;
+
+  const badgeLabel = isNovo ? "Novo" : null;
+
+  return (
+    <article>
+      <h2>{artigo.titulo}</h2>
+      {/* só expressões dentro de JSX */}
+      {badgeLabel && <span className="badge">{badgeLabel}</span>}
+    </article>
+  );
+}
+```
+
+## Renderização condicional
+
+Dois padrões para mostrar algo condicionalmente:
+
+**`&&` (short-circuit)**: renderiza o lado direito somente se a condição for verdadeira. Cuidado com valores falsy numéricos — `0` é falsy mas ainda renderizável:
+
+```tsx title="Condicional com && — o problema com números."
+// ❌ problema: quando artigos.length é 0, renderiza o número 0 no DOM
+{artigos.length && <ArticleList artigos={artigos} />}
+
+// ✅ correto: converter para boolean explicitamente
+{artigos.length > 0 && <ArticleList artigos={artigos} />}
+
+// ou usar ternário
+{artigos.length > 0 ? <ArticleList artigos={artigos} /> : null}
+```
+
+**Ternário**: para dois casos — um quando verdadeiro, outro quando falso:
+
+```tsx title="Ternário — dois estados visuais."
+{carregando
+  ? <p>Carregando artigos…</p>
+  : <ArticleList artigos={artigos} />
+}
+```
+
+Para casos mais complexos (três ou mais estados), extraia para uma função:
+
+```tsx title="Função para renderização condicional complexa."
+function renderizarConteudo(estado: EstadoCarregamento) {
+  if (estado.status === "carregando") return <p>Carregando…</p>;
+  if (estado.status === "erro") return <p className="erro">{estado.mensagem}</p>;
+  if (estado.artigos.length === 0) return <p>Nenhum artigo encontrado.</p>;
+  return <ArticleList artigos={estado.artigos} />;
+}
+
+// dentro do JSX: chama a função
+{renderizarConteudo(estado)}
+```
+
+## Fragmentos
+
+Um componente deve retornar um único elemento raiz. Mas às vezes você não quer adicionar uma `<div>` ao DOM só para satisfazer essa regra — uma `<div>` extra pode quebrar layouts CSS que dependem da estrutura de filhos diretos:
+
+```tsx title="Fragmento — agrupar sem adicionar nó ao DOM."
+// sem fragmento — <div> desnecessária no DOM
+function ArticleMeta({ artigo }: { artigo: Artigo }) {
+  return (
+    <div>
+      <time>{formatarData(artigo.publicadoEm ?? "")}</time>
+      <span>Por {artigo.autor.nome}</span>
+    </div>
+  );
+}
+
+// com fragmento — nada extra no DOM
+function ArticleMeta({ artigo }: { artigo: Artigo }) {
+  return (
+    <>
+      <time>{formatarData(artigo.publicadoEm ?? "")}</time>
+      <span>Por {artigo.autor.nome}</span>
+    </>
+  );
+}
+
+// React.Fragment com key — quando fragmento precisa de chave em lista
+{artigos.map(artigo => (
+  <React.Fragment key={artigo.id}>
+    <dt>{artigo.titulo}</dt>
+    <dd>{artigo.descricao}</dd>
+  </React.Fragment>
+))}
+```
+
+A sintaxe `<>...</>` é equivalente a `<React.Fragment>...</React.Fragment>` — exceto que a versão longa aceita a prop `key` (necessária em listas).
+
+## Comentários em JSX
+
+Comentários dentro de JSX precisam de `{/* */}` — comentários `//` normais não funcionam dentro do markup:
+
+```tsx title="Comentários — dentro e fora do JSX."
+function ArticleCard({ artigo }: { artigo: Artigo }) {
+  // comentário JS normal — antes do return
+  return (
+    <article>
+      {/* comentário dentro do JSX */}
+      <h2>{artigo.titulo}</h2>
+      {/*
+        comentário de múltiplas linhas
+        também funciona assim
+      */}
+    </article>
+  );
+}
+```
+
+## Resumo
+
+- **JSX compila para `React.createElement()`** — o browser nunca vê JSX. É açúcar sintático sobre chamadas de função JavaScript.
+- **Diferenças do HTML**: `className` em vez de `class`, `htmlFor` em vez de `for`, atributos em camelCase, todas as tags fechadas, `style` como objeto.
+- **Expressões dentro de `{}`**: variáveis, funções, ternários. Declarações (`if`, `for`) não são permitidas — extraia para variáveis antes do `return`.
+- **`&&` para condicional**: cuidado com `0` — converta para boolean (`artigos.length > 0`). Ternário para dois casos.
+- **Fragmentos** (`<>...</>`): retornar múltiplos elementos sem adicionar nó ao DOM. Use `<React.Fragment key={...}>` quando precisar de `key`.
+- **Comentários**: `{/* comentário */}` dentro do JSX, `// comentário` fora.

@@ -1,6 +1,196 @@
 ---
 title: "Tipos básicos"
 description: "string, number, boolean, null, undefined, any, unknown, never. Arrays, tuplas e enums (e quando evitar enum)."
-comingSoon: true
 order: 3
+hero:
+  titleBefore: "Tipos"
+  titleAccent: "básicos"
+  titleAfter: "do TypeScript."
+quiz:
+  - question: "Qual é a diferença entre any e unknown?"
+    options:
+      - "Não há diferença — são sinônimos"
+      - "any é para objetos; unknown é para primitivos"
+      - "unknown é depreciado em favor de any"
+      - "any desativa toda a verificação de tipo; unknown também aceita qualquer valor mas exige verificação antes de usar — é a alternativa segura ao any"
+    correct: 3
+  - question: "Por que enums são geralmente evitados em TypeScript moderno?"
+    options:
+      - "Porque enums não funcionam com strict mode"
+      - "Porque enums compilam para um objeto JavaScript no output — aumentam o bundle. A alternativa com as const tem zero custo em runtime"
+      - "Porque enums não podem ser usados em interfaces"
+      - "Porque enums foram removidos no TypeScript 5"
+    correct: 1
+  - question: "O que é uma tupla em TypeScript?"
+    options:
+      - "Um array com comprimento fixo e tipos definidos por posição — [string, number] significa exatamente um string na posição 0 e um number na posição 1"
+      - "Um array de objetos"
+      - "Um tipo sinônimo de Record"
+      - "Uma versão imutável de Array"
+    correct: 0
+  - question: "Quando usar never como tipo de retorno?"
+    options:
+      - "Quando a função retorna undefined"
+      - "Quando a função retorna null"
+      - "Quando a função nunca retorna — porque sempre lança um erro ou entra em loop infinito"
+      - "Quando a função é assíncrona"
+    correct: 2
 ---
+
+TypeScript tem um sistema de tipos construído sobre os tipos do JavaScript, com adições importantes para casos que JavaScript trata de forma ambígua. Entender esses tipos básicos é o pré-requisito para anotar as funções do blog — e para ler erros do compilador sem estranhamento.
+
+## Tipos primitivos
+
+Os sete primitivos do JavaScript têm representações diretas em TypeScript. A anotação de tipo vem depois de dois-pontos após o nome da variável ou parâmetro:
+
+```ts title="Tipos primitivos — anotações nas variáveis do blog."
+// string: texto
+const titulo: string = "CSS em geral";
+const slug: string = "css-em-geral";
+
+// number: inteiros e decimais no mesmo tipo
+const curtidas: number = 42;
+const tempoLeitura: number = 5.5; // minutos
+
+// boolean: true ou false
+const publicado: boolean = true;
+
+// null: ausência intencional — você atribui null explicitamente
+// com strictNullChecks, null só é atribuível a tipos que declaram | null
+let publicadoEm: string | null = null; // rascunho ainda não tem data
+
+// undefined: variável não atribuída, parâmetro não passado, propriedade inexistente
+let autor: string | undefined;        // ainda não definido
+
+// symbol: identificador único — raro no código de aplicação
+const id: symbol = Symbol("artigo-id");
+
+// bigint: inteiros arbitrariamente grandes — para cálculos que excedem Number.MAX_SAFE_INTEGER
+const totalItens: bigint = 9007199254740993n;
+```
+
+Além dos sete primitivos do JavaScript, TypeScript adiciona tipos especiais:
+
+**`any`**: aceita qualquer valor e desativa toda a verificação de tipo. Variáveis com tipo `any` podem ser tratadas como qualquer coisa — acessar propriedades, chamar como função, somar com strings. É como não ter TypeScript.
+
+**`unknown`**: também aceita qualquer valor, mas exige verificação antes de usar. Se você tem um `unknown`, não pode acessar `.titulo` diretamente — primeiro precisa confirmar que é um objeto com essa propriedade. É a alternativa segura ao `any`.
+
+**`never`**: tipo de algo que nunca acontece. Uma função que sempre lança um erro nunca retorna — seu tipo de retorno é `never`. Um `if/else` que cobre todos os casos possíveis de um union deixa o TypeScript saber que o ramo `else` é impossível, atribuindo `never`.
+
+**`void`**: tipo de retorno de funções que não retornam valor utilizável. Diferente de `undefined`: `void` indica intenção (a função não foi escrita para retornar algo), enquanto `undefined` é o valor concreto.
+
+```ts title="any vs unknown — a diferença que importa."
+// any: sem proteção
+function processarResposta(dados: any) {
+  console.log(dados.titulo.toLowerCase()); // sem erro de compilação
+  // mas se dados for null em runtime → TypeError
+}
+
+// unknown: exige verificação
+function processarResposta(dados: unknown) {
+  // TS erro: Object is of type 'unknown'
+  // console.log(dados.titulo);
+
+  // correto: verificar antes de usar
+  if (typeof dados === "object" && dados !== null && "titulo" in dados) {
+    const obj = dados as { titulo: string };
+    console.log(obj.titulo.toLowerCase());
+  }
+}
+```
+
+A regra prática: use `unknown` onde você precisaria de `any`. Ele aceita o mesmo conjunto de valores, mas obriga a verificação — o que é o ponto.
+
+## Arrays e tuplas
+
+Arrays têm dois estilos de anotação equivalentes:
+
+```ts title="Arrays tipados — dois estilos para o mesmo resultado."
+// estilo 1: tipo seguido de []
+const tags: string[] = ["css", "layout", "frontend"];
+const curtidas: number[] = [42, 87, 13];
+
+// estilo 2: genérico Array<T> — menos comum, mas válido
+const ids: Array<number> = [1, 2, 3];
+
+// array de objetos — usando uma interface (definida mais adiante)
+const artigos: Artigo[] = [];
+```
+
+**Tuplas** são arrays com comprimento fixo e tipos definidos por posição. Diferente de um array, onde todos os itens têm o mesmo tipo, uma tupla especifica o tipo de cada posição individualmente:
+
+```ts title="Tuplas — comprimento e tipo por posição."
+// [string, number]: exatamente dois itens — string na posição 0, number na posição 1
+const tempoLeitura: [string, number] = ["5 minutos", 5];
+const coordenadas: [number, number] = [-23.5505, -46.6333]; // latitude, longitude
+
+// tupla nomeada — mais legível
+type DimensaoImagem = [largura: number, altura: number];
+const tamanhoHero: DimensaoImagem = [1200, 630];
+
+// tupla com item opcional
+type Resultado = [sucesso: boolean, mensagem?: string];
+const ok: Resultado = [true];
+const falha: Resultado = [false, "Artigo não encontrado"];
+```
+
+Tuplas são úteis quando uma função precisa retornar múltiplos valores com tipos diferentes — uma alternativa a retornar um objeto quando os valores não têm nomes naturais.
+
+## Enums — e quando evitar
+
+Enums declaram um conjunto nomeado de constantes relacionadas:
+
+```ts title="Enum — o problema do output gerado."
+// enum declarado em TypeScript
+enum StatusArtigo {
+  Rascunho = "rascunho",
+  Publicado = "publicado",
+  Arquivado = "arquivado",
+}
+
+// uso
+const status: StatusArtigo = StatusArtigo.Publicado;
+
+// o compilador gera este JavaScript:
+// var StatusArtigo;
+// (function (StatusArtigo) {
+//   StatusArtigo["Rascunho"] = "rascunho";
+//   StatusArtigo["Publicado"] = "publicado";
+//   StatusArtigo["Arquivado"] = "arquivado";
+// })(StatusArtigo || (StatusArtigo = {}));
+// um objeto real no bundle — código que não existia em JavaScript
+```
+
+O problema: enums geram código JavaScript real. Para algo que é puramente uma convenção de desenvolvimento, adicionar um objeto ao bundle é um custo desnecessário.
+
+A alternativa moderna é `as const` com um objeto literal — o comportamento é idêntico, mas o output é zero:
+
+```ts title="as const — alternativa ao enum sem custo em runtime."
+// objeto com as const — tipo inferido como literais, não como strings genéricas
+const STATUS_ARTIGO = {
+  Rascunho: "rascunho",
+  Publicado: "publicado",
+  Arquivado: "arquivado",
+} as const;
+
+// extrair o tipo dos valores — "rascunho" | "publicado" | "arquivado"
+type StatusArtigo = typeof STATUS_ARTIGO[keyof typeof STATUS_ARTIGO];
+
+// uso idêntico ao enum
+const status: StatusArtigo = STATUS_ARTIGO.Publicado;
+
+// o JavaScript gerado é exatamente:
+// const STATUS_ARTIGO = { Rascunho: "rascunho", Publicado: "publicado", Arquivado: "arquivado" };
+// zero overhead — o objeto já existia na lógica, só ganhamos tipos
+```
+
+A heurística: sempre que sentir vontade de usar `enum`, experimente `as const` primeiro. O resultado é mais simples, mais leve, e mais compatível com padrões JavaScript.
+
+## Resumo
+
+- **Tipos primitivos** em TypeScript espelham os do JavaScript: `string`, `number`, `boolean`, `null`, `undefined`, `symbol`, `bigint`. Com `strict: true`, `null` e `undefined` precisam ser declarados explicitamente no tipo (`string | null`).
+- **`any`** desativa a verificação de tipo — evitar. **`unknown`** aceita qualquer valor mas exige verificação antes de usar — a alternativa segura.
+- **`never`** é o tipo de algo impossível: retorno de funções que sempre lançam erro, ramos inatingíveis de código.
+- **Arrays**: `string[]` ou `Array<string>` — os dois são equivalentes.
+- **Tuplas**: array com comprimento e tipos por posição — `[string, number]` significa exatamente dois itens com tipos específicos.
+- **Enums** geram código JavaScript real. A alternativa com `as const` tem zero custo em runtime e comportamento equivalente.

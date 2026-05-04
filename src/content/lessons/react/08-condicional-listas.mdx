@@ -1,6 +1,265 @@
 ---
 title: "Renderização condicional e listas"
-description: "&&, ternário, retorno antecipado. .map() para renderizar listas e a importância da key."
-comingSoon: true
+description: "Como mostrar ou esconder elementos com &&, ternário e retorno antecipado. Como renderizar listas com .map() e por que a key importa."
 order: 8
+hero:
+  titleBefore: "Condicional"
+  titleAccent: "e listas"
+  titleAfter: "— UI dinâmica."
+quiz:
+  - question: "Qual é o risco de usar {lista.length && <Componente />} em vez de {lista.length > 0 && <Componente />}?"
+    options:
+      - "Se lista estiver vazia, lista.length é 0 — um valor falsy numérico. React renderiza o 0 no DOM em vez de não renderizar nada"
+      - "Nenhum — as duas formas são equivalentes"
+      - "A primeira forma não compila com TypeScript"
+      - "A segunda forma é mais lenta"
+    correct: 0
+  - question: "Por que usar o índice do array como key é problemático quando a lista pode ser reordenada?"
+    options:
+      - "O índice não é permitido pelo TypeScript"
+      - "O índice muda entre renders e isso causa erros de runtime"
+      - "React usa a key para rastrear quais itens mudaram. Se você reordena e usa o índice, React acha que o item na posição 0 é o mesmo — mas agora é outro. O estado (como inputs preenchidos) fica preso na posição, não no item"
+      - "Não é problemático — é apenas uma convenção"
+    correct: 2
+  - question: "Qual é a diferença entre {condição && <A />} e {condição ? <A /> : null}?"
+    options:
+      - "O operador && nunca renderiza null"
+      - "O ternário não funciona com componentes"
+      - "O && é mais rápido"
+      - "São funcionalmente idênticos — a segunda forma é mais explícita sobre o caso negativo"
+    correct: 3
+  - question: "Onde a prop key deve ser colocada?"
+    options:
+      - "Dentro do componente que a recebe, via props.key"
+      - "No elemento raiz retornado pelo .map() — não é acessível como prop dentro do componente"
+      - "Em qualquer elemento da lista, não precisa ser o raiz"
+      - "No componente pai que renderiza a lista"
+    correct: 1
 ---
+
+React re-renderiza a UI declarativamente — você descreve o que deve aparecer dado o estado atual. Dois padrões fundamentais para UIs dinâmicas: **renderização condicional** (mostrar ou esconder partes da UI com base em condições) e **renderização de listas** (transformar arrays de dados em listas de elementos JSX).
+
+## Renderização condicional com `&&`
+
+O operador `&&` é o atalho mais conciso para renderizar algo apenas quando uma condição é verdadeira:
+
+```tsx title="&& — renderizar apenas quando condição é verdadeira."
+interface ArticleCardProps {
+  artigo: Artigo;
+}
+
+export function ArticleCard({ artigo }: ArticleCardProps) {
+  const seteDiasAtras = new Date();
+  seteDiasAtras.setDate(seteDiasAtras.getDate() - 7);
+  const ehNovo = artigo.publicadoEm
+    ? new Date(artigo.publicadoEm) > seteDiasAtras
+    : false;
+
+  return (
+    <article className="card-artigo">
+      <h2>
+        {artigo.titulo}
+        {ehNovo && <span className="badge-novo">Novo</span>}
+      </h2>
+      <p>{artigo.descricao}</p>
+    </article>
+  );
+}
+```
+
+Quando `ehNovo` é `false`, o `&&` curto-circuita e React não renderiza nada no lugar do badge. Quando é `true`, o badge aparece.
+
+**Cuidado com valores falsy numéricos.** O `&&` funciona com booleanos, mas pode surpreender com números:
+
+```tsx title="Cuidado — && com número renderiza o 0."
+// ❌ risco — se artigos.length for 0, renderiza '0' no DOM
+{artigos.length && <ArticleList artigos={artigos} />}
+
+// ✅ correto — comparação explícita garante boolean
+{artigos.length > 0 && <ArticleList artigos={artigos} />}
+
+// ✅ alternativa — Boolean() converte explicitamente
+{Boolean(artigos.length) && <ArticleList artigos={artigos} />}
+```
+
+O problema: JavaScript avalia `0 && <X />` como `0` — React renderiza o número `0` no DOM. Sempre que o valor à esquerda pode ser `0` (ou qualquer falsy não-booleano), use uma comparação explícita.
+
+## Ternário para dois casos
+
+Quando há um caso alternativo — mostrar `<A />` se verdade, `<B />` se falso — o ternário é a escolha certa:
+
+```tsx title="Ternário — dois caminhos de renderização."
+export function LikeButton({ curtido, onCurtir }: LikeButtonProps) {
+  return (
+    <button
+      className={`botao-curtir ${curtido ? "curtido" : ""}`}
+      aria-pressed={curtido}
+      onClick={onCurtir}
+    >
+      {curtido ? "❤️ Curtido" : "🤍 Curtir"}
+    </button>
+  );
+}
+```
+
+Ternários aninhados ficam difíceis de ler. Se você tem mais de dois casos, extraia a lógica para fora do JSX:
+
+```tsx title="Lógica complexa fora do JSX — mais legível."
+export function ArticleStatus({ artigo }: { artigo: Artigo }) {
+  // lógica antes do return — mais fácil de ler que ternário aninhado
+  function getStatus() {
+    if (!artigo.publicadoEm) return "Rascunho";
+    const publicado = new Date(artigo.publicadoEm);
+    if (publicado > new Date()) return "Agendado";
+    return "Publicado";
+  }
+
+  const status = getStatus();
+
+  return <span className={`status status-${status.toLowerCase()}`}>{status}</span>;
+}
+```
+
+## Retorno antecipado
+
+Quando o componente não pode renderizar (dados ausentes, erro, loading), um retorno antecipado evita JSX aninhado desnecessariamente:
+
+```tsx title="Retorno antecipado — simplifica o JSX principal."
+interface ArticlePageProps {
+  artigo: Artigo | null;
+  carregando: boolean;
+  erro: string | null;
+}
+
+export function ArticlePage({ artigo, carregando, erro }: ArticlePageProps) {
+  // casos de erro/loading — sem aninhamento
+  if (carregando) return <div className="skeleton-artigo" aria-label="Carregando artigo..." />;
+  if (erro) return <p className="mensagem-erro">{erro}</p>;
+  if (!artigo) return <p>Artigo não encontrado.</p>;
+
+  // artigo garantidamente não-nulo a partir daqui
+  return (
+    <article className="artigo-completo">
+      <h1>{artigo.titulo}</h1>
+      <p>{artigo.descricao}</p>
+      <div dangerouslySetInnerHTML={{ __html: artigo.conteudo }} />
+    </article>
+  );
+}
+```
+
+O retorno antecipado é especialmente útil quando você usa TypeScript — após o `if (!artigo) return`, o TypeScript sabe que `artigo` não é `null` no restante do componente.
+
+## Renderizando listas com `.map()`
+
+Para transformar um array de dados em elementos JSX, use `.map()`. Todo item deve ter uma prop `key`:
+
+```tsx title="ArticleList.tsx — lista com .map() e key."
+import type { Artigo } from "../types";
+import { ArticleCard } from "./ArticleCard";
+
+interface ArticleListProps {
+  artigos: Artigo[];
+}
+
+export function ArticleList({ artigos }: ArticleListProps) {
+  if (artigos.length === 0) {
+    return <p className="lista-vazia">Nenhum artigo encontrado.</p>;
+  }
+
+  return (
+    <section className="lista-artigos">
+      {artigos.map(artigo => (
+        <ArticleCard
+          key={artigo.id}   // key no elemento raiz retornado pelo map
+          artigo={artigo}
+        />
+      ))}
+    </section>
+  );
+}
+```
+
+O `.map()` retorna um array de JSX — React sabe renderizar arrays de elementos. A `key` é colocada no **elemento raiz** retornado por cada iteração, não dentro do componente.
+
+## A prop `key`
+
+`key` ajuda React a identificar quais itens adicionaram, removeram ou reordenaram entre renders. Sem ela, React teria que destruir e recriar cada item da lista toda vez que o array mudasse.
+
+A key deve ser **única no contexto da lista** e **estável** — não mudar entre renders para o mesmo item:
+
+```tsx title="Keys corretas vs. incorretas."
+// ❌ índice como key — problemático quando a lista reordena
+{artigos.map((artigo, index) => (
+  <ArticleCard key={index} artigo={artigo} />
+))}
+
+// ✅ id único do item — estável e inequívoco
+{artigos.map(artigo => (
+  <ArticleCard key={artigo.id} artigo={artigo} />
+))}
+
+// ✅ quando não há id — use algo estável e único
+{tags.map(tag => (
+  <span key={tag} className="tag">{tag}</span>
+))}
+```
+
+**Por que índice é problemático ao reordenar:** imagine uma lista com inputs. Se você move o primeiro item para o fim e usa índices como key, React acha que o item na posição 0 ainda é o mesmo — só que agora tem outro dado. O estado do input (o que o usuário digitou) fica preso na posição 0, não no item que foi movido.
+
+**Key não é uma prop.** Dentro do `ArticleCard`, você não pode acessar `props.key` — a key é usada pelo React internamente. Se você precisar do id dentro do componente, passe-o como uma prop separada:
+
+```tsx title="Key vs. prop id — quando você precisa dos dois."
+{artigos.map(artigo => (
+  <ArticleCard
+    key={artigo.id}    // usado pelo React para rastrear o item
+    artigo={artigo}    // artigo.id acessível dentro do componente via artigo.id
+  />
+))}
+```
+
+## Lista com filtro
+
+Na prática, listas quase sempre são filtradas ou ordenadas antes de renderizar. Essa transformação acontece **durante o render**, não em `useEffect`:
+
+```tsx title="Filtro e ordenação — calculados no render, sem useEffect."
+interface ArticleListProps {
+  artigos: Artigo[];
+  query: string;
+  tagAtiva: string | null;
+}
+
+export function ArticleList({ artigos, query, tagAtiva }: ArticleListProps) {
+  // filtros computados durante o render — não precisa de useEffect
+  const artigosFiltrados = artigos
+    .filter(artigo => {
+      const matchQuery = artigo.titulo.toLowerCase().includes(query.toLowerCase())
+        || artigo.descricao.toLowerCase().includes(query.toLowerCase());
+      const matchTag = tagAtiva ? artigo.tags.includes(tagAtiva) : true;
+      return matchQuery && matchTag;
+    });
+
+  if (artigosFiltrados.length === 0) {
+    return <p className="lista-vazia">Nenhum artigo encontrado para "{query}".</p>;
+  }
+
+  return (
+    <section className="lista-artigos">
+      {artigosFiltrados.map(artigo => (
+        <ArticleCard key={artigo.id} artigo={artigo} />
+      ))}
+    </section>
+  );
+}
+```
+
+`query` e `tagAtiva` chegam como props — o pai gerencia o estado, o filho filtra e renderiza. A cada re-render (quando o usuário digita), `artigosFiltrados` é recalculado automaticamente com os valores mais recentes.
+
+## Resumo
+
+- **`&&`** renderiza quando a condição é verdadeira. Cuidado com falsy numéricos — prefira comparações explícitas (`length > 0`).
+- **Ternário** para dois casos (`condição ? <A /> : <B />`). Lógica complexa vai antes do `return`, não dentro do JSX.
+- **Retorno antecipado** para casos de loading, erro e dados ausentes — simplifica o JSX principal e afunila o TypeScript.
+- **`.map()`** transforma arrays em JSX. Todo elemento raiz do mapa precisa de `key`.
+- **`key`** deve ser única no contexto da lista e estável — use o `id` do dado, não o índice. Índice causa bugs ao reordenar.
+- **Filtros e transformações** de lista acontecem durante o render, não em `useEffect`.

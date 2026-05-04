@@ -1,6 +1,178 @@
 ---
 title: "TypeScript em geral"
 description: "Por que adicionar tipos a JavaScript. O que TS resolve (erros antes de rodar, autocompletar, refactor seguro) e o que ele não resolve."
-comingSoon: true
 order: 1
+hero:
+  titleBefore: "TypeScript:"
+  titleAccent: "tipos"
+  titleAfter: "para o JavaScript."
+quiz:
+  - question: "O que acontece com os tipos TypeScript quando o código é compilado?"
+    options:
+      - "Eles são convertidos para comentários no JavaScript gerado"
+      - "Eles são convertidos para verificações em runtime com if/throw"
+      - "Eles ficam como metadados acessíveis em runtime via reflection"
+      - "Eles são apagados — o output é JavaScript puro, sem qualquer rastro dos tipos"
+    correct: 3
+  - question: "Por que TypeScript não detecta erros em dados que chegam de uma API?"
+    options:
+      - "Porque TypeScript não suporta fetch"
+      - "Porque a verificação de tipos ocorre em tempo de compilação — TypeScript analisa o código-fonte, não os dados que existem em runtime"
+      - "Porque TypeScript não tem suporte a JSON"
+      - "Porque APIs sempre retornam any"
+    correct: 1
+  - question: "O que significa dizer que TypeScript é um superset de JavaScript?"
+    options:
+      - "Todo JavaScript válido é TypeScript válido — TS adiciona sintaxe nova (tipos) sem remover nada do JS"
+      - "TypeScript executa mais rápido que JavaScript"
+      - "TypeScript substitui completamente o JavaScript no navegador"
+      - "TypeScript tem uma engine própria separada do V8"
+    correct: 0
+  - question: "Qual é o benefício mais prático de TypeScript no dia a dia?"
+    options:
+      - "Código menor em produção"
+      - "Compatibilidade com navegadores mais antigos"
+      - "Autocompletar preciso no editor e erros destacados antes de rodar — o compilador sabe a forma exata de cada dado"
+      - "Redução no tempo de download da página"
+    correct: 2
 ---
+
+O módulo de JavaScript terminou com o blog funcional: toggle de tema, curtidas, barra de progresso e lista de artigos carregada de um JSON — tudo organizado em quatro módulos (`utils.js`, `api.js`, `ui.js`, `main.js`). O código funciona. Mas o JavaScript não tem memória de tipos em tempo de desenvolvimento — nada impede chamar `formatarData(undefined)`, acessar `artigo.titulo` quando `artigo` é `null`, ou passar uma string onde um número é esperado. Esses erros só aparecem quando o código roda, e frequentemente na frente do usuário. TypeScript resolve isso antes de o código chegar ao browser.
+
+## O problema que TypeScript resolve
+
+JavaScript é uma linguagem dinamicamente tipada. Isso significa que uma variável pode guardar qualquer coisa — número, string, objeto, `null` — sem que o código declare o que ela espera receber. O mecanismo JavaScript descobre o tipo em runtime, quando o código está sendo executado.
+
+O resultado prático é que certos erros só aparecem ao rodar o código:
+
+```js title="O bug silencioso — JavaScript não avisa antes de explodir em runtime."
+// utils.js — sem TypeScript
+function formatarData(dateString) {
+  return new Intl.DateTimeFormat("pt-BR").format(new Date(dateString));
+}
+
+// em algum lugar do código, artigo.publicadoEm é undefined
+// quando o artigo ainda é um rascunho
+formatarData(artigo.publicadoEm);
+// → Invalid Date — não há erro de sintaxe, não há aviso do editor
+// o bug só aparece quando o card é renderizado na tela
+```
+
+Com TypeScript, o compilador analisa o código antes de executar. Ele sabe que `formatarData` espera uma `string`, e sabe que `artigo.publicadoEm` pode ser `undefined` quando o artigo é um rascunho. O erro é detectado no editor, antes de o arquivo ser salvo:
+
+```ts title="O mesmo bug detectado em tempo de compilação — antes de rodar."
+// utils.ts — com TypeScript
+function formatarData(dateString: string): string {
+  return new Intl.DateTimeFormat("pt-BR").format(new Date(dateString));
+}
+
+// interface Artigo declara que publicadoEm é opcional
+interface Artigo {
+  titulo: string;
+  publicadoEm?: string; // pode ser undefined
+}
+
+const artigo: Artigo = { titulo: "CSS em geral" }; // sem publicadoEm
+
+formatarData(artigo.publicadoEm);
+// TS erro: Argument of type 'string | undefined' is not assignable
+//          to parameter of type 'string'.
+// o compilador não deixa o código compilar até você tratar o undefined
+```
+
+A diferença não é só encontrar o erro mais cedo — é que o TypeScript força você a pensar no caso onde `publicadoEm` não existe. O JavaScript silencia o problema; o TypeScript torna o problema visível.
+
+## O que TypeScript é e o que não é
+
+TypeScript é um **superset** de JavaScript: toda sintaxe JavaScript válida é TypeScript válida. O TypeScript adiciona uma camada de tipos ao JavaScript sem remover nada. Isso significa que você pode pegar qualquer arquivo `.js`, renomeá-lo para `.ts`, e ele continua funcionando — sem precisar adicionar uma única anotação de tipo.
+
+O que o TypeScript adiciona ao JavaScript:
+
+```ts title="Sintaxe TypeScript — tudo que é novo em relação ao JavaScript."
+// anotações de tipo em variáveis e parâmetros
+const titulo: string = "CSS em geral";
+const curtidas: number = 42;
+
+// tipos de retorno em funções
+function calcularTempoLeitura(palavras: number): number {
+  return Math.ceil(palavras / 238);
+}
+
+// interfaces — descrevem a forma de um objeto
+interface Artigo {
+  id: number;
+  titulo: string;
+  publicadoEm: string;
+  curtidas: number;
+  publicado: boolean;
+}
+
+// tipos union — o valor pode ser um de dois tipos
+type Tema = "claro" | "escuro";
+
+// generics — funções que funcionam para qualquer tipo
+function primeiro<T>(array: T[]): T | undefined {
+  return array[0];
+}
+```
+
+Tudo que está acima — os dois-pontos, os nomes de tipo, as `interface`, os `<T>` — **desaparece** quando o TypeScript compila para JavaScript. O browser recebe JavaScript puro, idêntico ao que você escreveria manualmente. TypeScript não adiciona código em runtime e não torna o código mais lento.
+
+```ts title="Antes e depois da compilação — os tipos somem."
+// utils.ts — código TypeScript
+function calcularTempoLeitura(palavras: number): number {
+  return Math.ceil(palavras / 238);
+}
+```
+
+```js title="utils.js — output gerado pelo compilador tsc."
+// os tipos foram apagados — JavaScript puro
+function calcularTempoLeitura(palavras) {
+  return Math.ceil(palavras / 238);
+}
+```
+
+O TypeScript é uma ferramenta de desenvolvimento. Em produção, só o JavaScript gerado existe.
+
+## O que TypeScript resolve e o que não resolve
+
+É importante ter uma expectativa realista do que TypeScript faz — e do que não faz. Essa distinção evita frustração e decisões arquiteturais equivocadas.
+
+**TypeScript resolve:**
+
+- **Erros de tipo antes de rodar**: chamar `formatarData(undefined)`, acessar propriedades de `null`, passar argumento errado para uma função — o compilador aponta antes de você abrir o browser.
+- **Autocompletar preciso**: o editor sabe a forma exata de cada objeto. Digitando `artigo.` você vê exatamente as propriedades disponíveis, com os tipos corretos.
+- **Refactor seguro**: renomear uma função ou propriedade com "Rename Symbol" atualiza todos os usos. O compilador confirma que não ficou nenhuma referência para o nome antigo.
+- **Documentação viva**: os tipos descrevem o que cada função espera e o que retorna. Essa documentação nunca fica desatualizada — se a função muda, os tipos mudam e o compilador exige que os chamadores se adaptem.
+
+**TypeScript não resolve:**
+
+```ts title="O que TS não detecta — dados externos e lógica de negócio."
+// TS não valida dados que chegam de APIs em runtime
+async function buscarArtigos(): Promise<Artigo[]> {
+  const response = await fetch("/artigos.json");
+  const dados = await response.json();
+  // response.json() retorna Promise<any>
+  // o cast abaixo diz ao TS "confie em mim"
+  // mas se o JSON vier com formato diferente, o erro aparece em runtime — não aqui
+  return dados as Artigo[];
+}
+
+// TS não detecta erros de lógica — esse código compila sem erro
+function calcularDesconto(preco: number, porcentagem: number): number {
+  return preco * porcentagem; // deveria ser preco * (porcentagem / 100)
+  // a lógica está errada, mas os tipos estão corretos
+}
+```
+
+TypeScript não é um substituto para testes. Não valida dados externos (APIs, formulários, localStorage) em runtime. Não detecta bugs de lógica de negócio. Não torna o código mais rápido. O que ele faz é uma coisa específica e valiosa: tornar os erros de tipo em erros de compilação, antes de o código rodar.
+
+## Resumo
+
+- **TypeScript é um superset de JavaScript** — todo JS válido é TS válido. TS adiciona sintaxe de tipos que o compilador analisa antes de gerar JavaScript.
+- Os **tipos são apagados na compilação** — o browser recebe JavaScript puro. TypeScript não tem custo em runtime.
+- TypeScript resolve **erros de tipo antes de rodar** (acessar `null`, parâmetro errado, propriedade inexistente), **autocompletar preciso** e **refactor seguro**.
+- TypeScript **não valida dados externos em runtime** — um JSON da API pode chegar com formato inesperado e o compilador não detecta. Para isso, use validação em runtime (Zod, Valibot).
+- O objetivo do módulo: converter `utils.js`, `api.js`, `ui.js` e `main.js` para `.ts`, adicionando interfaces para `Artigo`, `Autor` e os dados do blog.
+
+A próxima aula configura o TypeScript no projeto — `tsconfig.json`, o que cada opção faz e por que strict mode é o ponto de partida recomendado.

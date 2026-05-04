@@ -1,6 +1,173 @@
 ---
 title: "DNS — do nome ao endereço"
-description: "Como nomes como example.com viram endereços IP. Hierarquia de servidores DNS, papel do resolver, cache e os tipos de registro mais comuns."
-comingSoon: true
+description: "Como nomes como artigo.dev viram endereços IP. Hierarquia de servidores DNS, papel do resolver, cache e os tipos de registro mais comuns."
 order: 2
+hero:
+  titleBefore: "DNS:"
+  titleAccent: "traduzindo"
+  titleAfter: "nomes em endereços."
+quiz:
+  - question: "Qual é o papel principal do DNS?"
+    options:
+      - "Criptografar comunicações entre navegadores e servidores"
+      - "Armazenar os arquivos de um site na internet"
+      - "Traduzir nomes de domínio em endereços IP"
+      - "Verificar se um domínio é seguro para visitar"
+    correct: 2
+  - question: "O que um resolver DNS faz?"
+    options:
+      - "Gerencia o registro de novos domínios"
+      - "Armazena permanentemente todos os nomes de domínio da internet"
+      - "Criptografa requisições DNS para proteger sua privacidade"
+      - "Funciona como intermediário entre seu computador e os servidores DNS na hierarquia"
+    correct: 3
+  - question: "O que é TTL em uma resposta DNS?"
+    options:
+      - "O tempo que o servidor leva para responder a uma consulta"
+      - "O prazo de validade de uma resposta DNS em cache"
+      - "O número máximo de consultas por segundo"
+      - "A versão do protocolo DNS usada"
+    correct: 1
+  - question: "Qual tipo de registro DNS mapeia um domínio para um endereço IPv4?"
+    options:
+      - "A"
+      - "CNAME"
+      - "MX"
+      - "NS"
+    correct: 0
 ---
+
+Quando você digita `artigo.dev` no navegador e pressiona Enter, a primeira coisa que acontece não é uma conversa com o servidor do site. É uma consulta a um sistema completamente separado, que a maioria dos usuários nunca percebe: o **DNS**, *Domain Name System*.
+
+O problema que o DNS resolve é simples: computadores se comunicam usando endereços numéricos. Esses números identificam cada dispositivo conectado à internet de forma única, como um endereço postal. Mas pessoas não memorizam sequências de números — lembram de nomes. Sem o DNS, para acessar `artigo.dev` você teria que descobrir e digitar algo como `104.21.45.67`. O DNS faz essa tradução automaticamente, em dezenas de milissegundos, bilhões de vezes por hora na internet toda.
+
+## O que é um endereço IP
+
+Todo dispositivo conectado à internet tem um endereço IP — um número que o identifica na rede. "IP" vem de *Internet Protocol*, o protocolo fundamental que define como dados são roteados entre máquinas. Quando um pacote de dados precisa chegar a um destino, o IP é o que diz para onde ele deve ir.
+
+Existem dois formatos em uso hoje. O **IPv4** usa quatro números entre 0 e 255, separados por pontos. É o formato que você provavelmente já viu: `192.168.1.1`, `8.8.8.8`, `104.21.45.67`. Cada um dos quatro números pode ter de 0 a 255, o que dá um total de pouco mais de quatro bilhões de combinações possíveis. Isso parecia suficiente quando o IPv4 foi criado, nos anos 1980, mas hoje a internet tem mais dispositivos do que isso — smartphones, computadores, câmeras, geladeiras e tudo mais conectado à rede.
+
+Para resolver esse esgotamento, existe o **IPv6**. Ele usa oito grupos de quatro dígitos hexadecimais, separados por dois pontos, e permite uma quantidade de endereços tão grande que é difícil de imaginar: mais de trezentos e quarenta undecilhões de combinações. `2606:4700:3031::6815:2d43` é um exemplo — note os dois pontos duplos, que representam uma sequência de grupos de zeros omitidos para simplificar a notação. Muitos servidores modernos têm tanto um endereço IPv4 quanto um IPv6.
+
+```bash title="Exemplos de endereços IP nos dois formatos."
+# IPv4 — quatro números de 0 a 255, separados por ponto
+104.21.45.67
+
+# IPv6 — oito grupos hexadecimais, separados por dois pontos
+2606:4700:3031::6815:2d43
+```
+
+Quando você acessa `artigo.dev`, o servidor do site tem um ou mais desses endereços. O DNS é o caminho entre o nome que você digitou e o número que o roteador precisa para enviar os pacotes ao destino certo.
+
+## A hierarquia do DNS
+
+O DNS não é um servidor único em algum lugar do mundo. Seria impossível — há mais de trezentos milhões de nomes de domínio registrados, e as consultas acontecem a uma frequência que nenhum servidor único conseguiria suportar. Por isso, o DNS é um sistema **hierárquico e distribuído**: um conjunto de servidores organizados em camadas, cada uma conhecendo apenas sua parte do problema.
+
+No topo da hierarquia estão os **root servers** — treze conjuntos de servidores identificados pelas letras A a M, espalhados por centenas de máquinas físicas ao redor do mundo. Esses servidores não conhecem nenhum domínio específico. O que eles sabem é qual servidor é responsável por cada TLD.
+
+Um **TLD** (*Top Level Domain*) é a última parte de um nome de domínio: `.com`, `.org`, `.dev`, `.com.br`. Para cada TLD existe um conjunto de servidores dedicados. Quando um root server recebe uma pergunta sobre `artigo.dev`, ele não sabe o IP — mas sabe quem sabe. Ele responde: "não tenho a resposta, mas o servidor responsável pelo `.dev` é este aqui". A consulta então vai para esse servidor de TLD.
+
+O servidor de TLD, por sua vez, não conhece todos os domínios dentro do `.dev`. O que ele mantém é um registro de qual servidor é **autoritativo** para cada domínio registrado. Um servidor autoritativo é aquele que tem as respostas definitivas e atualizadas para um domínio específico — quando `artigo.dev` foi registrado, o dono configurou quais servidores DNS seriam autoritativos para ele.
+
+```
+[root servers]  ← sabe quem cuida de cada TLD
+      ↓
+[servidores .dev]  ← sabe quem é autoritativo para cada domínio .dev
+      ↓
+[servidores de artigo.dev]  ← tem o IP real de artigo.dev
+```
+
+Essa estrutura em árvore distribui a responsabilidade: nenhum servidor precisa conhecer a internet inteira, apenas seu pedaço. E como cada camada conhece apenas o próximo passo, uma falha em um nó não compromete o sistema todo.
+
+## O resolver e o processo de resolução
+
+Percorrer essa hierarquia a cada consulta seria ineficiente se cada dispositivo tivesse que fazê-la sozinho. Por isso existe o **resolver** — um servidor DNS intermediário que faz o trabalho pesado em nome do seu computador.
+
+Quando você digita `artigo.dev`, o seu computador não fala diretamente com os root servers. Ele manda a pergunta ao resolver configurado no sistema operacional — geralmente o servidor do seu provedor de internet, ou um público como o `8.8.8.8` do Google ou o `1.1.1.1` da Cloudflare. O resolver assume a responsabilidade de descobrir a resposta.
+
+A primeira coisa que o resolver faz é verificar o próprio cache. Se alguém já perguntou sobre `artigo.dev` recentemente e a resposta ainda é válida, ele devolve imediatamente — sem precisar consultar ninguém. Caso contrário, ele percorre a hierarquia:
+
+Primeiro, o resolver pergunta a um root server: "qual servidor cuida do `.dev`?" O root server responde com o endereço do servidor de TLD do `.dev`. O resolver então pergunta a esse servidor de TLD: "quem é autoritativo para `artigo.dev`?" O servidor de TLD responde com o endereço do servidor autoritativo. Por fim, o resolver pergunta ao servidor autoritativo: "qual é o IP de `artigo.dev`?" E aí, finalmente, recebe a resposta.
+
+```
+Computador
+    ↓ "Qual é o IP de artigo.dev?"
+Resolver
+    ↓ (cache miss — precisa consultar)
+Root server → "Pergunte ao servidor do .dev"
+    ↓
+Servidor do .dev → "Pergunte ao autoritativo de artigo.dev"
+    ↓
+Autoritativo de artigo.dev → "É 104.21.45.67"
+    ↓
+Resolver guarda em cache e devolve ao computador
+    ↓
+Computador recebe 104.21.45.67
+```
+
+Todo esse processo acontece em menos de 100 milissegundos na maioria dos casos. No terminal, o comando `dig` permite ver a consulta acontecer:
+
+```bash title="dig percorre a hierarquia e mostra a resposta completa, incluindo o TTL."
+dig artigo.dev
+
+# ;; ANSWER SECTION:
+# artigo.dev.   300  IN  A  104.21.45.67
+# artigo.dev.   300  IN  A  172.67.189.103
+```
+
+O `300` que aparece depois do nome é o TTL — o assunto da próxima seção.
+
+## Cache e TTL
+
+O que torna o DNS rápido não é só a hierarquia eficiente, mas principalmente o **cache** — guardar respostas para reutilizar mais tarde e evitar refazer todo o caminho.
+
+Quando um resolver recebe uma resposta, ele a guarda por um período determinado. Esse período é o **TTL** (*Time To Live*), um valor em segundos que o dono do domínio configura nos próprios registros DNS. Um TTL de `300` significa que a resposta pode ser considerada válida por cinco minutos. Depois disso, qualquer consulta nova precisa refazer a pergunta para os servidores autoritativos.
+
+A escolha do TTL envolve um tradeoff. Um TTL curto — digamos, 60 segundos — garante que mudanças no domínio (como trocar de servidor) se propagam rapidamente por toda a internet. Mas também significa que o resolver precisa refazer a consulta com mais frequência, aumentando a carga nos servidores. Um TTL longo — como 86400, que são 24 horas — reduz a carga e torna as consultas mais rápidas, mas faz com que mudanças demorem para chegar a todos.
+
+O cache existe em múltiplas camadas, e cada uma tem seu próprio prazo. O **navegador** mantém um cache DNS próprio, que pode durar alguns segundos ou minutos dependendo da implementação. O **sistema operacional** tem outro cache, consultado antes do resolver. O **resolver** guarda as respostas até o TTL expirar. E até servidores intermediários na hierarquia podem manter caches.
+
+É por isso que quando um site muda de IP, diferentes usuários continuam apontando para o endereço antigo por períodos variados — cada um com um cache em estado diferente. Desenvolvedores chamam isso de *propagação de DNS*: o tempo que leva para a mudança se espalhar por todos os caches da internet. Quanto menor o TTL configurado antes da mudança, mais rápida é a propagação.
+
+## Registros DNS
+
+O servidor autoritativo de um domínio não armazena só o IP. Ele mantém um conjunto de **registros DNS** — cada tipo com uma finalidade diferente — que respondem a perguntas distintas sobre o domínio.
+
+O registro **A** é o mais fundamental: mapeia um nome de domínio para um endereço IPv4. Quando o resolver pergunta "qual é o IP de `artigo.dev`?", é o registro A que responde. O equivalente para IPv6 é o **AAAA** — mesmo papel, formato diferente.
+
+O registro **CNAME** (*Canonical Name*) cria um alias: em vez de apontar para um IP, ele aponta para outro nome. `www.artigo.dev` pode ser um CNAME de `artigo.dev`, o que significa que os dois nomes sempre apontam para o mesmo destino — se o IP de `artigo.dev` mudar, `www.artigo.dev` se atualiza automaticamente, sem precisar de um registro separado.
+
+O registro **MX** (*Mail Exchanger*) diz quais servidores recebem os e-mails do domínio. É por isso que `redacao@artigo.dev` pode funcionar mesmo que o site e o servidor de e-mail estejam em provedores completamente diferentes — o DNS sabe separar as duas coisas.
+
+O registro **TXT** armazena texto livre. Parece simples, mas é amplamente usado para verificações de propriedade de domínio (serviços como Google e GitHub pedem que você adicione um TXT específico para provar que você controla o domínio) e para configurações de segurança de e-mail como SPF e DKIM.
+
+Por fim, o registro **NS** (*Name Server*) indica quais servidores são autoritativos para o domínio. Quando você registra um domínio e aponta para um serviço de DNS como o da Cloudflare, o que você está configurando são os registros NS — dizendo para a internet quem tem autoridade para responder perguntas sobre esse domínio.
+
+```dns title="Registros DNS de artigo.dev — cada linha é um tipo diferente de informação."
+; A — mapeia o domínio para um endereço IPv4
+artigo.dev.      300  IN  A      104.21.45.67
+
+; AAAA — mapeia o domínio para um endereço IPv6
+artigo.dev.      300  IN  AAAA   2606:4700:3031::6815:2d43
+
+; CNAME — www aponta para o domínio raiz
+www.artigo.dev.  300  IN  CNAME  artigo.dev.
+
+; MX — e-mails do domínio vão para este servidor de correio
+artigo.dev.      300  IN  MX     10 mail.artigo.dev.
+
+; NS — estes dois servidores são autoritativos para o domínio
+artigo.dev.      300  IN  NS     ana.ns.cloudflare.com.
+artigo.dev.      300  IN  NS     bob.ns.cloudflare.com.
+```
+
+Quando você compra um domínio em um registrador, o que você está adquirindo é o direito de gerenciar esses registros: decidir para onde `artigo.dev` aponta, quem recebe os e-mails, quais servidores têm autoridade. O registrador mantém os registros NS que dizem ao restante da internet onde buscar as respostas definitivas.
+
+## Resumo
+
+- O DNS traduz nomes de domínio (como `artigo.dev`) em endereços IP que os computadores usam para rotear dados.
+- Endereços IPv4 têm quatro números de 0 a 255; IPv6 usa oito grupos hexadecimais e permite muito mais endereços.
+- O DNS é hierárquico: root servers → servidores de TLD → servidores autoritativos. Cada camada conhece apenas o próximo passo.
+- O resolver é o intermediário que percorre essa hierarquia em nome do seu computador e guarda as respostas em cache.
+- O TTL define por quanto tempo uma resposta DNS pode ser usada em cache antes de precisar ser renovada.
+- Registros DNS têm tipos diferentes: A (IPv4), AAAA (IPv6), CNAME (alias), MX (e-mail), TXT (texto livre), NS (servidores autoritativos).

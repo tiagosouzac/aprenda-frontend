@@ -1,6 +1,256 @@
 ---
 title: "Funções"
-description: "Declaração, expressão, arrow function. Parâmetros, valores padrão, rest, retorno. Escopo léxico e closures em alto nível."
-comingSoon: true
+description: "Por que funções existem. Declaração vs expressão vs arrow. Parâmetros padrão, rest e desestruturação. Escopo léxico e closures."
 order: 6
+hero:
+  titleBefore: "Funções:"
+  titleAccent: "encapsular"
+  titleAfter: "e reutilizar lógica."
+quiz:
+  - question: "Qual é a diferença entre declaração de função e expressão de função em relação ao hoisting?"
+    options:
+      - "Não há diferença — ambas são içadas da mesma forma"
+      - "Expressões de função são içadas; declarações não"
+      - "Declarações de função são içadas — podem ser chamadas antes de aparecer no código. Expressões de função não são — chamá-las antes da declaração causa ReferenceError"
+      - "Nenhuma das duas é içada em modo strict"
+    correct: 2
+  - question: "Por que arrow functions não têm seu próprio this?"
+    options:
+      - "É uma limitação de implementação que será corrigida"
+      - "Para forçar o uso de classes"
+      - "Para economizar memória"
+      - "Arrow functions herdam o this do contexto léxico onde foram definidas — isso é vantajoso em callbacks e métodos que precisam acessar o this do objeto pai"
+    correct: 3
+  - question: "O que é uma closure em JavaScript?"
+    options:
+      - "Uma função que não tem retorno"
+      - "Uma função que lembra o escopo onde foi criada, mesmo após a função externa ter retornado — mantendo acesso às variáveis daquele escopo"
+      - "Um padrão de design para encapsular objetos"
+      - "Uma função que só pode ser chamada uma vez"
+    correct: 1
+  - question: "O que o rest parameter (...args) faz em uma função?"
+    options:
+      - "Agrupa todos os argumentos extras em um array"
+      - "Limita o número de argumentos que a função aceita"
+      - "Define argumentos opcionais com valor padrão"
+      - "Espalha um array como argumentos individuais"
+    correct: 0
 ---
+
+Funções são o mecanismo de abstração fundamental em JavaScript. Elas permitem nomear um conjunto de operações, reutilizar esse conjunto quantas vezes precisar e pensar no nível de "o que essa operação faz" em vez de "como ela faz". Um programa sem funções é uma lista plana de instruções — difícil de entender, impossível de manter.
+
+## Por que funções existem
+
+Imagine que você precisa calcular o tempo de leitura de um artigo em três lugares do blog: na listagem de artigos, na página do artigo e no painel de administração. Sem funções, você copiaria a mesma lógica três vezes. Quando você descobrir que a média de leitura é 238 palavras por minuto (não 200), precisaria encontrar e atualizar os três lugares — e inevitavelmente um deles ficará desatualizado.
+
+Com uma função, você define a lógica uma vez, dá um nome a ela e chama pelo nome:
+
+```js title="Extraindo lógica repetida para uma função nomeada."
+// ❌ sem função — lógica duplicada em três lugares
+// na listagem:
+const tempoListagem = Math.ceil(artigo.palavras / 200);
+// na página:
+const tempoPagina = Math.ceil(palavras / 200);
+// no painel:
+const tempoAdmin = Math.ceil(totalPalavras / 200);
+
+// ✅ com função — uma definição, N usos
+function calcularTempoLeitura(palavras) {
+  const palavrasPorMinuto = 238;
+  return Math.ceil(palavras / palavrasPorMinuto);
+}
+
+// os três lugares chamam a mesma função
+const tempoListagem = calcularTempoLeitura(artigo.palavras);
+const tempoPagina = calcularTempoLeitura(palavras);
+const tempoAdmin = calcularTempoLeitura(totalPalavras);
+```
+
+Funções também são testáveis: você pode chamar `calcularTempoLeitura(1000)` e verificar que o resultado é `5` sem depender do DOM, do estado da aplicação ou do banco de dados.
+
+## Declaração de função
+
+A forma mais clássica de definir uma função. Tem **hoisting**: declarações de função são içadas para o topo do escopo — você pode chamar a função antes de ela aparecer no código (o JavaScript "lê" o arquivo inteiro antes de executar).
+
+```js title="Declaração de função — pode ser chamada antes da definição."
+// chamada antes da declaração — funciona por causa do hoisting
+const tempo = calcularTempoLeitura(1200);
+console.log(tempo); // → 6
+
+// a declaração aparece depois no arquivo — tudo bem
+function calcularTempoLeitura(palavras) {
+  return Math.ceil(palavras / 200);
+}
+
+// sem return explícito — a função retorna undefined
+function exibirLog(mensagem) {
+  console.log(`[Blog] ${mensagem}`);
+  // sem return — retorna undefined implicitamente
+}
+```
+
+## Expressão de função e arrow function
+
+Uma **expressão de função** atribui uma função a uma variável. Não é içada — chamá-la antes da declaração causa um `ReferenceError`. Isso é frequentemente desejado: forçar que as funções sejam usadas apenas depois de definidas.
+
+```js title="Expressão de função — não sofre hoisting."
+// ❌ chamar antes da declaração causa erro
+// const resultado = formatarData(new Date()); // ReferenceError
+
+const formatarData = function(date) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(date);
+};
+
+const resultado = formatarData(new Date("2025-03-15"));
+// → "15 de março de 2025"
+```
+
+**Arrow functions** são uma sintaxe mais concisa para expressões de função. Têm dois formatos:
+
+Com `{}` (bloco): precisa de `return` explícito, pode ter múltiplas linhas.
+Sem `{}` (corpo de expressão): retorno implícito — o valor da expressão é retornado automaticamente.
+
+```js title="Arrow function — com e sem return implícito."
+// forma completa com bloco e return
+const calcularTempoLeitura = (palavras) => {
+  const palavrasPorMinuto = 238;
+  return Math.ceil(palavras / palavrasPorMinuto);
+};
+
+// forma concisa — corpo de expressão, retorno implícito
+const formatarData = (date) => new Intl.DateTimeFormat("pt-BR").format(date);
+
+// parâmetro único — parênteses opcionais
+const dobrar = x => x * 2;
+
+// sem parâmetros — parênteses obrigatórios
+const agora = () => new Date();
+
+// retorno implícito de objeto — precisa de parênteses
+const criarArtigo = (titulo, autor) => ({
+  titulo,
+  autor,
+  criadoEm: new Date(),
+});
+```
+
+A diferença mais importante entre arrow functions e funções declaradas/expressadas é o `this`. Arrow functions **não têm seu próprio `this`** — elas herdam o `this` do contexto léxico onde foram definidas. Isso é vantajoso em callbacks que precisam acessar o objeto pai.
+
+## Parâmetros
+
+**Parâmetros padrão**: defina um valor que é usado quando o argumento não é passado (ou é `undefined`).
+
+**Rest parameters**: `...args` agrupa todos os argumentos extras em um array. Deve ser o último parâmetro.
+
+**Desestruturação nos parâmetros**: quando a função recebe um objeto, você pode desestruturar as propriedades diretamente na assinatura — mais legível do que acessar `artigo.titulo`, `artigo.autor` dentro da função.
+
+```js title="Parâmetros padrão, rest e desestruturação."
+// parâmetro padrão — usado quando o argumento não é passado
+function gerarSlug(titulo = "sem-titulo") {
+  return titulo
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+}
+
+gerarSlug("Meu Primeiro Projeto Web"); // → "meu-primeiro-projeto-web"
+gerarSlug();                           // → "sem-titulo"
+
+// desestruturação nos parâmetros — nomear propriedades diretamente
+function renderizarCard({ titulo, autor, curtidas = 0, publicadoEm }) {
+  return `
+    <article class="card-artigo">
+      <h2>${titulo}</h2>
+      <p>Por ${autor} · ${curtidas} curtidas</p>
+      <time>${formatarData(publicadoEm)}</time>
+    </article>
+  `;
+}
+
+// chamado com um objeto — as propriedades são extraídas automaticamente
+renderizarCard({ titulo: "CSS em geral", autor: "Dev Aprendiz", publicadoEm: "2025-03-15" });
+
+// rest parameters — função que aceita N artigos
+function combinarTags(...artigos) {
+  return artigos.flatMap(a => a.tags);
+}
+
+combinarTags(artigo1, artigo2, artigo3);
+```
+
+## Escopo léxico
+
+Uma função tem acesso às variáveis do escopo onde foi **definida** — não do escopo de onde foi chamada. Isso se chama **escopo léxico**.
+
+`const` e `let` têm **escopo de bloco**: existem apenas dentro do bloco `{}` onde foram declaradas e em blocos internos. Isso torna o comportamento previsível:
+
+```js title="Escopo de bloco com const e let."
+function processarArtigos(artigos) {
+  const total = artigos.length; // acessível em toda a função
+
+  for (const artigo of artigos) {
+    const slug = gerarSlug(artigo.titulo); // só existe dentro do for
+    console.log(slug);
+  }
+
+  // console.log(slug); // ReferenceError — slug não existe aqui
+
+  return total;
+}
+```
+
+## Closures
+
+Uma closure é quando uma função interna lembra o escopo da função externa, mesmo depois que a função externa terminou de executar. A função interna mantém uma referência viva às variáveis do escopo externo.
+
+Closures aparecem o tempo todo em código real — em event listeners, em `setTimeout`, em funções fábrica.
+
+```js title="Closure — contador independente para cada artigo."
+// criarContador retorna uma função que lembra 'n'
+function criarContador() {
+  let n = 0; // variável no escopo da função externa
+
+  return () => {
+    n += 1; // a função interna acessa e modifica 'n'
+    return n;
+  };
+}
+
+// cada chamada a criarContador() cria um escopo separado
+const contadorArtigo1 = criarContador();
+const contadorArtigo2 = criarContador();
+
+contadorArtigo1(); // → 1
+contadorArtigo1(); // → 2
+contadorArtigo2(); // → 1 (escopo separado — não compartilha 'n')
+contadorArtigo1(); // → 3
+```
+
+`n` não é acessível de fora — ela está encapsulada no escopo de `criarContador`. A única forma de incrementá-la é chamando a função retornada. Isso é encapsulamento sem classes.
+
+No contexto do blog, closures aparecem quando você registra event listeners que precisam acessar variáveis do escopo externo:
+
+```js title="Closure em event listener — acesso ao artigoId do escopo externo."
+function configurarBotaoCurtir(artigoId) {
+  const botao = document.querySelector(`[data-artigo-id="${artigoId}"] .botao-curtir`);
+
+  botao.addEventListener("click", () => {
+    // esta função é uma closure — lembra artigoId do escopo externo
+    curtir(artigoId); // artigoId ainda é acessível aqui
+  });
+}
+```
+
+## Resumo
+
+- Funções nomeadas encapsulam lógica reutilizável e tornam o código legível — o nome comunica o que a função faz.
+- **Declaração de função** sofre hoisting — pode ser chamada antes da definição. **Expressão de função** não — é atribuída a uma variável.
+- **Arrow function** é mais concisa: sem `{}` tem retorno implícito. Sem parênteses com parâmetro único. Não tem `this` próprio — herda do contexto léxico.
+- **Parâmetros padrão** (`x = valor`), **rest** (`...args`) e **desestruturação** (`{ prop1, prop2 }`) tornam a assinatura mais expressiva.
+- **Escopo léxico**: `const`/`let` têm escopo de bloco. Uma função acessa variáveis do escopo onde foi definida.
+- **Closure**: a função interna mantém acesso ao escopo da função externa mesmo após ela ter retornado. Aparece em event listeners, fábricas e encapsulamento de estado.

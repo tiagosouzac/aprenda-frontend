@@ -1,6 +1,262 @@
 ---
 title: "Efeitos com useEffect"
-description: "Quando rodar código fora da renderização. Array de dependências, função de cleanup, padrões comuns (timers, subscrições, fetch)."
-comingSoon: true
+description: "Quando e por que usar useEffect. Array de dependências, função de cleanup e como evitar efeitos desnecessários."
 order: 10
+hero:
+  titleBefore: "Efeitos"
+  titleAccent: "com useEffect"
+  titleAfter: "— fora do render."
+quiz:
+  - question: "Qual é a diferença entre useEffect sem array de dependências e useEffect com array vazio []?"
+    options:
+      - "Sem array, o efeito roda após todo render. Com [] vazio, roda apenas na montagem do componente. São muito diferentes — quase sempre você quer o array vazio ou com dependências específicas"
+      - "Nenhuma — os dois rodam apenas uma vez"
+      - "O array vazio faz o efeito rodar antes do render"
+      - "Sem array, o efeito não tem acesso ao estado"
+    correct: 0
+  - question: "Para que serve a função de cleanup retornada pelo useEffect?"
+    options:
+      - "Para reinicializar o estado antes do próximo render"
+      - "Para limpar o cache do React"
+      - "React a executa antes de rodar o efeito novamente (quando as dependências mudam) e quando o componente desmonta. Essencial para cancelar fetches, limpar timers e desinscrever de eventos — evita memory leaks e operações em componentes desmontados"
+      - "Para resetar o DOM ao estado anterior"
+    correct: 2
+  - question: "Por que você não deve usar useEffect para derivar estado de props?"
+    options:
+      - "useEffect não tem acesso a props"
+      - "TypeScript não permite useEffect com props"
+      - "É permitido mas mais lento"
+      - "Derivar estado em useEffect cria um render extra desnecessário: o componente renderiza com o estado antigo, useEffect roda, atualiza o estado, e o componente renderiza de novo. Calcular o valor derivado durante o render (sem estado extra) resolve com um render só"
+    correct: 3
+  - question: "O que acontece se você não declarar todas as dependências que o efeito usa no array de dependências?"
+    options:
+      - "TypeScript avisa com um erro de compilação"
+      - "O efeito captura os valores no momento em que foi registrado — se uma dependência muda mas não está no array, o efeito continua usando o valor antigo (closure desatualizado). O ESLint com react-hooks avisa sobre dependências faltando"
+      - "React lança um erro em runtime"
+      - "Não há consequência — React resolve automaticamente"
+    correct: 1
 ---
+
+Efeitos são operações que saem do ciclo de renderização puro: buscar dados de uma API, sincronizar com `localStorage`, adicionar listeners de evento, inicializar bibliotecas DOM. `useEffect` é o hook que permite executar essas operações depois que o React atualizou o DOM — de forma sincronizada com o ciclo de vida do componente.
+
+## Quando `useEffect` é necessário
+
+A regra prática: se uma operação não é uma transformação de dados (que você pode calcular durante o render) e não é um evento de usuário (que vai para um handler), provavelmente é um efeito.
+
+O caso mais comum é buscar dados ao montar o componente:
+
+```tsx title="useEffect — buscar dados ao montar."
+import { useState, useEffect } from "react";
+import type { Artigo } from "../types";
+
+export function ArticleList() {
+  const [artigos, setArtigos] = useState<Artigo[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    // roda depois que o componente aparece na tela
+    fetch("/artigos.json")
+      .then(res => {
+        if (!res.ok) throw new Error(`Erro ${res.status}`);
+        return res.json();
+      })
+      .then((dados: Artigo[]) => {
+        setArtigos(dados);
+        setCarregando(false);
+      })
+      .catch(err => {
+        setErro(err.message);
+        setCarregando(false);
+      });
+  }, []); // [] — roda apenas na montagem
+
+  if (carregando) return <p>Carregando artigos...</p>;
+  if (erro) return <p>Erro: {erro}</p>;
+
+  return (
+    <section>
+      {artigos.map(artigo => (
+        <ArticleCard key={artigo.id} artigo={artigo} />
+      ))}
+    </section>
+  );
+}
+```
+
+**O que você não deve fazer em `useEffect`:** derivar estado de props. Se você tem uma prop `artigos` e quer filtrar, faça isso durante o render — não em um efeito que copia para outro estado:
+
+```tsx title="Derivar estado — durante o render, não em useEffect."
+// ❌ useEffect desnecessário para derivar estado
+function ArticleList({ artigos, query }: ArticleListProps) {
+  const [artigosFiltrados, setArtigosFiltrados] = useState(artigos);
+
+  useEffect(() => {
+    setArtigosFiltrados(artigos.filter(a => a.titulo.includes(query)));
+  }, [artigos, query]); // render extra — componente renderiza duas vezes
+
+  return <>{artigosFiltrados.map(a => <ArticleCard key={a.id} artigo={a} />)}</>;
+}
+
+// ✅ calcular durante o render — sem estado extra, sem efeito
+function ArticleList({ artigos, query }: ArticleListProps) {
+  const artigosFiltrados = artigos.filter(a =>
+    a.titulo.toLowerCase().includes(query.toLowerCase())
+  );
+
+  return <>{artigosFiltrados.map(a => <ArticleCard key={a.id} artigo={a} />)}</>;
+}
+```
+
+## Sintaxe e array de dependências
+
+`useEffect` aceita dois argumentos: a função de efeito e o array de dependências.
+
+```tsx title="useEffect — variações do array de dependências."
+// sem array — roda após todo render (quase nunca é o que você quer)
+useEffect(() => {
+  console.log("renderizou");
+});
+
+// array vazio — roda apenas na montagem
+useEffect(() => {
+  console.log("montou");
+}, []);
+
+// array com dependências — roda quando qualquer dependência muda
+useEffect(() => {
+  console.log("query mudou para", query);
+}, [query]);
+```
+
+As **dependências** devem incluir tudo que o efeito usa e que pode mudar entre renders: props, estado, funções definidas no componente. O ESLint com o plugin `eslint-plugin-react-hooks` avisa quando dependências estão faltando:
+
+```tsx title="Dependências — efeito que reage à mudança de query."
+export function SearchResults({ query }: { query: string }) {
+  const [resultados, setResultados] = useState<Artigo[]>([]);
+
+  useEffect(() => {
+    if (!query) {
+      setResultados([]);
+      return;
+    }
+
+    fetch(`/api/busca?q=${encodeURIComponent(query)}`)
+      .then(res => res.json())
+      .then(setResultados);
+  }, [query]); // query está no array — efeito roda quando query muda
+
+  return (
+    <ul>
+      {resultados.map(r => <li key={r.id}>{r.titulo}</li>)}
+    </ul>
+  );
+}
+```
+
+## Função de cleanup
+
+O retorno de `useEffect` é a **função de cleanup** — React a executa antes de rodar o efeito novamente (quando as dependências mudam) e quando o componente desmonta. É essencial para cancelar operações pendentes e evitar memory leaks.
+
+O problema sem cleanup: se `SearchResults` desmonta enquanto um fetch ainda está pendente, o fetch completa, chama `setResultados`, e React tenta atualizar um componente que não existe mais — aviso no console e potencial bug.
+
+Com `AbortController`, o fetch é cancelado quando o efeito limpa:
+
+```tsx title="Cleanup com AbortController — cancela fetch ao trocar de query."
+export function SearchResults({ query }: { query: string }) {
+  const [resultados, setResultados] = useState<Artigo[]>([]);
+  const [carregando, setCarregando] = useState(false);
+
+  useEffect(() => {
+    if (!query) {
+      setResultados([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    setCarregando(true);
+
+    fetch(`/api/busca?q=${encodeURIComponent(query)}`, {
+      signal: controller.signal,
+    })
+      .then(res => res.json())
+      .then(dados => {
+        setResultados(dados);
+        setCarregando(false);
+      })
+      .catch(err => {
+        // AbortError é esperado quando o cleanup cancela o fetch
+        if (err.name !== "AbortError") {
+          console.error("Erro na busca:", err);
+          setCarregando(false);
+        }
+      });
+
+    // cleanup — cancela o fetch anterior quando query muda ou componente desmonta
+    return () => {
+      controller.abort();
+    };
+  }, [query]);
+
+  if (carregando) return <p>Buscando...</p>;
+  return <ul>{resultados.map(r => <li key={r.id}>{r.titulo}</li>)}</ul>;
+}
+```
+
+Isso resolve o problema de **race condition**: se o usuário digita "css" e imediatamente depois "html", dois fetches rodam em paralelo. O fetch de "css" pode completar depois do de "html" — sem cleanup, os resultados de "css" sobrescreveriam os de "html". Com `AbortController`, o fetch de "css" é cancelado quando a query muda para "html".
+
+Outros usos comuns de cleanup:
+
+```tsx title="Outros cleanups — intervalo e listener de evento."
+// limpar um intervalo ao desmontar
+useEffect(() => {
+  const id = setInterval(() => {
+    setTempo(prev => prev + 1);
+  }, 1000);
+
+  return () => clearInterval(id);
+}, []);
+
+// desinscrever de evento do DOM ao desmontar
+useEffect(() => {
+  function handleResize() {
+    setLargura(window.innerWidth);
+  }
+
+  window.addEventListener("resize", handleResize);
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
+```
+
+## Sincronizar com `localStorage`
+
+`useEffect` é a forma correta de sincronizar estado com o `localStorage` — que é externo ao React:
+
+```tsx title="Sincronizar tema com localStorage."
+export function useTema() {
+  const [tema, setTema] = useState<"claro" | "escuro">(() => {
+    // função como valor inicial — roda apenas uma vez, na montagem
+    const salvo = localStorage.getItem("tema");
+    return salvo === "escuro" ? "escuro" : "claro";
+  });
+
+  useEffect(() => {
+    // sincronizar com localStorage e com o atributo do documento quando tema muda
+    localStorage.setItem("tema", tema);
+    document.documentElement.setAttribute("data-theme", tema);
+  }, [tema]);
+
+  return { tema, setTema };
+}
+```
+
+O valor inicial usa a **forma funcional** do `useState` — a função passada como argumento roda apenas uma vez, na montagem, lendo o `localStorage` sem causar renders extras. O `useEffect` então mantém o `localStorage` e o atributo do documento sincronizados quando `tema` muda.
+
+## Resumo
+
+- **Efeitos** são operações fora do render puro: fetch, `localStorage`, listeners, timers.
+- **Sem array**: roda após todo render. **`[]`**: roda apenas na montagem. **`[dep]`**: roda quando a dependência muda.
+- **Não use `useEffect` para derivar estado de props** — calcule durante o render, sem estado extra.
+- **Função de cleanup**: retornada pelo efeito, executa antes do próximo efeito ou na desmontagem. Use para cancelar fetches com `AbortController`, limpar timers e remover listeners.
+- **Race conditions**: `AbortController` garante que apenas o último fetch importa quando a query muda rapidamente.
+- **Dependências honestas**: declare tudo que o efeito usa e pode mudar. O ESLint com `react-hooks` avisa quando faltam.

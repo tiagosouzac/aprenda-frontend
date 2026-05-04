@@ -1,6 +1,146 @@
 ---
 title: "HTML em geral"
-description: "O que é HTML, por que existe e como o navegador transforma marcação em uma árvore (DOM). O papel do HTML na trinca HTML/CSS/JS."
-comingSoon: true
+description: "O que é HTML, por que existe e como o navegador transforma marcação em uma árvore DOM. O papel do HTML na trinca HTML/CSS/JS."
 order: 1
+hero:
+  titleBefore: "HTML:"
+  titleAccent: "estrutura"
+  titleAfter: "e significado."
+quiz:
+  - question: "O que HTML significa?"
+    options:
+      - "High Text Markup Language"
+      - "Home Tool Markup Language"
+      - "HyperText Markup Language"
+      - "Hyper Transfer Markup Language"
+    correct: 2
+  - question: "Qual é o papel principal do HTML numa página web?"
+    options:
+      - "Definir cores, fontes e layout da página"
+      - "Reagir a cliques e interações do usuário"
+      - "Fazer requisições ao servidor"
+      - "Definir a estrutura e o significado do conteúdo"
+    correct: 3
+  - question: "O que é o DOM?"
+    options:
+      - "Uma linguagem de programação usada junto com HTML"
+      - "Uma árvore em memória que o navegador constrói a partir do HTML"
+      - "Um protocolo de comunicação entre cliente e servidor"
+      - "Um arquivo de configuração do servidor web"
+    correct: 1
+  - question: "Por que HTML bem escrito importa mesmo que a página pareça igual?"
+    options:
+      - "Porque leitores de tela, mecanismos de busca e manutenção dependem da semântica"
+      - "Não importa — o resultado visual é o que conta"
+      - "Porque o navegador rejeita HTML mal escrito"
+      - "Porque CSS não funciona sem HTML correto"
+    correct: 0
 ---
+
+Antes de escrever uma única linha de CSS ou JavaScript, você precisa entender o que vai por baixo: a estrutura. Toda página web — do Google ao seu blog pessoal — começa como um arquivo de texto com uma sintaxe específica. Esse arquivo é o HTML, e ele é o que o navegador recebe primeiro, parseia e transforma em tudo que o usuário vê.
+
+Neste módulo, você vai construir `artigo.html` do zero: a página de um post chamado "Meu primeiro projeto web". Ao final, terá um documento HTML completo — semântico, acessível, funcional no navegador — sem uma linha de CSS ou JavaScript. Feio pelos padrões visuais modernos, mas correto e legível.
+
+## O que é HTML
+
+HTML é a sigla de *HyperText Markup Language*. Cada palavra carrega um significado que explica o que a linguagem faz.
+
+**HyperText** é texto que contém links para outros documentos. Antes da web, documentos digitais eram lineares — você lia do começo ao fim. Tim Berners-Lee inventou o HTML em 1991 exatamente para criar documentos que se conectam entre si através de links. É o que tornou a web navegável: você lê um artigo, clica em uma referência, chega em outro documento, clica em outro link. O "Hyper" do HTML é esse hipertexto — texto com superpoderes de navegação.
+
+**Markup** é anotação. Quando um editor revisa um texto impresso, ele usa marcas para indicar o que é título, o que é destaque, o que precisa de correção. O HTML faz algo parecido: você anota pedaços do conteúdo dizendo o que eles são. Um parágrafo fica dentro de `<p>`, um título dentro de `<h1>`, uma lista dentro de `<ul>`. Você não está dizendo *como* o conteúdo deve parecer — está dizendo *o que* ele é.
+
+**Language** significa que tem sintaxe, regras e um vocabulário definido. Não é texto livre — existem elementos com nomes específicos, atributos com valores válidos, regras de aninhamento que precisam ser respeitadas. Mas é importante entender o que HTML não é: **não é uma linguagem de programação**. HTML não calcula, não toma decisões, não repete operações. Ele descreve conteúdo; não executa lógica.
+
+```html title="O mesmo conteúdo sem e com HTML — a marcação adiciona significado."
+Meu primeiro projeto web
+Um relato de aprendizado
+
+Depois de três semanas estudando, consegui publicar meu primeiro site.
+```
+
+```html title="Com HTML, cada parte do conteúdo tem um papel declarado."
+<h1>Meu primeiro projeto web</h1>
+<p class="subtitulo">Um relato de aprendizado</p>
+
+<p>Depois de três semanas estudando, consegui publicar meu primeiro site.</p>
+```
+
+O conteúdo é idêntico. A diferença é que a segunda versão comunica papel: o `<h1>` é o título principal, o `<p>` é um parágrafo. Leitores de tela, mecanismos de busca e o próprio CSS dependem dessa informação.
+
+## A trinca HTML, CSS e JavaScript
+
+Todo site que você abre usa três tecnologias que trabalham em camadas. Entender o que cada uma faz — e o que ela não faz — é fundamental antes de mergulhar em qualquer uma delas.
+
+O **HTML** define estrutura e significado. É o conteúdo em si: os textos, as imagens, os links, os formulários. Sem HTML, não há página. É a única camada obrigatória.
+
+O **CSS** define aparência. Cores, fontes, tamanhos, espaçamentos, layout — tudo que é visual fica no CSS. Sem CSS, a página existe e funciona, mas com os estilos padrão cinzentos do navegador.
+
+O **JavaScript** define comportamento. É o que acontece quando o usuário interage: clica em um botão, envia um formulário, rola a página. JavaScript pode modificar o HTML e o CSS dinamicamente, fazer requisições ao servidor e criar experiências interativas. Sem JavaScript, a página continua funcional para conteúdo estático.
+
+```html title="artigo.html mínimo que o navegador renderiza sem CSS ou JavaScript."
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Meu primeiro projeto web</title>
+  </head>
+  <body>
+    <h1>Meu primeiro projeto web</h1>
+    <p>Depois de três semanas estudando, consegui publicar meu primeiro site.</p>
+  </body>
+</html>
+```
+
+Esse arquivo pode ser aberto diretamente no navegador — sem servidor, sem build, sem nenhuma ferramenta. O navegador lê, parseia e exibe o conteúdo. É a prova de que HTML funciona sozinho.
+
+A separação em três camadas não é convenção arbitrária. Ela existe porque cada tecnologia muda em ritmos diferentes e é gerenciada por pessoas com especializações diferentes. Misturar estrutura com apresentação — colocar cor e tamanho diretamente no HTML — cria código difícil de manter. Se você quiser mudar a cor de todos os títulos, prefere alterar um único arquivo CSS ou percorrer centenas de arquivos HTML?
+
+## Como o navegador processa HTML
+
+Quando o navegador recebe o arquivo HTML, ele não o exibe diretamente. Ele o lê de cima para baixo, tag por tag, e constrói uma representação interna em memória: o **DOM** — *Document Object Model*.
+
+O DOM é uma árvore. Cada elemento HTML vira um nó dessa árvore, e os relacionamentos de aninhamento do HTML se tornam relacionamentos de pai e filho no DOM. O `<html>` é a raiz; dentro dele estão `<head>` e `<body>`; dentro do `<body>` estão títulos, parágrafos e outros elementos; cada um desses pode ter filhos também.
+
+```html title="HTML que o navegador transforma em árvore DOM."
+<body>
+  <header>
+    <h1>Meu primeiro projeto web</h1>
+  </header>
+  <main>
+    <p>Depois de três semanas, consegui publicar.</p>
+  </main>
+</body>
+```
+
+```
+body
+├── header
+│   └── h1 "Meu primeiro projeto web"
+└── main
+    └── p "Depois de três semanas, consegui publicar."
+```
+
+Essa árvore é o que o CSS usa para aplicar estilos — "aplique esta fonte a todos os `<p>` dentro de `<main>`". É o que o JavaScript usa para modificar a página — "encontre o `<h1>` e mude seu texto". É o que leitores de tela usam para navegar — "vá para o próximo cabeçalho".
+
+O DOM não é estático. JavaScript pode adicionar, remover e modificar nós a qualquer momento, e o navegador reflete essas mudanças na tela. Por isso, quando você vê uma página que atualiza sem recarregar, é o JavaScript modificando o DOM — não uma nova versão do HTML chegando do servidor.
+
+## Por que HTML bem escrito importa
+
+A maioria dos navegadores é tolerante com HTML incorreto — eles tentam corrigir erros e renderizar algo. Isso pode criar uma ilusão perigosa: "funcionou, então está certo". Mas "funciona visualmente" e "está correto" são coisas muito diferentes.
+
+**Acessibilidade** é o argumento mais direto. Cerca de 15 a 20% da população tem algum tipo de deficiência — visual, motora, cognitiva. Muitas dessas pessoas usam tecnologias assistivas como leitores de tela, que navegam a página usando a estrutura do HTML. Se o que deveria ser um título está marcado como `<div>` em vez de `<h2>`, o leitor de tela não anuncia que é um título. A estrutura semântica não é detalhe — é o que torna a página utilizável.
+
+**SEO** depende da mesma estrutura. Mecanismos de busca como o Google entendem o conteúdo de uma página através do HTML. Um `<h1>` bem escrito comunica o tema principal do documento. Um texto dentro de `<article>` comunica que é conteúdo editorial relevante. Marcar conteúdo incorretamente — ou usar `<div>` para tudo — torna a página opaca para os algoritmos de busca.
+
+**Resiliência** é outra vantagem. CSS e JavaScript podem falhar: uma folha de estilo pode não carregar por um erro de rede, um script pode travar por um bug. Se o HTML estiver bem estruturado, a página continua legível e utilizável mesmo sem as outras camadas. A hierarquia de títulos, os parágrafos, os links — tudo continua funcionando.
+
+**Manutenibilidade** fecha o argumento. Código que comunica intenção é mais fácil de manter. Um `<nav>` diz imediatamente "isso é navegação". Um `<button>` diz "isso é um controle clicável". Um `<article>` diz "isso é conteúdo independente". `<div>` não diz nada. Em uma base de código grande, com múltiplos colaboradores, semântica clara reduz o tempo necessário para entender o código antes de modificá-lo.
+
+## Resumo
+
+- HTML significa *HyperText Markup Language*: hipertexto (texto com links), markup (anotar o papel do conteúdo), language (sintaxe e vocabulário definidos). Não é uma linguagem de programação.
+- HTML define estrutura e significado; CSS define aparência; JavaScript define comportamento. HTML é a única camada obrigatória.
+- O navegador lê o HTML e constrói o DOM — uma árvore em memória que representa o documento e que CSS, JavaScript e tecnologias assistivas usam.
+- HTML bem escrito importa para acessibilidade, SEO, resiliência quando CSS/JS falham, e manutenibilidade do código.
+
+A próxima aula monta a estrutura mínima de `artigo.html` — `<!DOCTYPE>`, `<head>` com metadados e `<body>` com as grandes divisões da página.

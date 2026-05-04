@@ -1,6 +1,219 @@
 ---
 title: "Estruturando testes"
-description: "Arrange/Act/Assert, nomes que descrevem comportamento esperado, evitar lógica nos testes, isolar setup com beforeEach."
-comingSoon: true
+description: "Arrange/Act/Assert, nomes que descrevem comportamento esperado, casos a cobrir e setup com beforeEach."
 order: 4
+hero:
+  titleBefore: "Estruturando"
+  titleAccent: "testes"
+  titleAfter: "— legíveis e confiáveis."
+quiz:
+  - question: "O que representa cada etapa do padrão Arrange/Act/Assert?"
+    options:
+      - "Arrange: escrever o teste. Act: rodar o teste. Assert: ler o resultado"
+      - "Arrange: preparar o cenário e os dados necessários. Act: executar a ação testada (chamar a função, simular o clique). Assert: verificar que o resultado é o esperado"
+      - "Arrange: importar módulos. Act: chamar funções. Assert: usar expect"
+      - "São três arquivos separados em um projeto de testes"
+    correct: 1
+  - question: "Por que o nome do teste importa?"
+    options:
+      - "Um bom nome documenta o comportamento esperado — quando o teste falha, você sabe imediatamente o que o sistema deveria fazer. 'test formatarData' não diz nada; 'retorna há 5 minutos para data de 5 minutos atrás' diz tudo"
+      - "Nomes longos tornam os testes mais lentos"
+      - "O nome é apenas para organização visual no terminal"
+      - "Nomes não importam — o que importa é o expect"
+    correct: 0
+  - question: "Para que serve o beforeEach?"
+    options:
+      - "Para executar testes em paralelo"
+      - "Para importar dependências apenas quando necessário"
+      - "Para executar código antes de cada teste no describe — ideal para limpar estado compartilhado (localStorage, mocks) e preparar dados comuns, garantindo que cada teste começa em um estado limpo e previsível"
+      - "Para ordenar a execução dos testes"
+    correct: 2
+  - question: "Quais são os três tipos de caso que uma boa suite de testes deve cobrir?"
+    options:
+      - "Rápidos, médios e lentos"
+      - "Unitários, de integração e E2E"
+      - "Síncronos, assíncronos e de componente"
+      - "Caso feliz (happy path) com entrada válida, casos limite (edge cases — vazio, zero, máximo) e caso de erro com entrada inválida ou estado inesperado"
+    correct: 3
 ---
+
+Escrever um teste que passa é fácil. Escrever um teste que, quando falha, diz exatamente o que está errado e, quando passa, dá confiança real — isso exige estrutura. O padrão AAA, nomes descritivos e cobertura de casos limite são as três práticas que fazem uma suite de testes valer o investimento.
+
+## Arrange, Act, Assert (AAA)
+
+O padrão AAA é uma estrutura que torna qualquer teste legível — você sabe onde está cada coisa:
+
+```ts title="AAA — as três fases de um teste bem estruturado."
+import { describe, it, expect } from "vitest";
+import { calcularTempoLeitura } from "./utils";
+
+describe("calcularTempoLeitura", () => {
+  it("retorna 2 minutos para texto de 400 palavras", () => {
+    // Arrange — preparar o cenário
+    const texto = "palavra ".repeat(400).trim(); // 400 palavras
+
+    // Act — executar a ação testada
+    const resultado = calcularTempoLeitura(texto);
+
+    // Assert — verificar o resultado
+    expect(resultado).toBe(2);
+  });
+});
+```
+
+As três fases podem ser separadas por comentários (como acima) ou por linhas em branco. O importante é que quem lê o teste consiga identificar rapidamente: o que está sendo preparado, o que está sendo testado, e o que é verificado.
+
+Testes que misturam as fases ficam difíceis de ler e de depurar:
+
+```ts title="Sem AAA — difícil de ler e de depurar quando falha."
+// ❌ sem separação clara
+it("funciona", () => {
+  expect(calcularTempoLeitura("palavra ".repeat(400).trim())).toBe(2);
+  expect(calcularTempoLeitura("palavra ".repeat(100).trim())).toBe(1);
+  expect(calcularTempoLeitura("")).toBe(1);
+});
+// quando um dos três falha, você precisa contar palavras mentalmente para saber qual
+```
+
+Cada `it` deve testar **um comportamento** — se você está usando múltiplos `expect` para verificar coisas diferentes, provavelmente são testes separados.
+
+## Nomes que descrevem comportamento
+
+O nome do teste é a primeira informação que você vê quando ele falha. Um nome ruim deixa você sem pista:
+
+```
+FAIL src/utils.test.ts > calcularTempoLeitura > test 1
+```
+
+Um nome bom diz o que o sistema deveria fazer:
+
+```
+FAIL src/utils.test.ts > calcularTempoLeitura > retorna 2 minutos para texto de 400 palavras
+```
+
+```ts title="Nomenclatura — ruim vs. boa."
+// ❌ nomes que não dizem nada
+it("test formatarData", () => { ... });
+it("funciona com data", () => { ... });
+it("test 1", () => { ... });
+
+// ✅ nomes que descrevem o comportamento esperado
+it("retorna 'agora' para datas dos últimos 60 segundos", () => { ... });
+it("retorna 'há X minutos' para datas de menos de uma hora atrás", () => { ... });
+it("retorna data por extenso para datas com mais de 7 dias", () => { ... });
+```
+
+A convenção com `it` lê como uma frase: **"it retorna 'agora' para datas dos últimos 60 segundos"**. O `describe` agrupa pelo que está sendo testado, o `it` descreve o comportamento específico:
+
+```ts title="describe + it — leitura como especificação."
+describe("gerarSlug", () => {
+  it("converte para minúsculas", ...);
+  it("substitui espaços por hífens", ...);
+  it("remove acentos e caracteres especiais", ...);
+  it("retorna string vazia para entrada vazia", ...);
+});
+
+// output: gerarSlug > converte para minúsculas ✓
+//         gerarSlug > substitui espaços por hífens ✓
+// lê como uma especificação executável da função
+```
+
+## Casos a cobrir
+
+Uma boa suite cobre três categorias de caso:
+
+**Caso feliz (happy path):** a entrada válida típica. O que o usuário normalmente passa. É o primeiro teste que você escreve.
+
+**Casos limite (edge cases):** os extremos — valor zero, array vazio, string vazia, comprimento máximo, comprimento mínimo. São onde os bugs se escondem.
+
+**Caso de erro:** entrada inválida ou estado que não deveria acontecer. O que o código faz quando recebe `null`, `undefined`, ou um tipo errado?
+
+```ts title="truncar — os três tipos de caso."
+describe("truncar", () => {
+  // caso feliz — texto maior que o limite
+  it("trunca texto e adiciona reticências quando maior que o limite", () => {
+    const resultado = truncar("Introdução ao CSS e Flexbox", 20);
+    expect(resultado).toBe("Introdução ao CSS e...");
+  });
+
+  // casos limite
+  it("retorna o texto inteiro quando menor que o limite", () => {
+    expect(truncar("CSS", 100)).toBe("CSS");
+  });
+
+  it("retorna o texto inteiro quando exatamente no limite", () => {
+    expect(truncar("CSS", 3)).toBe("CSS");
+  });
+
+  it("retorna string vazia para texto vazio", () => {
+    expect(truncar("", 10)).toBe("");
+  });
+
+  it("retorna string vazia para limite zero", () => {
+    expect(truncar("Algum texto", 0)).toBe("");
+  });
+
+  // caso de erro — limite negativo
+  it("trata limite negativo como zero", () => {
+    expect(truncar("Algum texto", -5)).toBe("");
+  });
+});
+```
+
+Casos que parecem óbvios frequentemente revelam comportamentos não especificados — o que `truncar` deve fazer com `limite = 0`? Com string vazia? Escrever esses testes força uma decisão e a documenta.
+
+## `beforeEach` e `afterEach` para setup
+
+Quando múltiplos testes dentro de um `describe` precisam do mesmo cenário, o `beforeEach` evita repetição e garante isolamento:
+
+```ts title="beforeEach — cenário compartilhado e limpo para cada teste."
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { LikeButton } from "../components/LikeButton";
+
+describe("persistência de curtidas no localStorage", () => {
+  // limpar localStorage antes de cada teste — evitar vazamento de estado
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("salva a curtida ao clicar no botão", () => {
+    // cada teste começa com localStorage limpo
+    const { getByRole } = render(<LikeButton artigoId={1} curtido={false} onCurtir={() => {}} />);
+    fireEvent.click(getByRole("button"));
+    expect(localStorage.getItem("curtidos")).toContain("1");
+  });
+
+  it("carrega curtidas salvas ao montar o componente", () => {
+    // começa limpo — sem interferência do teste anterior
+    localStorage.setItem("curtidos", JSON.stringify([1]));
+    const { getByRole } = render(<LikeButton artigoId={1} curtido={true} onCurtir={() => {}} />);
+    expect(getByRole("button")).toHaveAttribute("aria-pressed", "true");
+  });
+});
+```
+
+`afterEach` é útil quando a limpeza precisa acontecer depois do teste — por exemplo, restaurar um mock:
+
+```ts title="afterEach — restaurar mocks após cada teste."
+import { vi, afterEach } from "vitest";
+
+describe("módulo que usa Date.now", () => {
+  afterEach(() => {
+    vi.restoreAllMocks(); // restaura todos os mocks para o comportamento real
+  });
+
+  it("usa a data atual para calcular tempo relativo", () => {
+    vi.spyOn(Date, "now").mockReturnValue(new Date("2024-06-01").getTime());
+    // agora Date.now() retorna sempre 2024-06-01
+    expect(formatarData(new Date("2024-05-31"))).toBe("há 1 dia");
+  });
+});
+```
+
+## Resumo
+
+- **AAA**: Arrange (preparar), Act (executar), Assert (verificar). Separação visual que torna cada teste fácil de ler e de depurar.
+- **Um comportamento por teste**: se você tem múltiplos `expect` verificando coisas diferentes, provavelmente são testes separados.
+- **Nomes descritivos**: o nome deve dizer o que o sistema deveria fazer — não o que a função se chama. Quando o teste falha, o nome é a primeira informação.
+- **Três categorias de caso**: caso feliz, casos limite (zero, vazio, máximo) e caso de erro. Casos óbvios revelam comportamentos não especificados.
+- **`beforeEach`** para setup compartilhado e garantia de isolamento — cada teste começa em estado limpo. **`afterEach`** para restaurar mocks e limpar efeitos colaterais.

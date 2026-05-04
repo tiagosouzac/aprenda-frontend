@@ -1,6 +1,263 @@
 ---
 title: "Testando componentes React com Testing Library"
 description: "Renderização, queries por papel/texto/label, simulação de interação com userEvent. Princípio de testar como o usuário usa."
-comingSoon: true
 order: 7
+hero:
+  titleBefore: "Testing"
+  titleAccent: "Library"
+  titleAfter: "— testar como o usuário usa."
+quiz:
+  - question: "Qual é a filosofia central da Testing Library?"
+    options:
+      - "Testar a implementação interna dos componentes para garantir que o estado correto é usado"
+      - "Testar como o usuário usa a interface — queries baseadas em papel (role), texto visível e labels de acessibilidade, não em detalhes de implementação como nomes de variáveis ou classes CSS internas"
+      - "Testar todos os hooks e estados do componente individualmente"
+      - "Garantir 100% de cobertura de cada componente"
+    correct: 1
+  - question: "Por que getByRole é preferível a getByTestId?"
+    options:
+      - "getByRole encontra elementos pelo seu papel de acessibilidade (button, heading, textbox) — a mesma forma que leitores de tela e o usuário interagem. getByTestId depende de atributos data-testid adicionados apenas para testes, que não refletem a experiência real do usuário"
+      - "getByRole é mais rápido de executar"
+      - "getByTestId não funciona com Vitest"
+      - "getByRole funciona com TypeScript; getByTestId não"
+    correct: 0
+  - question: "Qual a diferença entre getBy*, queryBy* e findBy*?"
+    options:
+      - "Apenas diferenças de performance"
+      - "findBy* é mais preciso; getBy* é mais rápido"
+      - "getBy* lança erro se não encontrar — para assertivas de presença. queryBy* retorna null se não encontrar — para assertivas de ausência. findBy* é assíncrono — aguarda o elemento aparecer, ideal para conteúdo que chega após fetch ou state update"
+      - "queryBy* só funciona com texto; getBy* funciona com qualquer seletor"
+    correct: 2
+  - question: "Por que usar userEvent.setup() em vez de fireEvent para simular interações?"
+    options:
+      - "userEvent é mais rápido que fireEvent"
+      - "fireEvent não funciona com React 18"
+      - "userEvent.setup() funciona com async/await; fireEvent não"
+      - "userEvent.setup() simula a sequência completa de eventos do usuário (hover, focus, keydown, keyup, click) — mais próximo do comportamento real do browser. fireEvent dispara apenas um evento DOM sintético, podendo passar por casos que um usuário real ativaria"
+    correct: 3
 ---
+
+Funções puras são fáceis de testar: input, output, done. Componentes React são diferentes — eles renderizam no DOM, respondem a interações, têm estado interno e efeitos colaterais. Testing Library fornece as ferramentas para testar componentes da forma que importa: como o usuário os usa.
+
+## Instalação e setup
+
+```bash title="Instalar Testing Library e seus companions."
+npm install -D @testing-library/react @testing-library/user-event @testing-library/jest-dom
+```
+
+```ts title="src/test/setup.ts — importar jest-dom para matchers adicionais."
+import "@testing-library/jest-dom";
+// adiciona: toBeInTheDocument, toBeVisible, toHaveValue, toBeDisabled, etc.
+```
+
+```ts title="vite.config.ts — configurar jsdom e o setup file."
+export default defineConfig({
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: ["./src/test/setup.ts"],
+  },
+});
+```
+
+## Renderizar e fazer queries
+
+`render` monta o componente em um DOM simulado (jsdom). O objeto `screen` permite encontrar elementos como o usuário os vê:
+
+```tsx title="ArticleCard.test.tsx — renderizar e verificar o que aparece."
+import { render, screen } from "@testing-library/react";
+import { ArticleCard } from "./ArticleCard";
+import type { Artigo } from "../types";
+
+const artigoFixture: Artigo = {
+  id: 1,
+  titulo: "CSS Grid — guia completo",
+  descricao: "Como usar CSS Grid para criar layouts complexos.",
+  autor: { nome: "Ana Silva" },
+  tags: ["css", "layout"],
+  curtidas: 42,
+  publicadoEm: "2024-03-15T00:00:00Z",
+};
+
+describe("ArticleCard", () => {
+  it("renderiza o título do artigo", () => {
+    render(<ArticleCard artigo={artigoFixture} curtido={false} onCurtir={() => {}} />);
+    // getByRole para headings, buttons, links — mais próximo de como o usuário vê
+    expect(screen.getByRole("heading", { name: "CSS Grid — guia completo" })).toBeInTheDocument();
+  });
+
+  it("renderiza o nome do autor", () => {
+    render(<ArticleCard artigo={artigoFixture} curtido={false} onCurtir={() => {}} />);
+    expect(screen.getByText("Ana Silva")).toBeInTheDocument();
+  });
+
+  it("renderiza todas as tags do artigo", () => {
+    render(<ArticleCard artigo={artigoFixture} curtido={false} onCurtir={() => {}} />);
+    expect(screen.getByText("css")).toBeInTheDocument();
+    expect(screen.getByText("layout")).toBeInTheDocument();
+  });
+
+  it("exibe ❤️ quando curtido e 🤍 quando não curtido", () => {
+    const { rerender } = render(
+      <ArticleCard artigo={artigoFixture} curtido={false} onCurtir={() => {}} />
+    );
+    expect(screen.getByRole("button", { name: /curtir/i })).toHaveTextContent("🤍");
+
+    rerender(<ArticleCard artigo={artigoFixture} curtido={true} onCurtir={() => {}} />);
+    expect(screen.getByRole("button", { name: /curtido/i })).toHaveTextContent("❤️");
+  });
+});
+```
+
+## A hierarquia de queries
+
+Testing Library recomenda uma ordem de preferência para queries — da mais próxima da experiência do usuário à mais técnica:
+
+```tsx title="Hierarquia de queries — preferir as mais próximas do usuário."
+// 1ª escolha — papel de acessibilidade (como leitores de tela veem)
+screen.getByRole("button", { name: "Curtir" });
+screen.getByRole("heading", { name: "CSS Grid" });
+screen.getByRole("textbox", { name: "E-mail" });
+
+// 2ª escolha — label de input (acessibilidade)
+screen.getByLabelText("E-mail");
+
+// 3ª escolha — texto visível
+screen.getByText("Ana Silva");
+screen.getByText(/há \d+ minutos/);  // regex para texto parcial
+
+// 4ª escolha — atributo alt (imagens)
+screen.getByAltText("Foto do autor");
+
+// 5ª escolha — placeholder
+screen.getByPlaceholderText("Buscar artigos...");
+
+// evitar — só quando as anteriores não funcionam
+screen.getByTestId("botao-curtir"); // depende de data-testid — não reflete uso real
+```
+
+## `getBy*` vs `queryBy*` vs `findBy*`
+
+```tsx title="Escolher o tipo de query correto para cada caso."
+// getBy* — lança erro se não encontrar — para asserções de presença
+const botao = screen.getByRole("button", { name: "Curtir" });
+// Se não existir: TestingLibraryElementError — útil como erro imediato
+
+// queryBy* — retorna null se não encontrar — para asserções de ausência
+const badge = screen.queryByText("Novo");
+expect(badge).not.toBeInTheDocument(); // verificar que algo NÃO está na tela
+
+// findBy* — assíncrono, aguarda aparecer — para conteúdo que chega depois
+const titulo = await screen.findByText("CSS Grid");
+// ideal para artigos que chegam após fetch
+```
+
+## Simular interações com `userEvent`
+
+`userEvent` simula a sequência completa de eventos do usuário — hover, focus, keydown, keyup, click. Mais fiel ao comportamento real que `fireEvent`, que dispara apenas um evento DOM:
+
+```tsx title="LikeButton.test.tsx — clicar e verificar resultado."
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { LikeButton } from "./LikeButton";
+
+describe("LikeButton", () => {
+  it("chama onCurtir ao ser clicado", async () => {
+    const user = userEvent.setup(); // instância com configurações
+    const onCurtir = vi.fn();
+
+    render(<LikeButton curtido={false} contagem={5} onCurtir={onCurtir} />);
+
+    await user.click(screen.getByRole("button"));
+
+    expect(onCurtir).toHaveBeenCalledOnce();
+  });
+
+  it("exibe o número de curtidas corretamente", () => {
+    render(<LikeButton curtido={false} contagem={42} onCurtir={() => {}} />);
+    expect(screen.getByRole("button")).toHaveTextContent("42");
+  });
+
+  it("tem aria-pressed true quando curtido", () => {
+    render(<LikeButton curtido={true} contagem={43} onCurtir={() => {}} />);
+    expect(screen.getByRole("button")).toHaveAttribute("aria-pressed", "true");
+  });
+});
+```
+
+## Testando formulários
+
+```tsx title="NewsletterForm.test.tsx — digitar e submeter."
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { NewsletterForm } from "./NewsletterForm";
+
+describe("NewsletterForm", () => {
+  it("habilita o botão apenas com email preenchido", async () => {
+    const user = userEvent.setup();
+    render(<NewsletterForm onSubmit={() => {}} />);
+
+    const botao = screen.getByRole("button", { name: "Inscrever" });
+    expect(botao).toBeDisabled(); // começa desabilitado
+
+    await user.type(screen.getByLabelText("E-mail"), "ana@example.com");
+    expect(botao).not.toBeDisabled(); // habilitado após digitar
+  });
+
+  it("chama onSubmit com o email ao submeter", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<NewsletterForm onSubmit={onSubmit} />);
+
+    await user.type(screen.getByLabelText("E-mail"), "ana@example.com");
+    await user.click(screen.getByRole("button", { name: "Inscrever" }));
+
+    expect(onSubmit).toHaveBeenCalledWith("ana@example.com");
+  });
+
+  it("limpa o campo após envio bem-sucedido", async () => {
+    const user = userEvent.setup();
+    render(<NewsletterForm onSubmit={() => {}} />);
+
+    const input = screen.getByLabelText("E-mail");
+    await user.type(input, "ana@example.com");
+    await user.click(screen.getByRole("button", { name: "Inscrever" }));
+
+    expect(input).toHaveValue(""); // campo limpo após envio
+  });
+});
+```
+
+## Matchers do `@testing-library/jest-dom`
+
+```tsx title="Matchers adicionais para asserções de DOM."
+// presença no documento
+expect(elemento).toBeInTheDocument();
+expect(elemento).not.toBeInTheDocument();
+
+// visibilidade
+expect(elemento).toBeVisible();
+expect(elemento).not.toBeVisible(); // quando display:none ou visibility:hidden
+
+// estado de formulário
+expect(input).toHaveValue("ana@example.com");
+expect(botao).toBeDisabled();
+expect(botao).not.toBeDisabled();
+expect(checkbox).toBeChecked();
+
+// atributos
+expect(botao).toHaveAttribute("aria-pressed", "true");
+expect(link).toHaveAttribute("href", "/artigos/css");
+
+// conteúdo de texto
+expect(elemento).toHaveTextContent("CSS Grid");
+expect(elemento).toHaveTextContent(/\d+ curtidas/); // regex
+```
+
+## Resumo
+
+- **Testing Library**: renderiza componentes em jsdom e expõe `screen` para fazer queries como o usuário faz — por papel, texto, label.
+- **Hierarquia de queries**: `getByRole` > `getByLabelText` > `getByText`. Evite `getByTestId` — ele não reflete como o usuário usa a interface.
+- **`getBy*`** lança erro se não encontrar; **`queryBy*`** retorna `null` (para asserções de ausência); **`findBy*`** é assíncrono (para conteúdo que aparece depois).
+- **`userEvent.setup()`** simula interações reais — click, type, press. Mais fiel ao browser que `fireEvent`.
+- **`@testing-library/jest-dom`** adiciona matchers expressivos: `toBeInTheDocument`, `toBeDisabled`, `toHaveValue`, `toHaveAttribute`.

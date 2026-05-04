@@ -1,6 +1,208 @@
 ---
-title: "Assíncrono — promises"
-description: "Por que código assíncrono existe. Callbacks, callback hell, promises, then/catch/finally, Promise.all e Promise.race."
-comingSoon: true
+title: "Assíncrono — Promises"
+description: "Por que JavaScript é single-threaded e precisa de código assíncrono. O problema dos callbacks. O que é uma Promise, .then/.catch/.finally e Promise.all."
 order: 13
+hero:
+  titleBefore: "Promises:"
+  titleAccent: "assíncrono"
+  titleAfter: "sem travar a UI."
+quiz:
+  - question: "Por que JavaScript precisa de código assíncrono?"
+    options:
+      - "Para rodar múltiplas threads em paralelo"
+      - "Para compatibilidade com Node.js"
+      - "Porque JavaScript é single-threaded — só executa uma coisa por vez. Operações lentas (rede, disco) bloqueariam a UI se fossem síncronas. Assíncrono inicia a operação e continua executando outras coisas"
+      - "Porque a especificação ECMAScript exige"
+    correct: 2
+  - question: "Quais são os três estados de uma Promise?"
+    options:
+      - "ready, running, done"
+      - "loading, success, error"
+      - "open, closed, settled"
+      - "pending (aguardando), fulfilled (resolvida com valor), rejected (rejeitada com erro)"
+    correct: 3
+  - question: "O que acontece se uma Promise for rejeitada e não houver .catch()?"
+    options:
+      - "O erro é ignorado silenciosamente"
+      - "Um unhandled rejection é gerado — visível no console como erro. Em Node.js, pode encerrar o processo"
+      - "O JavaScript tenta resolver a Promise novamente"
+      - "A Promise fica em estado pending para sempre"
+    correct: 1
+  - question: "Qual é a diferença entre Promise.all e Promise.allSettled?"
+    options:
+      - "Promise.all aguarda todas as Promises e rejeita imediatamente se qualquer uma rejeitar; Promise.allSettled aguarda todas e retorna o resultado de cada uma, independente de sucesso ou erro"
+      - "Promise.all é mais rápido que Promise.allSettled"
+      - "Promise.allSettled só funciona com exatamente duas Promises"
+      - "Não há diferença — são sinônimos"
+    correct: 0
 ---
+
+Até agora, todo o código que você escreveu foi síncrono: o JavaScript executa uma linha, termina, passa para a próxima. Isso funciona para lógica local — manipular strings, atualizar o DOM, calcular o progresso de leitura. Mas não funciona para operações que levam tempo: buscar dados de uma API, ler um arquivo, esperar um timer.
+
+## Por que código assíncrono existe
+
+JavaScript é **single-threaded**: tem apenas uma thread de execução e processa uma operação por vez. Não há paralelismo real — enquanto uma operação está rodando, nada mais acontece.
+
+Isso seria um problema crítico sem código assíncrono. Imagine que buscar os artigos do blog leva 500ms. Se fosse síncrono, a UI ficaria completamente travada por meio segundo — nenhum clique, nenhuma animação, nenhuma resposta. Em 1s de operação de rede, o browser pareceria morto.
+
+A solução é o **event loop**: operações lentas (rede, disco, timers) são delegadas ao ambiente (o navegador ou o Node.js), que as processa em paralelo com o JavaScript. Quando a operação termina, o resultado entra em uma fila. O event loop verifica essa fila quando a call stack está vazia e chama o callback/handler correspondente.
+
+```js title="setTimeout — o exemplo mais simples de assíncrono."
+console.log("1 — antes do timeout");
+
+setTimeout(() => {
+  console.log("3 — dentro do timeout");
+}, 1000);
+
+console.log("2 — depois do setTimeout, antes do timeout disparar");
+
+// ordem de saída:
+// 1 — antes do timeout
+// 2 — depois do setTimeout, antes do timeout disparar
+// (1 segundo depois)
+// 3 — dentro do timeout
+```
+
+O setTimeout é assíncrono: o JavaScript registra o callback, continua executando a linha seguinte, e o callback só é chamado depois de 1000ms.
+
+## O problema dos callbacks
+
+A primeira solução para código assíncrono foi o callback — uma função passada como argumento para ser chamada quando a operação terminar. `setTimeout`, `addEventListener` e muitas APIs mais antigas usam callbacks.
+
+O problema aparece quando você tem operações que dependem umas das outras: buscar artigos → para cada artigo, buscar os comentários → para cada comentário, buscar o autor. Cada operação espera o resultado da anterior. O código fica aninhado em uma estrutura chamada *callback hell*:
+
+```js title="Callback hell — operações dependentes criam aninhamento insuportável."
+// buscar artigos → comentários → autor (versão com callbacks)
+buscarArtigos(function(artigos) {
+  buscarComentarios(artigos[0].id, function(comentarios) {
+    buscarAutor(comentarios[0].autorId, function(autor) {
+      buscarPerfil(autor.id, function(perfil) {
+        // finalmente chegou onde queria
+        exibir(perfil);
+        // erros? cada nível precisa de tratamento separado
+      }, function(erro) { tratarErro(erro); });
+    }, function(erro) { tratarErro(erro); });
+  }, function(erro) { tratarErro(erro); });
+}, function(erro) { tratarErro(erro); });
+```
+
+Isso não é um problema de estilo — é um problema estrutural. Tratamento de erros se repete em cada nível. A lógica real fica enterrada em múltiplos níveis de indentação. Promises resolvem isso.
+
+## O que é uma Promise
+
+Uma Promise é um objeto que representa uma operação assíncrona que vai completar (ou falhar) no futuro. Ela tem três estados:
+
+**Pending**: a operação ainda está em andamento.
+**Fulfilled**: a operação completou com sucesso — a Promise tem um valor.
+**Rejected**: a operação falhou — a Promise tem um erro (reason).
+
+Uma vez que a Promise transita de pending para fulfilled ou rejected, ela **não muda mais de estado**.
+
+```js title="Criando uma Promise manualmente — entender a estrutura."
+// new Promise recebe uma função executor com dois parâmetros:
+// resolve (chamar para cumprir com um valor)
+// reject  (chamar para rejeitar com um erro)
+const promessaDeBusca = new Promise((resolve, reject) => {
+  // simular uma operação assíncrona
+  setTimeout(() => {
+    const sucesso = Math.random() > 0.5; // 50% de chance de sucesso
+
+    if (sucesso) {
+      resolve({ id: 1, titulo: "CSS em geral" }); // Promise fulfills
+    } else {
+      reject(new Error("Falha ao buscar artigo")); // Promise rejects
+    }
+  }, 1000);
+});
+```
+
+Na prática, você raramente cria Promises com `new Promise` — você **consume** Promises que APIs como `fetch` retornam. Mas entender a estrutura é importante.
+
+## `.then()`, `.catch()`, `.finally()`
+
+Para reagir ao resultado de uma Promise, você encadeia métodos:
+
+**`.then(fn)`**: chamado quando a Promise é fulfilled. Recebe o valor como argumento.
+**`.catch(fn)`**: chamado quando a Promise é rejected. Recebe o erro.
+**`.finally(fn)`**: chamado sempre, independente de sucesso ou falha — útil para esconder loading spinners.
+
+O encadeamento funciona porque cada `.then()` retorna uma nova Promise — você pode encadear sem aninhamento:
+
+```js title="Encadeamento de .then() — sem aninhamento de callbacks."
+// buscar artigos do blog
+function buscarArtigos() {
+  return fetch("/artigos.json")
+    .then(response => {
+      if (!response.ok) throw new Error(`Erro ${response.status}`);
+      return response.json(); // retorna outra Promise
+    });
+}
+
+// consumir com encadeamento
+buscarArtigos()
+  .then(artigos => {
+    console.log(`${artigos.length} artigos carregados`);
+    return artigos.filter(a => a.publicado); // valor passa para o próximo .then
+  })
+  .then(publicados => {
+    exibirArtigos(publicados);
+  })
+  .catch(erro => {
+    console.error("Falha ao carregar artigos:", erro.message);
+    exibirErro("Não foi possível carregar os artigos.");
+  })
+  .finally(() => {
+    esconderSpinner();
+  });
+```
+
+Uma rejeição não tratada — Promise rejeitada sem `.catch()` — gera um `UnhandledPromiseRejection` no console. Em Node.js recente, encerra o processo. Sempre trate erros.
+
+## `Promise.all()` e `Promise.allSettled()`
+
+Quando você precisa aguardar múltiplas Promises, há helpers estáticos:
+
+**`Promise.all([p1, p2, p3])`** aguarda todas as Promises em paralelo e resolve com um array dos valores, na mesma ordem. Se qualquer Promise rejeitar, `Promise.all` rejeita imediatamente com aquele erro — as demais são ignoradas.
+
+**`Promise.allSettled([p1, p2])`** aguarda todas, independente de resultado. Retorna um array onde cada item tem `{ status: "fulfilled", value: ... }` ou `{ status: "rejected", reason: ... }`. Nunca rejeita.
+
+**`Promise.race([p1, p2])`** resolve ou rejeita com a primeira Promise que se estabelecer.
+
+```js title="Promise.all — carregar metadados do artigo em paralelo."
+// buscar tags e autor ao mesmo tempo — em vez de sequencial
+async function carregarMetadados(artigoId) {
+  // sem Promise.all: espera buscarTags, depois espera buscarAutor
+  // com Promise.all: ambos começam ao mesmo tempo
+  const [tags, autor] = await Promise.all([
+    buscarTags(artigoId),
+    buscarAutor(artigoId),
+  ]);
+
+  return { tags, autor };
+}
+
+// Promise.allSettled — quando falha parcial é aceitável
+async function carregarPainelAdmin() {
+  const resultados = await Promise.allSettled([
+    buscarEstatisticas(),
+    buscarComentariosPendentes(),
+    buscarRelatorio(),
+  ]);
+
+  for (const resultado of resultados) {
+    if (resultado.status === "fulfilled") {
+      exibir(resultado.value);
+    } else {
+      console.warn("Módulo não carregou:", resultado.reason.message);
+    }
+  }
+}
+```
+
+## Resumo
+
+- JavaScript é **single-threaded** — código assíncrono permite iniciar operações lentas (rede, timers) e continuar executando, reagindo quando a operação termina via event loop.
+- **Callbacks** funcionam para casos simples, mas operações dependentes criam *callback hell* — código aninhado, difícil de ler e de tratar erros.
+- Uma **Promise** representa uma operação assíncrona futura. Três estados: `pending`, `fulfilled`, `rejected`. Imutável após se estabelecer.
+- **`.then(fn)`** recebe o valor de sucesso. **`.catch(fn)`** recebe o erro. **`.finally(fn)`** sempre executa — para limpeza. Promises se encadeiam sem aninhamento.
+- **`Promise.all`** aguarda todas e falha se qualquer uma falhar — use quando todas são necessárias. **`Promise.allSettled`** aguarda todas e retorna o resultado de cada uma — use quando falha parcial é aceitável.

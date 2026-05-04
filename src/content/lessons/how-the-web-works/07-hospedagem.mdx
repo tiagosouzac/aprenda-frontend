@@ -1,6 +1,134 @@
 ---
 title: "Hospedagem e domínios"
-description: "Onde os arquivos do site moram. Diferença entre hospedagem estática, dinâmica e CDN; o papel do registrador de domínios."
-comingSoon: true
+description: "Onde os arquivos do site moram. Diferença entre hospedagem estática, dinâmica e CDN; o papel do registrador de domínios e como apontar um domínio para um servidor."
 order: 7
+hero:
+  titleBefore: "Hospedagem e"
+  titleAccent: "domínios"
+  titleAfter: "na prática."
+quiz:
+  - question: "Qual é a principal diferença entre hospedagem estática e dinâmica?"
+    options:
+      - "Hospedagem estática é mais cara que dinâmica"
+      - "Hospedagem dinâmica não permite atualizações de conteúdo"
+      - "Hospedagem estática serve arquivos como estão; dinâmica processa requisições e gera respostas"
+      - "Hospedagem estática é usada apenas para blogs e portfólios"
+    correct: 2
+  - question: "O que um CDN faz?"
+    options:
+      - "Registra nomes de domínio para você"
+      - "Substitui a necessidade de ter um servidor web"
+      - "Criptografa todos os dados da sua aplicação"
+      - "Armazena cópias dos seus arquivos em servidores geograficamente distribuídos para entrega mais rápida"
+    correct: 3
+  - question: "Qual é a função de um registrador de domínios?"
+    options:
+      - "Hospedar os arquivos do seu site"
+      - "Vender e gerenciar o direito de uso de um nome de domínio"
+      - "Proteger o servidor contra ataques"
+      - "Aumentar a velocidade de carregamento das páginas"
+    correct: 1
+  - question: "Como um domínio aponta para o servidor de hospedagem?"
+    options:
+      - "Através de um registro A no DNS que mapeia o nome para o IP do servidor"
+      - "Através de um cabo físico que conecta a máquina do usuário ao servidor"
+      - "Através de um arquivo de configuração no navegador"
+      - "Através de um contato direto com a provedora de internet"
+    correct: 0
 ---
+
+Até aqui, o percurso foi sobre o que acontece depois que um site já está no ar: o DNS resolve o nome, o HTTP transporta os dados, o navegador renderiza a página. Mas há uma pergunta anterior que ainda não foi respondida: onde o site vive? Quem mantém os arquivos acessíveis vinte e quatro horas por dia? E como um nome de domínio comprado em uma empresa consegue apontar para um servidor hospedado em outra?
+
+Essas perguntas fecham o circuito do módulo. Sem hospedagem, não há servidor para responder as requisições. Sem um domínio, não há nome para o DNS resolver. Os dois serviços são separados e complementares, e entender como funcionam individualmente — e como se conectam — completa o modelo mental da web.
+
+## O que é hospedagem web
+
+Um servidor web é, no fundo, um computador conectado à internet que roda um programa capaz de receber requisições HTTP e devolver respostas. Tecnicamente, qualquer computador com uma conexão de internet e o software certo poderia ser um servidor — e muitos desenvolvedores fazem exatamente isso localmente, ao rodar `npm run dev` e acessar `localhost:4321`. O problema é que esse servidor local só existe enquanto o computador está ligado e o processo está rodando. Para um site público, isso não é suficiente.
+
+É para isso que existem as **provedoras de hospedagem**: empresas que mantêm servidores em datacenters — galpões com eletricidade redundante, refrigeração industrial, segurança física e conexões de fibra de altíssima capacidade. Você aluga espaço nessa infraestrutura, coloca seus arquivos lá, e o site fica disponível o tempo todo sem depender da sua máquina ou da sua conexão doméstica.
+
+A escolha de qual tipo de hospedagem usar depende do que o site precisa fazer.
+
+**Hospedagem estática** é o modelo mais simples. O servidor armazena arquivos — HTML, CSS, JavaScript, imagens — e os entrega exatamente como estão no disco, sem nenhum processamento adicional. Quando alguém acessa `artigo.dev/introducao`, o servidor localiza o arquivo `introducao/index.html` e o envia. Não há código rodando no servidor, não há banco de dados consultado, não há geração dinâmica de conteúdo. Isso torna a hospedagem estática extremamente rápida, barata e simples de operar.
+
+```bash title="Comportamento de um servidor estático — sem processamento, só entrega de arquivo."
+# Requisição chegou: GET /artigos/dns HTTP/1.1
+# Servidor procura: /var/www/artigo.dev/artigos/dns/index.html
+# Envia o arquivo como está, com status 200
+```
+
+**Hospedagem dinâmica** executa código no servidor a cada requisição. O servidor não serve um arquivo que já existe — ele roda um programa que pode consultar um banco de dados, autenticar um usuário, gerar HTML personalizado, enviar e-mails ou fazer qualquer outra coisa antes de montar a resposta. Isso é necessário para aplicações como redes sociais, e-commerce, bancos e qualquer sistema que precise de dados em tempo real ou que varie por usuário.
+
+A hospedagem dinâmica é mais cara porque consome mais recursos: CPU para executar o código, memória para manter o programa rodando, disco para o banco de dados. Plataformas como AWS, Google Cloud e DigitalOcean são o terreno da hospedagem dinâmica.
+
+Este curso ensina frontend estático. Tudo que você aprende aqui — HTML, CSS, JavaScript no navegador — pode ser hospedado estaticamente. Mas o conceito de hospedagem dinâmica vai aparecer quando você precisar de um backend, então é útil entender a distinção desde já.
+
+## Domínios e registradores
+
+Um domínio é um nome registrado que pode ser apontado para um servidor. Registrar `artigo.dev` significa adquirir o direito exclusivo de usar aquele nome por um período — geralmente renovável anualmente.
+
+Esse direito é vendido por **registradores de domínios**: empresas como Namecheap, GoDaddy, Cloudflare Registrar e, no Brasil, Registro.br para domínios `.br`. Quando você registra um domínio, o registrador cria os registros NS que dizem ao restante do DNS quais servidores são autoritativos para aquele nome. A partir daí, qualquer pessoa no mundo que consultar o DNS de `artigo.dev` vai encontrar as informações que você configurou.
+
+O sufixo do domínio — `.com`, `.dev`, `.org`, `.com.br` — é o TLD (*Top Level Domain*). Cada TLD tem sua própria política de registro e preço. O `.com` é o mais universal e reconhecido, administrado pela ICANN. O `.dev` é controlado pelo Google e requer que o site use HTTPS (browsers modernos bloqueiam HTTP em `.dev`). O `.com.br` exige que o registrante tenha CNPJ ou CPF brasileiro, e é gerenciado pelo Registro.br.
+
+A escolha do TLD é principalmente estratégica — o que o seu público reconhece, o que está disponível, e o que faz sentido para a natureza do projeto. Para o desenvolvimento que você vai fazer neste curso, o que importa saber é que domínio e hospedagem são **serviços completamente separados**: você pode registrar um domínio em um lugar e hospedar o site em outro. O que conecta os dois é o DNS.
+
+## Apontar um domínio para um servidor
+
+Quando você contrata hospedagem, a provedora fornece um endereço IP (ou um nome de host) onde o seu site ficará. Para que `artigo.dev` leve as pessoas a esse servidor, você precisa criar um **registro A** no DNS do domínio — apontando o nome para o IP.
+
+Esse registro é configurado no painel de controle do serviço de DNS que você usa. Se você registrou o domínio no Cloudflare e está usando o DNS deles, entra no painel do Cloudflare e adiciona o registro. Se registrou em outro lugar mas quer usar o DNS da Cloudflare, atualiza os registros NS no registrador para apontar para os servidores do Cloudflare.
+
+```dns title="Configuração DNS de artigo.dev apontando para um servidor de hospedagem."
+; Registro A: o domínio raiz aponta para o IP do servidor
+artigo.dev.      3600  IN  A  104.21.45.67
+
+; CNAME: www aponta para o domínio raiz
+; (assim www.artigo.dev e artigo.dev chegam ao mesmo lugar)
+www.artigo.dev.  3600  IN  CNAME  artigo.dev.
+```
+
+Depois de salvar essas configurações, a mudança não é instantânea. Ela precisa se propagar pela hierarquia de cache do DNS — os resolvers em todo o mundo precisam expirar o cache antigo e buscar a resposta nova. Dependendo do TTL configurado antes da mudança, isso pode levar de minutos a horas. É o fenômeno que desenvolvedores chamam de *propagação de DNS*, e que torna a troca de servidor mais trabalhosa do que simplesmente mudar um número.
+
+## Hospedagem moderna para frontend
+
+Para sites estáticos — que é exatamente o que você vai construir ao longo deste curso — existe uma categoria de plataformas que simplifica radicalmente o processo de publicação. Serviços como **Vercel**, **Netlify** e **Cloudflare Pages** conectam diretamente a um repositório Git e automatizam tudo: a cada `git push`, a plataforma roda o build, publica os arquivos e atualiza o site.
+
+O fluxo é simples: você conecta o repositório na plataforma, configura o comando de build (como `npm run build`) e o diretório de saída (como `dist`). A partir daí, qualquer commit enviado para a branch principal atualiza o site automaticamente. Não há SSH, não há transferência manual de arquivos, não há servidor para gerenciar.
+
+Uma funcionalidade especialmente útil dessas plataformas são os **deploy previews**: quando você abre um pull request, a plataforma faz o build daquela branch e publica em uma URL temporária. Você consegue revisar e testar a mudança ao vivo antes de mesclar ao branch principal — útil para revisão de código, testes com stakeholders e validação de mudanças de design.
+
+Essas plataformas também incluem CDN embutido: seus arquivos ficam replicados em dezenas de servidores ao redor do mundo, e cada visitante é servido pelo nó mais próximo geograficamente.
+
+A configuração mínima do Vercel é um arquivo `vercel.json` na raiz do projeto. Para a maioria dos projetos estáticos, ele pode ser vazio ou conter apenas as customizações necessárias:
+
+```json title="vercel.json com redirecionamento de rotas — útil para SPAs."
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
+
+Para o Netlify, o equivalente é o `netlify.toml`:
+
+```toml title="netlify.toml configurando build e redirecionamentos."
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+```
+
+Para um site construído com Astro — o framework deste curso — nenhum desses arquivos é necessário: as plataformas detectam o Astro automaticamente e aplicam a configuração certa. O deploy se resume a conectar o repositório.
+
+## Resumo
+
+- Hospedagem é o serviço que mantém os arquivos do site em um servidor sempre disponível; hospedagem estática serve arquivos como estão, dinâmica executa código e gera respostas sob demanda.
+- Um CDN distribui cópias dos arquivos em servidores ao redor do mundo, reduzindo a latência para visitantes distantes do servidor de origem.
+- Um domínio é comprado em um registrador, que cria os registros NS que dizem ao DNS quem é autoritativo para aquele nome.
+- Domínio e hospedagem são serviços separados; o que os conecta é um registro A no DNS apontando o nome para o IP do servidor.
+- Plataformas como Vercel, Netlify e Cloudflare Pages automatizam o deploy de sites estáticos a partir de um repositório Git, incluindo CDN e previews por branch.

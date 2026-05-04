@@ -1,6 +1,207 @@
 ---
 title: "Posicionamento"
-description: "static, relative, absolute, fixed, sticky. Quando usar cada um, o que é stacking context e como z-index realmente funciona."
-comingSoon: true
+description: "static, relative, absolute, fixed e sticky. Como z-index controla a ordem de empilhamento e o que cria um stacking context."
 order: 6
+hero:
+  titleBefore: "Posicionamento:"
+  titleAccent: "onde"
+  titleAfter: "o elemento vai parar."
+quiz:
+  - question: "Um elemento com position: absolute é posicionado em relação a quê?"
+    options:
+      - "Em relação ao ancestral mais próximo que não seja position: static"
+      - "Sempre em relação ao elemento body"
+      - "Em relação à viewport, como fixed"
+      - "Em relação ao seu irmão anterior"
+    correct: 0
+  - question: "Qual é a característica principal de position: sticky?"
+    options:
+      - "Remove o elemento do fluxo como absolute"
+      - "Mantém o elemento fixo na viewport em qualquer momento"
+      - "Comporta-se como relative até atingir um limiar de scroll, depois gruda como fixed dentro do pai"
+      - "É idêntico a fixed, mas apenas em dispositivos mobile"
+    correct: 2
+  - question: "z-index: 999 em um elemento garante que ele apareça sobre todos os outros da página?"
+    options:
+      - "Sim, z-index alto sempre vence"
+      - "Apenas se o elemento também tiver position: fixed"
+      - "Apenas se não houver outros elementos com z-index declarado"
+      - "Não — z-index funciona dentro do stacking context do elemento; um z-index alto dentro de um contexto não vence z-index baixo em outro contexto"
+    correct: 3
+  - question: "Qual propriedade CSS cria um novo stacking context?"
+    options:
+      - "display: block"
+      - "opacity menor que 1"
+      - "margin: auto"
+      - "color: inherit"
+    correct: 1
 ---
+
+O fluxo normal posiciona elementos de forma previsível — blocos empilham verticalmente, inline flui com o texto. Mas há casos em que você precisa de controle mais fino: um header que fica fixo durante o scroll, um badge que aparece no canto de um card, um dropdown que sobrepõe o conteúdo abaixo. Para isso existe a propriedade `position`.
+
+## `position: static` — o padrão
+
+Todos os elementos começam com `position: static`. Nesse modo, o elemento segue o fluxo normal e as propriedades `top`, `right`, `bottom`, `left` e `z-index` não têm efeito algum. Declarar `top: 20px` num elemento `static` não move nada — o navegador simplesmente ignora.
+
+O valor `static` raramente é declarado explicitamente. Ele aparece em código quando você quer reverter explicitamente um posicionamento herdado — por exemplo, remover um `position: relative` de um componente filho que um CSS de terceiros tinha definido.
+
+## `position: relative`
+
+`position: relative` tem dois efeitos distintos e igualmente importantes.
+
+O primeiro: o elemento pode ser deslocado usando `top`, `right`, `bottom` e `left`. Esses valores movem o elemento a partir de onde ele naturalmente estaria no fluxo. O **espaço original é preservado** — o elemento se desloca visualmente, mas o buraco onde ele estava permanece. Os vizinhos não se reorganizam.
+
+O segundo — e frequentemente mais importante — efeito é que `position: relative` cria um **contexto de posicionamento**. Isso significa que filhos com `position: absolute` serão posicionados em relação a esse ancestral, não ao `<html>`.
+
+```css title="position: relative — deslocamento visual com espaço preservado."
+/* deslocamento visual do badge de data */
+.data-artigo {
+  position: relative;
+  top: 2px; /* move 2px para baixo do fluxo normal */
+}
+
+/* cria contexto para filhos absolute */
+.card-artigo {
+  position: relative; /* filhos absolute se posicionam dentro deste card */
+}
+```
+
+## `position: absolute`
+
+`position: absolute` remove o elemento do fluxo normal. Outros elementos se comportam como se ele não existisse — preenchem o espaço que ele deixou. O elemento absoluto é então posicionado usando `top`, `right`, `bottom`, `left` em relação ao **ancestral posicionado mais próximo** — o ancestral mais próximo com `position` diferente de `static`.
+
+Se nenhum ancestral tiver posicionamento, o elemento absoluto é posicionado em relação ao elemento raiz (`<html>`). Esse é um bug comum: você coloca `position: absolute` num elemento, define `top: 0; right: 0`, e ele vai parar no canto superior direito da **página inteira**, não do container que você esperava. A solução é adicionar `position: relative` ao container.
+
+```css title="position: absolute para badge de destaque em card — posicionado dentro do card."
+/* o card é o contexto — absolute será relativo a ele */
+.card-artigo {
+  position: relative;
+}
+
+/* badge "Novo" no canto superior direito do card */
+.badge-novo {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: #2563eb;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+```
+
+`position: absolute` é a escolha para: overlays, tooltips, dropdowns, badges e decorações que precisam estar em uma posição específica dentro de um container.
+
+## `position: fixed`
+
+`position: fixed` posiciona o elemento em relação à **viewport** — não ao documento. O elemento fica na mesma posição na tela mesmo durante o scroll. É removido do fluxo normal, igual ao absoluto, então os outros elementos o ignoram.
+
+O uso clássico é o header fixo: ele fica sempre visível no topo enquanto o usuário rola a página. O problema que acompanha o header fixo é que o conteúdo da página começa imediatamente abaixo do `<body>` — mas o header cobre os primeiros pixels. A solução é adicionar `padding-top` ao `<body>` (ou ao `<main>`) com o mesmo valor da altura do header.
+
+```css title="Header fixo com compensação de padding-top no body."
+/* header fixo — sempre visível durante o scroll */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0; /* ocupa toda a largura da viewport */
+  height: 64px;
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  z-index: 100; /* precisa ficar sobre o conteúdo */
+}
+
+/* compensa o espaço que o header fixo ocupa */
+body {
+  padding-top: 64px;
+}
+```
+
+## `position: sticky`
+
+`position: sticky` é o híbrido mais elegante de todos. O elemento se comporta como `relative` enquanto está dentro da viewport no scroll normal — e se comporta como `fixed` assim que atinge o limiar definido por `top`, `right`, `bottom` ou `left`.
+
+O comportamento `sticky` é confinado ao elemento pai: o elemento gruda no topo até que o pai saia completamente da viewport, quando o elemento sticky sai junto com o pai.
+
+Para funcionar, `position: sticky` exige:
+- Ao menos um valor de `top`, `right`, `bottom` ou `left` declarado
+- O elemento pai não pode ter `overflow: hidden` ou `overflow: auto` — isso quebra o sticky
+
+```css title="Índice lateral com position: sticky — gruda no topo durante o scroll."
+/* índice de seções do artigo que gruda no topo ao rolar */
+.indice-artigo {
+  position: sticky;
+  top: 88px; /* 64px do header fixo + 24px de respiro */
+  max-height: calc(100vh - 112px);
+  overflow-y: auto;
+}
+```
+
+O sticky é ideal para: headers de tabelas longas que mostram as colunas durante o scroll, índices laterais de artigos longos, filtros de busca que ficam disponíveis enquanto o usuário rola a lista de resultados.
+
+## `z-index` e stacking context
+
+Quando elementos posicionados se sobrepõem, o navegador precisa decidir qual aparece na frente. `z-index` controla essa ordem: valores maiores aparecem sobre valores menores. Elementos sem `z-index` declarado têm ordem determinada pela posição no HTML — o que aparece depois no código aparece na frente.
+
+`z-index` só funciona em elementos posicionados — aqueles com `position` diferente de `static`. Declarar `z-index: 10` num elemento `static` não tem efeito.
+
+O conceito que torna `z-index` confuso é o **stacking context**. Um stacking context é uma pilha de elementos com seu próprio eixo Z. Elementos dentro do mesmo contexto competem entre si pelo `z-index`. Mas um elemento inteiro (com toda a sua pilha interna) compete com outros elementos no contexto pai.
+
+O problema prático: você tem um dropdown com `z-index: 999`, mas ele some atrás de um banner que tem `z-index: 1`. Isso acontece quando o dropdown está dentro de um elemento que cria um stacking context com `z-index` menor que o banner — a batalha é entre os contextos, não entre os valores internos.
+
+O que cria um novo stacking context:
+- `position: relative/absolute/fixed/sticky` combinado com qualquer `z-index` diferente de `auto`
+- `opacity` menor que `1`
+- `transform` com qualquer valor diferente de `none`
+- `filter` com qualquer valor diferente de `none`
+- `will-change` com qualquer dessas propriedades
+
+```css title="z-index e stacking context — organizando a ordem de sobreposição."
+/* header fixo — deve ficar sobre o conteúdo */
+.site-header {
+  position: fixed;
+  z-index: 100;
+}
+
+/* modal — deve ficar sobre tudo */
+.modal-overlay {
+  position: fixed;
+  z-index: 500;
+  inset: 0; /* equivale a top: 0; right: 0; bottom: 0; left: 0 */
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-conteudo {
+  position: relative;
+  z-index: 501; /* dentro do mesmo contexto que o overlay */
+}
+
+/* dropdown da nav — sobre o conteúdo, abaixo do modal */
+.nav-dropdown {
+  position: absolute;
+  z-index: 200;
+}
+```
+
+Uma convenção útil é criar variáveis CSS para os valores de `z-index` do projeto — assim você evita disputas de especificidade e a progressão fica documentada:
+
+```css title="Variáveis CSS para z-index — convenção que evita conflitos."
+:root {
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-header: 200;
+  --z-modal: 500;
+  --z-toast: 600;
+}
+```
+
+## Resumo
+
+- `position: static` é o padrão — `top/left/z-index` não têm efeito.
+- `position: relative` desloca o elemento visualmente preservando o espaço original, e cria um contexto de posicionamento para filhos absolutos.
+- `position: absolute` remove do fluxo e posiciona em relação ao ancestral posicionado mais próximo (não `static`). Se nenhum ancestral estiver posicionado, usa `<html>`.
+- `position: fixed` é relativo à viewport — fica fixo durante o scroll. Requer compensação de `padding` no conteúdo abaixo.
+- `position: sticky` é `relative` até atingir o limiar de scroll, depois `fixed` dentro do pai. Requer ao menos um valor de `top/right/bottom/left`.
+- `z-index` controla sobreposição apenas em elementos posicionados. O **stacking context** define o escopo da competição — `z-index: 999` dentro de um contexto não vence `z-index: 1` em outro contexto superior.

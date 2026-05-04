@@ -1,6 +1,225 @@
 ---
-title: "Resumo do módulo"
-description: "Checklist final: const por padrão, === sempre, imutabilidade nos arrays/objetos quando possível, async/await em vez de .then() aninhado."
-comingSoon: true
+title: "Resumo do módulo JavaScript"
+description: "O script.js final em quatro módulos conectados. Checklist de boas práticas e o que esperar do módulo de TypeScript."
 order: 17
+hero:
+  titleBefore: "JavaScript:"
+  titleAccent: "do zero"
+  titleAfter: "ao blog funcional."
+quiz:
+  - question: "Por que usar const por padrão em vez de let?"
+    options:
+      - "Porque const é mais rápido que let"
+      - "Porque let foi descontinuado no ES2020"
+      - "Para comunicar que o valor não vai ser reatribuído — reduz o espaço mental necessário para ler o código e previne reatribuições acidentais"
+      - "Apenas uma convenção sem impacto real"
+    correct: 2
+  - question: "Por que dados do usuário nunca devem ir para innerHTML?"
+    options:
+      - "Porque innerHTML não aceita texto"
+      - "Porque innerHTML é mais lento que textContent"
+      - "Porque innerHTML só funciona em divs"
+      - "Porque innerHTML interpreta HTML — se o dado vier do usuário, código malicioso poderia ser executado (XSS)"
+    correct: 3
+  - question: "Por que event delegation é preferível a N listeners individuais?"
+    options:
+      - "Porque o navegador processa um listener mais rápido"
+      - "Porque um listener no pai captura eventos de filhos via bubbling — inclusive filhos criados dinamicamente após o registro do listener"
+      - "Porque addEventListener tem limite de N listeners por elemento"
+      - "Não há vantagem real — é apenas uma preferência de estilo"
+    correct: 1
+  - question: "Qual é o problema de await sequencial desnecessário?"
+    options:
+      - "Operações que poderiam ocorrer em paralelo ficam esperando uma a outra — o tempo total é a soma de todos os tempos"
+      - "await sequencial não funciona em todos os navegadores"
+      - "O código fica mais difícil de ler"
+      - "Não há problema — await sequencial é sempre preferível"
+    correct: 0
 ---
+
+Ao longo deste módulo você foi do `console.log("script carregado")` a um blog completo com comportamento real: toggle de tema persistido, curtidas salvas no `localStorage`, barra de progresso de leitura e lista de artigos carregada de um arquivo JSON. O código que fazia tudo isso em um único `script.js` agora está organizado em quatro módulos com responsabilidades bem definidas. Esta lição revisita o caminho percorrido, mostra como as peças se conectam e estabelece o checklist que vai guiar o próximo módulo.
+
+## Como os módulos se conectam
+
+O ponto de entrada do blog é `main.js`. Ele não faz nada diretamente — delega para os três módulos especializados e apenas registra os listeners de eventos que orquestram tudo:
+
+```js title="Diagrama de dependências — quem importa de quem."
+// main.js importa de api.js e ui.js
+// ui.js importa de utils.js
+// api.js não tem dependências internas
+// utils.js não tem dependências internas
+
+// fluxo de dados:
+// usuario clica → main.js ouve → chama api.js (rede) e ui.js (DOM)
+// ui.js usa utils.js (formatação) para montar o HTML
+```
+
+Essa estrutura tem uma propriedade importante: `utils.js` não precisa do navegador para funcionar. Você pode importar `formatarData` ou `calcularTempoLeitura` e testá-las com qualquer valor, sem abrir um browser. `api.js` encapsula toda a interação com a rede — se a URL da API mudar, você muda em um único lugar. `ui.js` sabe onde no DOM as coisas vivem — o `main.js` não precisa conhecer seletores de CSS.
+
+O `main.js` completo, com todas as funcionalidades do blog conectadas:
+
+```js title="main.js — ponto de entrada que orquestra os quatro módulos."
+import { buscarArtigos, enviarContato } from "./api.js";
+import { renderizarCards, exibirNotificacao } from "./ui.js";
+
+// ============================================================
+// TOGGLE DE TEMA
+// ============================================================
+const botaoTema = document.getElementById("botao-tema");
+const html = document.documentElement;
+
+const temaSalvo = localStorage.getItem("tema") ?? "claro";
+if (temaSalvo === "dark") html.setAttribute("data-theme", "dark");
+
+botaoTema?.addEventListener("click", () => {
+  const temaDark = html.getAttribute("data-theme") === "dark";
+  const novoTema = temaDark ? "claro" : "dark";
+
+  if (novoTema === "dark") {
+    html.setAttribute("data-theme", "dark");
+  } else {
+    html.removeAttribute("data-theme");
+  }
+
+  localStorage.setItem("tema", novoTema);
+});
+
+// ============================================================
+// BARRA DE PROGRESSO DE LEITURA
+// ============================================================
+const barraProgresso = document.getElementById("barra-progresso");
+const conteudo = document.querySelector(".conteudo-artigo");
+
+window.addEventListener("scroll", () => {
+  if (!barraProgresso || !conteudo) return;
+
+  const scrollMaximo = conteudo.offsetHeight - window.innerHeight;
+  const progresso = Math.min((window.scrollY / scrollMaximo) * 100, 100);
+  barraProgresso.style.width = `${progresso}%`;
+});
+
+// ============================================================
+// CURTIDAS — delegação de eventos
+// ============================================================
+const listaArtigos = document.getElementById("lista-artigos");
+
+listaArtigos?.addEventListener("click", (event) => {
+  const botao = event.target.closest(".botao-curtir");
+  if (!botao) return;
+
+  const card = botao.closest("[data-id]");
+  const artigoId = parseInt(card.dataset.id);
+  const curtidos = JSON.parse(localStorage.getItem("curtidos")) ?? [];
+
+  if (curtidos.includes(artigoId)) {
+    const novos = curtidos.filter(id => id !== artigoId);
+    localStorage.setItem("curtidos", JSON.stringify(novos));
+    botao.setAttribute("aria-pressed", "false");
+    botao.textContent = "🤍 Curtir";
+  } else {
+    curtidos.push(artigoId);
+    localStorage.setItem("curtidos", JSON.stringify(curtidos));
+    botao.setAttribute("aria-pressed", "true");
+    botao.textContent = "❤️ Curtido";
+  }
+});
+
+// ============================================================
+// CARREGAMENTO DE ARTIGOS
+// ============================================================
+async function inicializar() {
+  if (!listaArtigos) return;
+
+  try {
+    const artigos = await buscarArtigos();
+    const curtidos = JSON.parse(localStorage.getItem("curtidos")) ?? [];
+    listaArtigos.innerHTML = renderizarCards(
+      artigos.filter(a => a.publicado),
+      curtidos
+    );
+  } catch {
+    listaArtigos.innerHTML = "<p>Erro ao carregar artigos.</p>";
+  }
+}
+
+inicializar();
+```
+
+## O que cada módulo fez
+
+Cada lição adicionou uma camada ao blog. Revisitar o percurso ajuda a ver o JavaScript como um conjunto coerente, não como uma lista de tópicos isolados.
+
+As **lições 1 a 2** estabeleceram o ambiente: o que JavaScript é, onde roda, como o navegador carrega o arquivo com `defer`. O blog ganhou um `script.js` vazio que confirmava estar conectado.
+
+As **lições 3 a 6** ensinaram a base da linguagem: tipos e variáveis, operadores (incluindo `??` para o fallback do tema no `localStorage`), controle de fluxo com early return para evitar aninhamento excessivo, funções com parâmetros padrão e closures. Com isso, o toggle de tema ficou funcional — três linhas de JavaScript que persistem e restauram a preferência do usuário.
+
+As **lições 7 e 8** cobriram as estruturas de dados: arrays com métodos imutáveis (`map`, `filter`, `find`) e o padrão de atualizar sem mutar (`[...curtidos, novoId]`), objetos com optional chaining (`artigo?.autor?.nome`) e spread para atualização imutável. A lista de curtidas no `localStorage` ficou gerenciada corretamente.
+
+As **lições 9 a 11** completaram o vocabulário para trabalhar com texto e com o DOM: template literals para gerar HTML, métodos de string para formatar dados (`gerarSlug`, truncar descrição), seleção de elementos com `querySelector` e `closest`, manipulação com `classList`, `textContent` e `innerHTML` para inserir os cards.
+
+A **lição 12** conectou o JavaScript ao usuário via eventos — `addEventListener`, o objeto `Event`, e delegação de eventos para gerenciar cliques em qualquer card sem registrar um listener por elemento. A barra de progresso usou o evento `scroll` no `window`.
+
+As **lições 13 a 15** introduziram o modelo assíncrono: Promises como representação de operações futuras, `async/await` para consumir Promises com sintaxe linear, e `fetch` para fazer requisições HTTP reais — com verificação de `response.ok` e o padrão de dois `await`s.
+
+A **lição 16** organizou tudo isso em módulos ES com `import` e `export`, eliminando o escopo global compartilhado e tornando cada arquivo testável de forma independente.
+
+## Checklist JavaScript
+
+Estas práticas aparecem ao longo do módulo por razões específicas. Cada uma protege contra uma classe de erro real:
+
+```js title="main.js — as boas práticas embutidas no código do blog."
+// ✅ const por padrão — reatribuição acidental vira erro de sintaxe
+const botaoTema = document.getElementById("botao-tema");
+
+// ✅ === em todas as comparações — sem coerção de tipo surpresa
+if (temaSalvo === "dark") { /* ... */ }
+
+// ✅ Optional chaining — sem TypeError quando o elemento não existe na página
+botaoTema?.addEventListener("click", handler);
+
+// ✅ Nullish coalescing — fallback só para null/undefined, não para 0 ou ""
+const curtidos = JSON.parse(localStorage.getItem("curtidos")) ?? [];
+
+// ✅ textContent para dados — innerHTML interpreta HTML (risco de XSS)
+botao.textContent = "❤️ Curtido";
+
+// ✅ Event delegation — um listener para lista inteira, captura elementos dinâmicos
+listaArtigos?.addEventListener("click", (event) => {
+  const botao = event.target.closest(".botao-curtir");
+  if (!botao) return; // early return — sem aninhamento
+  // ...
+});
+
+// ✅ async/await com try/catch — erros de rede não ficam silenciosos
+async function inicializar() {
+  try {
+    const artigos = await buscarArtigos();
+    // ...
+  } catch {
+    listaArtigos.innerHTML = "<p>Erro ao carregar artigos.</p>";
+  }
+}
+
+// ✅ Imutabilidade em arrays — o original nunca é afetado
+const novos = curtidos.filter(id => id !== artigoId);
+localStorage.setItem("curtidos", JSON.stringify(novos));
+```
+
+## O que vem a seguir
+
+O blog funciona — mas o JavaScript não tem memória de tipos. Nada impede passar uma string onde um número é esperado, ou chamar `.map()` em algo que não é um array. Esses erros só aparecem quando o código roda, e frequentemente em produção.
+
+TypeScript resolve isso adicionando anotações de tipo ao JavaScript. O `script.js` do blog vai ganhar tipos em cada função, em cada objeto, em cada retorno de `fetch`. O navegador continua recebendo JavaScript puro — TypeScript é uma etapa de compilação que verifica o código antes de rodar.
+
+Os conceitos do módulo não mudam: `const`, `async/await`, `fetch`, módulos. O que muda é que o editor e o compilador passam a detectar erros antes de você abrir o browser.
+
+## Resumo
+
+- O blog final tem quatro arquivos com responsabilidades separadas: `utils.js` (funções puras), `api.js` (rede), `ui.js` (DOM), `main.js` (orquestração e listeners).
+- **`const`** por padrão, **`let`** somente quando reatribuição é necessária.
+- **`===`** em todas as comparações — nunca `==`.
+- Dados do usuário nunca em **`innerHTML`** — usar `textContent`.
+- **Event delegation**: um listener no pai com `event.target.closest()` para capturar filhos presentes e futuros.
+- Toda operação assíncrona com **`try/catch`** — Promise rejeitada sem tratamento é um bug silencioso.
+- Arrays são atualizados de forma **imutável**: `filter` para remover, `[...array, item]` para adicionar.
+- TypeScript é o próximo passo — mesma linguagem, com verificação de tipos em tempo de compilação.

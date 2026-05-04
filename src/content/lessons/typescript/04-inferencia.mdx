@@ -1,6 +1,194 @@
 ---
 title: "Anotações e inferência"
 description: "Quando anotar e quando deixar TS inferir. A filosofia 'anote nas bordas, infira no meio'."
-comingSoon: true
 order: 4
+hero:
+  titleBefore: "Anotações"
+  titleAccent: "e inferência"
+  titleAfter: "— quando anotar."
+quiz:
+  - question: "Por que parâmetros de função precisam de anotação de tipo?"
+    options:
+      - "Por convenção de estilo — não é obrigatório"
+      - "Porque parâmetros não suportam inferência"
+      - "Porque o compilador exige anotação em todos os lugares"
+      - "Porque TypeScript não consegue inferir o tipo de parâmetros pelo contexto de chamada — ao contrário de variáveis com valor inicial, parâmetros não têm valor até a função ser chamada"
+    correct: 3
+  - question: "Quando faz sentido anotar o tipo de retorno de uma função mesmo que TypeScript possa inferi-lo?"
+    options:
+      - "Nunca — inferência é sempre suficiente"
+      - "Quando a função faz parte de uma API pública ou quando o tipo de retorno é complexo — a anotação serve como documentação e o compilador avisa se a implementação divergir"
+      - "Apenas em funções assíncronas"
+      - "Apenas em funções que retornam objetos"
+    correct: 1
+  - question: "O que acontece quando TypeScript infere o tipo de um elemento de array em map()?"
+    options:
+      - "TypeScript usa o tipo do array para inferir o tipo do parâmetro do callback — artigos.map(a => ...) infere que a tem o tipo Artigo se artigos for Artigo[]"
+      - "TypeScript sempre infere any para callbacks"
+      - "TypeScript exige anotação explícita no parâmetro do callback"
+      - "TypeScript infere o tipo pelo valor de retorno do callback"
+    correct: 0
+  - question: "O que é widening de tipo?"
+    options:
+      - "Quando TypeScript expande um tipo narrow para um mais amplo"
+      - "Quando TypeScript converte number para any"
+      - "Quando TypeScript infere 'string' para uma variável declarada com let e uma string literal — porque let permite reatribuição, qualquer string é possível futuramente"
+      - "Quando TypeScript adiciona null a um tipo"
+    correct: 2
 ---
+
+TypeScript infere tipos automaticamente em muitos casos — quando você escreve `const x = 42`, o compilador sabe que `x` é `number` sem precisar anotar. A arte de usar TypeScript bem está em saber onde a inferência é suficiente e onde uma anotação explícita é necessária (ou desejável). Anotar demais é verboso e redundante; anotar de menos força o compilador a inferir `any` em lugares críticos.
+
+## Quando TypeScript infere automaticamente
+
+A inferência funciona onde o compilador tem informação suficiente no momento da declaração:
+
+```ts title="Inferência automática — o compilador conhece o tipo sem anotação."
+// variáveis inicializadas com valor — inferência direta
+const titulo = "CSS em geral";          // string
+const curtidas = 42;                    // number
+const publicado = true;                 // boolean
+const tags = ["css", "layout"];         // string[]
+const artigo = { titulo: "CSS", id: 1 }; // { titulo: string; id: number }
+
+// funções — retorno é inferido do return
+function dobrar(x: number) {
+  return x * 2; // TypeScript infere: number
+}
+
+// callbacks — tipo do parâmetro é inferido pelo contexto
+const titulos = artigos.map(artigo => artigo.titulo);
+// artigo é inferido como Artigo porque artigos é Artigo[]
+// titulos é inferido como string[]
+```
+
+O TypeScript usa o tipo do array para inferir o tipo do parâmetro em callbacks de `map`, `filter`, `find` e similares. Isso é chamado de **inferência por contexto de tipo** — o compilador usa o tipo esperado do lado externo para inferir o tipo do lado interno.
+
+## Quando anotar explicitamente
+
+A inferência falha ou fica insatisfatória em situações específicas. Nesses casos, uma anotação explícita é necessária ou desejável:
+
+**Parâmetros de função**: TypeScript não infere o tipo de parâmetros pelo contexto de chamada. Eles precisam de anotação — ou o compilador reclama (com `noImplicitAny`) ou atribui `any` silenciosamente (sem strict).
+
+```ts title="Parâmetros sempre precisam de anotação."
+// TS erro com noImplicitAny: parâmetro 'palavras' tem tipo any implícito
+function calcularTempoLeitura(palavras) {
+  return Math.ceil(palavras / 238);
+}
+
+// correto: anotar o parâmetro
+function calcularTempoLeitura(palavras: number): number {
+  return Math.ceil(palavras / 238);
+}
+```
+
+**Variáveis declaradas sem valor inicial**: quando você declara uma variável e atribui o valor depois, TypeScript não tem como inferir o tipo:
+
+```ts title="Variável sem valor inicial — anotação necessária."
+// sem anotação: TypeScript infere any — perde toda a proteção
+let statusCarregamento;
+statusCarregamento = "carregando"; // sem erro, mas sem proteção
+
+// com anotação: o tipo está definido desde a declaração
+let statusCarregamento: "carregando" | "sucesso" | "erro";
+statusCarregamento = "carregando"; // ok
+statusCarregamento = "desconhecido"; // TS erro: não é um dos três valores válidos
+```
+
+**Retorno de funções públicas**: tecnicamente, TypeScript pode inferir o tipo de retorno da maioria das funções. Mas em funções que fazem parte de uma API pública do módulo, anotar o retorno serve como documentação e como contrato — se a implementação mudar de forma que o tipo de retorno mude, o compilador avisa:
+
+```ts title="Anotação de retorno como contrato — o compilador verifica a implementação."
+// sem anotação: TypeScript infere o retorno, mas não verifica se está correto
+function buscarArtigo(id: number) {
+  // se por engano você retornar undefined sem querer,
+  // o tipo inferido fica Artigo | undefined — silenciosamente
+  return artigos.find(a => a.id === id);
+}
+
+// com anotação: o compilador verifica que o retorno bate com a promessa
+function buscarArtigo(id: number): Artigo {
+  // TS erro: Type 'Artigo | undefined' is not assignable to type 'Artigo'
+  // você é forçado a tratar o caso onde find retorna undefined
+  return artigos.find(a => a.id === id)!; // ou: lançar erro, ou tratar
+}
+
+// alternativa honesta: declarar que pode não encontrar
+function buscarArtigo(id: number): Artigo | undefined {
+  return artigos.find(a => a.id === id);
+}
+```
+
+## Widening — o comportamento de let
+
+TypeScript trata `const` e `let` de forma diferente na inferência:
+
+```ts title="Widening — const infere literal, let infere o tipo amplo."
+// const: o valor não pode mudar — TypeScript infere o tipo literal
+const tema = "claro";      // tipo: "claro" (literal), não string
+const curtidas = 42;       // tipo: 42 (literal), não number
+
+// let: o valor pode ser reatribuído — TypeScript infere o tipo amplo
+let tema = "claro";        // tipo: string (qualquer string, não só "claro")
+let curtidas = 42;         // tipo: number (qualquer number, não só 42)
+
+tema = "escuro";           // ok — tipo é string
+```
+
+Esse comportamento faz sentido: com `const`, o valor é imutável, então o tipo mais preciso possível (o literal) é correto. Com `let`, o valor pode mudar, então o compilador usa o tipo mais amplo que engloba o valor inicial.
+
+Para forçar o tipo literal em uma variável `let`, use `as const` ou anote explicitamente:
+
+```ts title="Forçar tipo literal com let quando necessário."
+// anotação explícita
+let tema: "claro" | "escuro" = "claro";
+tema = "escuro"; // ok
+tema = "noturno"; // TS erro: não é um dos dois valores válidos
+
+// as const — só funciona na declaração inicial
+let tema = "claro" as const; // tipo: "claro" — mas let não ajuda aqui
+// (neste caso, use const mesmo)
+```
+
+## A filosofia: anotar nas bordas, inferir no meio
+
+A regra prática é simples: **anote nas bordas do sistema, deixe TypeScript inferir no meio**.
+
+**Bordas** são os pontos onde dados entram ou saem de um módulo:
+- Parâmetros de funções exportadas
+- Tipos de retorno de funções exportadas
+- Interfaces de objetos de domínio (`Artigo`, `Autor`)
+- Respostas de API
+
+**Interior** é onde a lógica acontece — variáveis temporárias, callbacks de `map`/`filter`, resultados intermediários. Aqui a inferência é suficiente e anotações seriam redundantes:
+
+```ts title="Fronteira vs. interior — onde anotar e onde inferir."
+// interfaces de domínio: anotar — são a fronteira do módulo
+interface Artigo {
+  id: number;
+  titulo: string;
+  descricao: string;
+  tags: string[];
+  curtidas: number;
+  publicado: boolean;
+  publicadoEm: string | null;
+}
+
+// funções exportadas: anotar parâmetros e retorno
+export function renderizarCards(artigos: Artigo[], curtidos: number[]): string {
+  // aqui dentro: inferir
+  const publicados = artigos.filter(a => a.publicado); // Artigo[] — inferido
+  const html = publicados.map(artigo => {              // string[] — inferido
+    const curtido = curtidos.includes(artigo.id);      // boolean — inferido
+    return `<article data-id="${artigo.id}">...</article>`;
+  });
+  return html.join("");
+}
+```
+
+## Resumo
+
+- TypeScript infere tipos automaticamente de **variáveis com valor inicial**, **retornos de função** e **parâmetros de callbacks** (por contexto de tipo). Não é necessário anotar nesses casos.
+- **Parâmetros de função** não são inferidos — sempre precisam de anotação.
+- **Variáveis sem valor inicial** precisam de anotação, ou o compilador não tem como saber o tipo.
+- Com `const`, TypeScript infere o tipo literal (`"claro"`). Com `let`, infere o tipo amplo (`string`). Isso é **widening** — comportamento intencional que reflete a mutabilidade.
+- A filosofia: **anote nas bordas** (parâmetros de funções exportadas, interfaces de domínio, respostas de API) e **deixe inferir no interior** (variáveis temporárias, callbacks, resultados intermediários).

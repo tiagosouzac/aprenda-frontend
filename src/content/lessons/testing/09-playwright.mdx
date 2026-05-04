@@ -1,6 +1,267 @@
 ---
 title: "End-to-end com Playwright"
-description: "O que é E2E, primeiro teste, seletores baseados em papel, espera explícita, screenshots. Quando E2E cabe e quando é caro."
-comingSoon: true
+description: "O que é E2E, instalação do Playwright, primeiro teste, seletores por papel, espera inteligente. O fluxo principal do blog testado de ponta a ponta."
 order: 9
+hero:
+  titleBefore: "End-to-end"
+  titleAccent: "com Playwright"
+  titleAfter: "— o browser real."
+quiz:
+  - question: "O que diferencia um teste E2E de um teste de integração com jsdom?"
+    options:
+      - "Testes E2E são mais rápidos e precisos"
+      - "E2E roda um browser real (Chromium, Firefox, WebKit) com a aplicação completa servida — testa fetch real, renderização real, localStorage real, navegação real. jsdom é uma simulação do DOM sem um browser de verdade"
+      - "E2E usa mocks; integração não"
+      - "E2E testa apenas a UI; integração testa apenas o JavaScript"
+    correct: 1
+  - question: "Por que Playwright espera automaticamente antes de interagir com elementos?"
+    options:
+      - "Porque aplicações web têm estados assíncronos — elementos aparecem após fetch, animações, re-renders. Playwright aguarda automaticamente que o elemento esteja visível, habilitado e estável antes de clicar ou digitar — evitando sleeps manuais"
+      - "Por limitação técnica — Playwright não consegue interagir sem esperar"
+      - "Para simular conexões lentas de internet"
+      - "É um comportamento opcional que pode ser desativado"
+    correct: 0
+  - question: "Por que getByRole é preferível a seletores CSS em testes E2E?"
+    options:
+      - "getByRole é mais rápido de executar no browser"
+      - "Seletores CSS não funcionam com Playwright"
+      - "Seletores CSS (como .botao-curtir) quebram quando o CSS é refatorado. getByRole('button', { name: 'Curtir' }) encontra o botão pelo seu papel e nome acessível — o mesmo que um leitor de tela usaria — e sobrevive a mudanças de estilo"
+      - "getByRole é uma convenção sem impacto técnico"
+    correct: 2
+  - question: "O que deve ser testado com E2E em vez de testes de integração?"
+    options:
+      - "Toda lógica de negócio crítica"
+      - "Formulários e validações"
+      - "Funções puras e cálculos"
+      - "Apenas os fluxos mais críticos do produto — os caminhos que, se quebrarem, impedem o usuário de usar o sistema. E2E é lento e caro de manter; integração cobre a maioria dos casos mais rapidamente"
+    correct: 3
 ---
+
+Testes de integração com jsdom verificam que os componentes se comportam corretamente — mas jsdom é uma simulação. Não tem CSS real, não tem um engine de layout, não faz requisições HTTP reais, e não executa JavaScript no contexto de um browser de verdade. Playwright abre um browser real — Chromium, Firefox ou WebKit — e testa a aplicação como o usuário a usa.
+
+## Instalação e configuração
+
+```bash title="Instalar Playwright e configurar o projeto."
+npm init playwright@latest
+```
+
+O comando cria a estrutura do projeto:
+
+```
+tests/                  ← pasta padrão para arquivos de teste E2E
+playwright.config.ts    ← configuração (browsers, baseURL, timeout, etc.)
+package.json            ← scripts adicionados automaticamente
+```
+
+```ts title="playwright.config.ts — configuração para o blog."
+import { defineConfig, devices } from "@playwright/test";
+
+export default defineConfig({
+  testDir: "./tests",
+  fullyParallel: true,
+  retries: process.env.CI ? 2 : 0,  // retry em CI — browsers são frágeis
+  use: {
+    baseURL: "http://localhost:5173", // URL do servidor de dev
+    trace: "on-first-retry",          // gravar trace ao falhar
+  },
+  projects: [
+    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    // adicione Firefox e WebKit quando necessário
+  ],
+  // iniciar o servidor de dev antes dos testes
+  webServer: {
+    command: "npm run dev",
+    url: "http://localhost:5173",
+    reuseExistingServer: !process.env.CI,
+  },
+});
+```
+
+## Primeiro teste — verificar a página inicial
+
+```ts title="tests/blog.spec.ts — verificar que a homepage carrega."
+import { test, expect } from "@playwright/test";
+
+test("página inicial carrega e exibe artigos", async ({ page }) => {
+  await page.goto("/");
+
+  // verificar o título da página
+  await expect(page).toHaveTitle(/aprenda frontend/i);
+
+  // verificar que há artigos listados
+  const cards = page.getByRole("article");
+  await expect(cards).toHaveCount(4); // ou mais — depende do fixture
+});
+```
+
+## Seletores e ações
+
+Playwright tem a mesma filosofia da Testing Library: preferir seletores baseados em papel e texto, não em classes CSS:
+
+```ts title="Seletores em Playwright — preferir papel e texto."
+// ✅ por papel e nome acessível — robusto a mudanças de CSS
+page.getByRole("button", { name: "Curtir" });
+page.getByRole("heading", { name: "CSS Grid" });
+page.getByRole("link", { name: "Ler artigo" });
+page.getByRole("searchbox");
+
+// ✅ por texto visível
+page.getByText("Ana Silva");
+page.getByText(/há \d+ minutos/);  // regex
+
+// ✅ por label de input
+page.getByLabel("E-mail");
+
+// ⚠️ por seletor CSS — use quando as opções acima não bastam
+page.locator(".barra-progresso");
+
+// ❌ evitar — frágil a mudanças de HTML e CSS
+page.locator("#btn-curtir-1");
+page.locator("div > article:first-child > button");
+```
+
+Ações seguidas de espera automática:
+
+```ts title="Ações — click, fill, press."
+await page.getByRole("button", { name: "Curtir" }).click();
+await page.getByLabel("E-mail").fill("ana@example.com");
+await page.getByRole("searchbox").press("Enter");
+await page.getByRole("searchbox").fill(""); // limpar campo
+```
+
+## O fluxo principal do blog
+
+```ts title="tests/blog.spec.ts — fluxo completo de leitura e curtida."
+import { test, expect } from "@playwright/test";
+
+test("fluxo principal — ler artigo e curtir", async ({ page }) => {
+  // 1. abrir o blog
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+
+  // 2. verificar que artigos aparecem
+  const primeiroCard = page.getByRole("article").first();
+  await expect(primeiroCard).toBeVisible();
+
+  // 3. clicar no primeiro artigo
+  await primeiroCard.getByRole("link", { name: /ler artigo/i }).click();
+  await expect(page).toHaveURL(/\/artigos\//);
+
+  // 4. verificar que o conteúdo do artigo carregou
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+
+  // 5. curtir o artigo
+  const botaoCurtir = page.getByRole("button", { name: /curtir/i });
+  await expect(botaoCurtir).toHaveAttribute("aria-pressed", "false");
+  await botaoCurtir.click();
+  await expect(botaoCurtir).toHaveAttribute("aria-pressed", "true");
+
+  // 6. recarregar e verificar que a curtida persiste
+  await page.reload();
+  await expect(page.getByRole("button", { name: /curtido/i })).toHaveAttribute(
+    "aria-pressed",
+    "true"
+  );
+});
+
+test("filtro por tag — exibe apenas artigos com a tag selecionada", async ({ page }) => {
+  await page.goto("/");
+
+  // aguardar os artigos carregarem
+  await expect(page.getByRole("article").first()).toBeVisible();
+
+  // clicar no filtro de tag "css"
+  await page.getByRole("button", { name: "css" }).click();
+
+  // verificar que apenas artigos de CSS aparecem
+  const cards = page.getByRole("article");
+  for (const card of await cards.all()) {
+    await expect(card.getByText("css")).toBeVisible();
+  }
+});
+
+test("busca — filtra artigos pelo texto digitado", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("article").first()).toBeVisible();
+
+  // digitar na busca
+  await page.getByRole("searchbox").fill("flexbox");
+
+  // apenas artigos com "flexbox" no título ou descrição devem aparecer
+  const cards = page.getByRole("article");
+  const count = await cards.count();
+  expect(count).toBeGreaterThan(0);
+
+  // verificar que nenhum artigo sem "flexbox" aparece
+  for (const card of await cards.all()) {
+    const texto = await card.textContent();
+    expect(texto?.toLowerCase()).toContain("flexbox");
+  }
+});
+```
+
+## Espera e assertions assíncronas
+
+Playwright aguarda automaticamente — você não precisa de `sleep`:
+
+```ts title="Espera inteligente — sem sleeps manuais."
+// ✅ Playwright aguarda o elemento aparecer automaticamente (timeout: 30s por padrão)
+await expect(page.getByText("CSS Grid")).toBeVisible();
+await expect(page.getByRole("article")).toHaveCount(4);
+
+// ✅ aguardar navegação
+await page.getByRole("link", { name: "Ler artigo" }).click();
+await expect(page).toHaveURL(/\/artigos\//);
+
+// ✅ aguardar URL específica
+await page.waitForURL("**/artigos/css-grid");
+
+// ❌ nunca use sleep — é frágil e lento
+await page.waitForTimeout(2000); // só em casos extremos de debugging
+```
+
+## Quando usar E2E e quando não usar
+
+```ts title="O que testar com E2E vs. com integração."
+// ✅ E2E — fluxos críticos que envolvem o sistema inteiro
+// - carregar o blog e ver artigos
+// - curtir e verificar persistência após reload
+// - filtrar por tag e ver resultado
+// - buscar artigo pelo título
+
+// ❌ não precisa de E2E — integração é suficiente
+// - validação de formulário — mais rápido com Testing Library
+// - mensagem de erro quando fetch falha — jsdom + mock cobre
+// - estado do botão de curtir (curtido/não curtido) — unitário cobre
+// - formatarData para 10 casos — unitário muito mais rápido
+```
+
+A regra: **E2E para os caminhos críticos que travam o uso do produto se quebrarem**. Para o blog, são: ver artigos, ler um artigo, curtir. Tudo mais é mais barato de testar com integração ou unitário.
+
+## Rodando os testes E2E
+
+```bash title="Comandos Playwright."
+# rodar todos os testes E2E (inicia o servidor automaticamente)
+npx playwright test
+
+# rodar com interface visual — ver o browser em tempo real
+npx playwright test --headed
+
+# rodar um arquivo específico
+npx playwright test tests/blog.spec.ts
+
+# modo interativo — selecionar testes na UI do Playwright
+npx playwright test --ui
+
+# ver relatório após execução
+npx playwright show-report
+```
+
+## Resumo
+
+- **E2E com Playwright** roda um browser real — não jsdom. Testa o sistema completo: fetch real, localStorage, navegação, renderização.
+- **Instalação**: `npm init playwright@latest` — configura estrutura e browsers.
+- **Seletores**: preferir `getByRole`, `getByText`, `getByLabel`. Evitar seletores CSS que quebram ao refatorar estilos.
+- **Espera automática**: Playwright aguarda elementos ficarem visíveis e estáveis — sem sleeps manuais.
+- **Fluxo principal do blog**: abrir, ver artigos, filtrar por tag, ler artigo, curtir, verificar persistência após reload.
+- **Quando usar E2E**: apenas nos caminhos críticos que travam o uso se quebrarem. Integração e unitários cobrem o resto mais rapidamente.

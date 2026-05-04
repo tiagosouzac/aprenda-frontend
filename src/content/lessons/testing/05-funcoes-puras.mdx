@@ -1,6 +1,294 @@
 ---
 title: "Testando funções puras"
 description: "Casos clássicos: formatação de datas, cálculos, validações. Como pensar em casos felizes, casos limite e entradas inválidas."
-comingSoon: true
 order: 5
+hero:
+  titleBefore: "Testando"
+  titleAccent: "funções puras"
+  titleAfter: "— o caso mais simples."
+quiz:
+  - question: "Por que funções puras são as mais fáceis de testar?"
+    options:
+      - "Porque elas são mais rápidas de executar"
+      - "Porque sempre produzem o mesmo output para o mesmo input e não têm efeitos colaterais — não precisam de mocks, não dependem de estado externo, e o teste é uma simples chamada com expect"
+      - "Porque o Vitest tem suporte especial para funções puras"
+      - "Porque funções puras não podem lançar erros"
+    correct: 1
+  - question: "O que é test.each e quando usá-lo?"
+    options:
+      - "Uma forma de testar a mesma função com múltiplas entradas sem repetir o bloco it — útil quando você tem uma tabela de casos (entrada → saída esperada) para a mesma lógica"
+      - "Uma forma de rodar testes em paralelo"
+      - "Um matcher especial para arrays"
+      - "Uma forma de pular testes condicionalmente"
+    correct: 0
+  - question: "Por que testar casos que parecem óbvios, como string vazia ou zero?"
+    options:
+      - "Por exigência de cobertura de código"
+      - "Para aumentar o número de testes no relatório"
+      - "Porque comportamentos 'óbvios' frequentemente não estão especificados — o que calcularTempoLeitura deve retornar para string vazia? 0 ou 1? O teste força uma decisão e a documenta, evitando inconsistências silenciosas"
+      - "Não é necessário — casos óbvios não precisam de teste"
+    correct: 2
+  - question: "Como testar uma função que depende de Date.now() de forma determinística?"
+    options:
+      - "Usar vi.mock para substituir Date"
+      - "Usar setTimeout para controlar o tempo"
+      - "Não é possível testar funções que dependem da hora atual"
+      - "Passar a data como parâmetro em vez de ler Date.now() internamente — funções puras recebem tudo que precisam como argumento, sem ler estado global"
+    correct: 3
 ---
+
+Funções puras são as melhores candidatas para começar a escrever testes. Elas recebem argumentos, retornam um valor, e não têm efeitos colaterais — o teste é uma chamada com `expect`, sem mocks, sem setup complexo. O blog tem várias: `formatarData`, `calcularTempoLeitura`, `gerarSlug`, `truncar`, `filtrarPorTag`.
+
+## Por que funções puras são fáceis de testar
+
+Uma função pura tem uma propriedade fundamental: **mesma entrada, mesma saída, sempre**. Isso torna o teste trivial — você chama a função com uma entrada conhecida e verifica que o resultado é o esperado:
+
+```ts title="utils.ts — funções puras do blog."
+// mesma entrada → mesma saída → fácil de testar
+export function gerarSlug(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .trim();
+}
+
+export function calcularTempoLeitura(texto: string): number {
+  if (!texto.trim()) return 1;
+  const palavras = texto.trim().split(/\s+/).length;
+  return Math.ceil(palavras / 200);
+}
+
+export function truncar(texto: string, limite: number): string {
+  if (limite <= 0) return "";
+  if (texto.length <= limite) return texto;
+  return texto.slice(0, limite) + "...";
+}
+```
+
+Nenhum dessas funções precisa de mock, de banco de dados, de navegador. O teste é uma linha de setup e uma de asserção.
+
+## Suite completa para `utils.ts`
+
+```ts title="utils.test.ts — suite de funções puras do blog."
+import { describe, it, expect } from "vitest";
+import {
+  gerarSlug,
+  calcularTempoLeitura,
+  truncar,
+  filtrarPorTag,
+} from "./utils";
+import type { Artigo } from "./types";
+
+// ─── gerarSlug ──────────────────────────────────────────────────────────────
+
+describe("gerarSlug", () => {
+  it("converte para minúsculas", () => {
+    expect(gerarSlug("React e TypeScript")).toBe("react-e-typescript");
+  });
+
+  it("substitui espaços por hífens", () => {
+    expect(gerarSlug("como a web funciona")).toBe("como-a-web-funciona");
+  });
+
+  it("remove acentos", () => {
+    expect(gerarSlug("Introdução ao CSS")).toBe("introducao-ao-css");
+  });
+
+  it("remove caracteres especiais", () => {
+    expect(gerarSlug("Flexbox: guia completo!")).toBe("flexbox-guia-completo");
+  });
+
+  it("remove espaços extras nas bordas", () => {
+    expect(gerarSlug("  CSS Grid  ")).toBe("css-grid");
+  });
+
+  it("retorna string vazia para entrada vazia", () => {
+    expect(gerarSlug("")).toBe("");
+  });
+});
+
+// ─── calcularTempoLeitura ───────────────────────────────────────────────────
+
+describe("calcularTempoLeitura", () => {
+  it("retorna 1 para textos de até 200 palavras", () => {
+    const texto = "palavra ".repeat(150).trim();
+    expect(calcularTempoLeitura(texto)).toBe(1);
+  });
+
+  it("retorna 2 para textos entre 201 e 400 palavras", () => {
+    const texto = "palavra ".repeat(300).trim();
+    expect(calcularTempoLeitura(texto)).toBe(2);
+  });
+
+  it("arredonda para cima — 201 palavras retorna 2, não 1", () => {
+    const texto = "palavra ".repeat(201).trim();
+    expect(calcularTempoLeitura(texto)).toBe(2);
+  });
+
+  it("retorna 1 para string vazia", () => {
+    // decisão de design: artigo vazio tem tempo mínimo de 1 minuto
+    expect(calcularTempoLeitura("")).toBe(1);
+  });
+
+  it("retorna 1 para string com apenas espaços", () => {
+    expect(calcularTempoLeitura("   ")).toBe(1);
+  });
+});
+
+// ─── truncar ────────────────────────────────────────────────────────────────
+
+describe("truncar", () => {
+  it("trunca e adiciona reticências quando o texto é maior que o limite", () => {
+    expect(truncar("Introdução ao CSS e Flexbox", 20)).toBe("Introdução ao CSS e...");
+  });
+
+  it("retorna o texto inteiro quando menor que o limite", () => {
+    expect(truncar("CSS", 100)).toBe("CSS");
+  });
+
+  it("retorna o texto inteiro quando exatamente no limite", () => {
+    expect(truncar("CSS", 3)).toBe("CSS");
+  });
+
+  it("retorna string vazia para texto vazio", () => {
+    expect(truncar("", 10)).toBe("");
+  });
+
+  it("retorna string vazia para limite zero", () => {
+    expect(truncar("Algum texto", 0)).toBe("");
+  });
+
+  it("trata limite negativo como zero", () => {
+    expect(truncar("Algum texto", -5)).toBe("");
+  });
+});
+```
+
+## `test.each` para tabelas de casos
+
+Quando você quer testar a mesma função com muitas entradas diferentes, `test.each` evita repetição:
+
+```ts title="test.each — gerarSlug com tabela de casos."
+describe("gerarSlug — tabela de casos", () => {
+  test.each([
+    ["React em geral",         "react-em-geral"],
+    ["CSS: guia completo!",    "css-guia-completo"],
+    ["Introdução ao HTML",     "introducao-ao-html"],
+    ["JavaScript & TypeScript","javascript-typescript"],
+    ["  Espaços extras  ",     "espacos-extras"],
+    ["",                       ""],
+  ])("gerarSlug('%s') retorna '%s'", (entrada, esperado) => {
+    expect(gerarSlug(entrada)).toBe(esperado);
+  });
+});
+```
+
+O output mostra cada caso como um teste separado:
+
+```
+✓ gerarSlug ('React em geral') retorna 'react-em-geral'
+✓ gerarSlug ('CSS: guia completo!') retorna 'css-guia-completo'
+✓ gerarSlug ('Introdução ao HTML') retorna 'introducao-ao-html'
+...
+```
+
+## Testando `filtrarPorTag`
+
+```ts title="filtrarPorTag.test.ts — filtro com array de artigos."
+const artigosFixture: Artigo[] = [
+  { id: 1, titulo: "CSS Grid",    tags: ["css", "layout"] },
+  { id: 2, titulo: "Flexbox",     tags: ["css", "layout"] },
+  { id: 3, titulo: "React Hooks", tags: ["react", "hooks"] },
+  { id: 4, titulo: "TypeScript",  tags: ["typescript"] },
+] as Artigo[];
+
+describe("filtrarPorTag", () => {
+  it("retorna apenas artigos com a tag especificada", () => {
+    const resultado = filtrarPorTag(artigosFixture, "css");
+    expect(resultado).toHaveLength(2);
+    expect(resultado.map(a => a.id)).toEqual([1, 2]);
+  });
+
+  it("retorna todos os artigos quando tag é null", () => {
+    const resultado = filtrarPorTag(artigosFixture, null);
+    expect(resultado).toHaveLength(4);
+  });
+
+  it("retorna array vazio quando nenhum artigo tem a tag", () => {
+    const resultado = filtrarPorTag(artigosFixture, "vue");
+    expect(resultado).toEqual([]);
+  });
+
+  it("retorna array vazio para lista de artigos vazia", () => {
+    expect(filtrarPorTag([], "css")).toEqual([]);
+  });
+});
+```
+
+## Funções que dependem do tempo
+
+Funções que leem `Date.now()` internamente são difíceis de testar de forma determinística — o resultado muda a cada execução. A solução é **injetar a data como parâmetro**:
+
+```ts title="formatarData — injetando a data atual como parâmetro."
+// ❌ difícil de testar — lê o tempo internamente
+export function formatarDataV1(data: Date): string {
+  const agora = Date.now(); // não controlável no teste
+  const diff = agora - data.getTime();
+  // ...
+}
+
+// ✅ fácil de testar — recebe o tempo de referência
+export function formatarData(data: Date, agora = new Date()): string {
+  const diffMs = agora.getTime() - data.getTime();
+  const diffMin = Math.floor(diffMs / 60_000);
+  const diffHoras = Math.floor(diffMs / 3_600_000);
+  const diffDias = Math.floor(diffMs / 86_400_000);
+
+  if (diffMs < 60_000) return "agora";
+  if (diffMin < 60) return `há ${diffMin} ${diffMin === 1 ? "minuto" : "minutos"}`;
+  if (diffHoras < 24) return `há ${diffHoras} ${diffHoras === 1 ? "hora" : "horas"}`;
+  if (diffDias < 7) return `há ${diffDias} ${diffDias === 1 ? "dia" : "dias"}`;
+
+  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(data);
+}
+```
+
+```ts title="formatarData.test.ts — totalmente determinístico."
+describe("formatarData", () => {
+  // data de referência fixa — o teste é sempre o mesmo
+  const agora = new Date("2024-06-01T12:00:00Z");
+
+  it("retorna 'agora' para datas dos últimos 60 segundos", () => {
+    const data = new Date("2024-06-01T11:59:30Z"); // 30s antes
+    expect(formatarData(data, agora)).toBe("agora");
+  });
+
+  it("retorna 'há X minutos' para datas de menos de uma hora", () => {
+    const data = new Date("2024-06-01T11:40:00Z"); // 20min antes
+    expect(formatarData(data, agora)).toBe("há 20 minutos");
+  });
+
+  it("retorna 'há 1 dia' para data de ontem", () => {
+    const data = new Date("2024-05-31T12:00:00Z"); // 1 dia antes
+    expect(formatarData(data, agora)).toBe("há 1 dia");
+  });
+
+  it("retorna data por extenso para datas com mais de 7 dias", () => {
+    const data = new Date("2024-05-01T00:00:00Z");
+    expect(formatarData(data, agora)).toBe("1 de mai. de 2024");
+  });
+});
+```
+
+O parâmetro `agora = new Date()` tem valor padrão — em produção, a função usa a hora atual. Nos testes, você passa a data de referência que quiser. É o padrão de **injeção de dependência** aplicado a funções puras.
+
+## Resumo
+
+- **Funções puras** são as mais fáceis de testar: mesma entrada, mesma saída, sem mocks.
+- **Casos óbvios** (string vazia, zero, texto exato no limite) revelam decisões de design não especificadas — o teste força e documenta a decisão.
+- **`test.each`** para tabelas de casos — evita repetição quando a mesma função é testada com muitas entradas diferentes.
+- **Funções que dependem do tempo**: injete a data como parâmetro com valor padrão — testável e sem quebrar o uso em produção.
+- Comece pelos casos felizes, depois adicione casos limite, depois casos de erro — progressivamente até ter confiança no comportamento da função.

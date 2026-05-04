@@ -1,6 +1,258 @@
 ---
 title: "Objetos"
-description: "Criação literal, acesso por ponto e por colchete, desestruturação, spread, métodos. Referência vs. valor."
-comingSoon: true
+description: "Criação literal, acesso por ponto e colchete, optional chaining. Desestruturação, spread e imutabilidade. Referência vs. valor."
 order: 8
+hero:
+  titleBefore: "Objetos:"
+  titleAccent: "agrupar"
+  titleAfter: "dados relacionados."
+quiz:
+  - question: "Qual é a diferença entre acesso por ponto (artigo.titulo) e por colchete (artigo['titulo'])?"
+    options:
+      - "Não há diferença — são exatamente equivalentes"
+      - "O acesso por colchete é mais lento"
+      - "O acesso por colchete permite usar chaves dinâmicas (variáveis) e chaves com caracteres especiais; o acesso por ponto só funciona com chaves estáticas e identificadores válidos"
+      - "O acesso por ponto só funciona para strings; colchete para qualquer tipo"
+    correct: 2
+  - question: "O que o optional chaining (?.) faz?"
+    options:
+      - "Cria uma propriedade opcional no objeto"
+      - "Verifica se a propriedade existe antes de atribuir um valor"
+      - "É uma forma abreviada de Object.assign()"
+      - "Retorna undefined em vez de lançar um erro se o objeto à esquerda for null ou undefined"
+    correct: 3
+  - question: "Por que objetos e arrays em JavaScript são copiados por referência?"
+    options:
+      - "Por uma decisão de design que será corrigida em versões futuras"
+      - "Porque objetos e arrays podem ser muito grandes — copiar o valor seria custoso. A variável guarda o endereço de memória, não o conteúdo"
+      - "Porque objetos mutáveis precisam ser compartilhados por padrão"
+      - "Não são — objetos também são copiados por valor como os primitivos"
+    correct: 1
+  - question: "O que é property shorthand em um objeto literal?"
+    options:
+      - "Quando a variável tem o mesmo nome da chave, você pode omitir a chave: { titulo } em vez de { titulo: titulo }"
+      - "Um alias para Object.create()"
+      - "Uma propriedade que não aparece na listagem de Object.keys()"
+      - "Uma propriedade definida com get/set"
+    correct: 0
 ---
+
+Objetos agrupam dados relacionados em uma única estrutura. Um artigo tem título, autor, data, tags, curtidas — em vez de manter cinco variáveis separadas, você mantém um objeto `artigo` com cinco propriedades. É a estrutura de dados fundamental para modelar entidades do mundo real.
+
+## Criar e acessar propriedades
+
+A forma mais direta de criar um objeto é o **literal de objeto** — chaves delimitadas por `{}`, com pares de `chave: valor` separados por vírgulas:
+
+```js title="Objeto representando um artigo do blog com todas as propriedades."
+const artigo = {
+  id: 1,
+  titulo: "Meu primeiro projeto web",
+  slug: "meu-primeiro-projeto-web",
+  autor: "Dev Aprendiz",
+  publicadoEm: "2025-03-15",
+  curtidas: 42,
+  tags: ["html", "css", "javascript"],
+  publicado: true,
+};
+```
+
+**Property shorthand**: quando o valor de uma propriedade é uma variável com o mesmo nome da chave, você pode omitir o valor — `{ titulo }` é equivalente a `{ titulo: titulo }`:
+
+```js title="Property shorthand — sintaxe mais concisa para objetos."
+const titulo = "CSS em geral";
+const autor = "Dev Aprendiz";
+const curtidas = 87;
+
+// shorthand: { titulo } = { titulo: titulo }
+const artigo = { titulo, autor, curtidas };
+```
+
+O **acesso por ponto** (`artigo.titulo`) funciona para chaves que são identificadores válidos — sem espaços, sem caracteres especiais, não começando com número. O **acesso por colchete** (`artigo["titulo"]`) funciona para qualquer chave, incluindo chaves dinâmicas (variáveis) e chaves com caracteres especiais:
+
+```js title="Acesso por ponto e por colchete — quando usar cada um."
+// ponto: chave estática e simples
+artigo.titulo       // → "CSS em geral"
+artigo.curtidas     // → 87
+
+// colchete: chave dinâmica (variável)
+const propriedade = "titulo";
+artigo[propriedade] // → "CSS em geral"
+
+// colchete: chave com caractere especial
+const dados = { "publicado-em": "2025-03-15" };
+dados["publicado-em"] // → "2025-03-15"
+// dados.publicado-em   // SyntaxError — hífen não é válido em identificador
+```
+
+**Optional chaining** (`?.`) protege o acesso a propriedades de objetos possivelmente `null` ou `undefined`. Em vez de lançar um erro, retorna `undefined`:
+
+```js title="Optional chaining — acesso seguro em objetos possivelmente nulos."
+const artigo = {
+  titulo: "CSS em geral",
+  autor: { nome: "Dev Aprendiz", bio: null },
+};
+
+// sem optional chaining — pode lançar TypeError
+// artigo.autor.redesSociais.twitter // TypeError se redesSociais for undefined
+
+// com optional chaining — retorna undefined sem erro
+artigo.autor?.redesSociais?.twitter // → undefined
+
+// também funciona com chamadas de método
+artigo.autor?.formatarNome?.()  // → undefined se formatarNome não existir
+
+// e com acesso por colchete
+artigo?.["titulo"]              // → "CSS em geral"
+```
+
+## Desestruturação
+
+Desestruturação extrai propriedades de um objeto em variáveis com o mesmo nome:
+
+```js title="Desestruturação — extrair propriedades em variáveis locais."
+const artigo = {
+  id: 1,
+  titulo: "CSS em geral",
+  autor: "Dev Aprendiz",
+  curtidas: 87,
+  publicadoEm: "2025-03-15",
+};
+
+// desestruturação básica
+const { titulo, autor, curtidas } = artigo;
+console.log(titulo);  // → "CSS em geral"
+console.log(curtidas); // → 87
+
+// renomear durante a desestruturação
+const { titulo: tituloDoArtigo, autor: nomeDoAutor } = artigo;
+
+// valor padrão — usado se a propriedade for undefined
+const { curtidas: totalCurtidas = 0, destaque = false } = artigo;
+// destaque → false (não existe no artigo, usa padrão)
+
+// desestruturação aninhada
+const artigo2 = {
+  titulo: "Flexbox",
+  metadados: { tempo: 7, nivel: "intermediário" },
+};
+const { metadados: { tempo, nivel } } = artigo2;
+console.log(tempo);  // → 7
+console.log(nivel);  // → "intermediário"
+```
+
+## Spread e imutabilidade
+
+O operador spread `...` copia as propriedades de um objeto para um novo. As propriedades listadas depois sobrescrevem as copiadas:
+
+```js title="Spread de objeto — atualizar imutavelmente."
+const artigo = { id: 1, titulo: "CSS em geral", curtidas: 87 };
+
+// adicionar curtida sem mutar o original
+const artigoAtualizado = { ...artigo, curtidas: artigo.curtidas + 1 };
+// artigo            → { id: 1, titulo: "CSS em geral", curtidas: 87 }
+// artigoAtualizado → { id: 1, titulo: "CSS em geral", curtidas: 88 }
+
+// sobrescrever uma propriedade
+const artigoDestacado = { ...artigo, destaque: true };
+
+// merge de dois objetos — as chaves do segundo sobrescrevem o primeiro
+const padroes = { tema: "claro", idioma: "pt-BR", animacoes: true };
+const preferencias = { tema: "escuro" }; // usuário mudou apenas o tema
+const configuracao = { ...padroes, ...preferencias };
+// → { tema: "escuro", idioma: "pt-BR", animacoes: true }
+```
+
+O spread é uma **cópia rasa** (*shallow copy*): propriedades de primeiro nível são copiadas por valor, mas objetos aninhados ainda compartilham referência:
+
+```js title="Cópia rasa — propriedades aninhadas ainda compartilham referência."
+const original = {
+  titulo: "CSS em geral",
+  autor: { nome: "Dev Aprendiz" }, // objeto aninhado
+};
+
+const copia = { ...original };
+
+// propriedade de primeiro nível — copiada por valor
+copia.titulo = "Outro título";
+console.log(original.titulo); // → "CSS em geral" (não afetado)
+
+// objeto aninhado — compartilha referência
+copia.autor.nome = "Outro Autor";
+console.log(original.autor.nome); // → "Outro Autor" (afetado!)
+```
+
+## Iterar sobre objetos
+
+Objetos não são iteráveis diretamente com `for...of`. Use os métodos de `Object`:
+
+```js title="Object.keys, values e entries — iterar sobre objetos."
+const estatisticas = {
+  visualizacoes: 1240,
+  curtidas: 87,
+  comentarios: 23,
+  compartilhamentos: 45,
+};
+
+// apenas as chaves
+Object.keys(estatisticas);
+// → ["visualizacoes", "curtidas", "comentarios", "compartilhamentos"]
+
+// apenas os valores
+Object.values(estatisticas);
+// → [1240, 87, 23, 45]
+
+// pares [chave, valor] — o mais útil para iterar
+Object.entries(estatisticas);
+// → [["visualizacoes", 1240], ["curtidas", 87], ...]
+
+// iterar e renderizar cada estatística
+for (const [chave, valor] of Object.entries(estatisticas)) {
+  console.log(`${chave}: ${valor}`);
+}
+
+// ou converter para array e usar map
+const labels = Object.entries(estatisticas).map(([chave, valor]) => `${chave}: ${valor}`);
+```
+
+## Referência vs. valor
+
+Tipos primitivos (string, number, boolean, null, undefined) são copiados **por valor** — cada variável tem sua própria cópia.
+
+Objetos e arrays são copiados **por referência** — a variável guarda o endereço de memória do objeto, não o objeto em si. Quando você faz `const b = a`, `b` e `a` apontam para o mesmo objeto:
+
+```js title="Referência vs. valor — o problema e a solução."
+// primitivos: cópia por valor
+let x = 42;
+let y = x;
+y = 100;
+console.log(x); // → 42 (não afetado)
+
+// objetos: cópia por referência
+const artigo = { titulo: "CSS em geral", curtidas: 87 };
+const referencia = artigo; // não é uma cópia — é outro nome para o mesmo objeto
+
+referencia.curtidas = 100;
+console.log(artigo.curtidas); // → 100 (afetado!)
+
+// para verificar igualdade, === compara referências
+const a = { x: 1 };
+const b = { x: 1 };
+a === b // → false (objetos diferentes na memória, mesmo conteúdo)
+
+const c = a;
+a === c // → true (mesma referência)
+
+// para criar uma cópia real (rasa), use spread
+const copia = { ...artigo };
+copia.curtidas = 0;
+console.log(artigo.curtidas); // → 100 (spread criou um objeto separado)
+```
+
+## Resumo
+
+- **Literal de objeto** `{ chave: valor }` é a forma padrão de criação. **Property shorthand** `{ titulo }` omite o valor quando é igual à chave.
+- **Ponto** para chaves estáticas e simples; **colchete** para chaves dinâmicas ou com caracteres especiais.
+- **Optional chaining** `?.` retorna `undefined` em vez de lançar erro em objetos possivelmente nulos — essencial para dados que podem estar incompletos.
+- **Desestruturação** `const { titulo, autor = "Anônimo" } = artigo` extrai propriedades em variáveis. Suporta renomeação e valores padrão.
+- **Spread** `{ ...objeto, novaProp: valor }` cria um novo objeto com as propriedades do original. Cópia rasa — objetos aninhados ainda compartilham referência.
+- Objetos e arrays são copiados **por referência** — `const b = a` não cria uma cópia. Use spread para criar objetos independentes.

@@ -1,6 +1,154 @@
 ---
 title: "Por que escrever testes"
 description: "Confiança para mudar código, refactor seguro, documentação executável, captura de regressões. O que testes resolvem e o que não."
-comingSoon: true
 order: 1
+hero:
+  titleBefore: "Por que"
+  titleAccent: "escrever testes"
+  titleAfter: "— confiança para mudar."
+quiz:
+  - question: "Qual é o principal benefício prático de ter testes automatizados?"
+    options:
+      - "Provar matematicamente que o código não tem bugs"
+      - "Confiança para mudar código — refatorar, adicionar funcionalidades e corrigir bugs sem medo de quebrar silenciosamente o que já funcionava"
+      - "Eliminar a necessidade de revisão de código entre pares"
+      - "Garantir 100% de cobertura de todas as linhas"
+    correct: 1
+  - question: "O que é uma regressão no contexto de software?"
+    options:
+      - "Quando uma funcionalidade que funcionava para de funcionar após uma mudança — geralmente não relacionada — no código"
+      - "Uma técnica de análise de dados usada em machine learning"
+      - "Um tipo de bug que ocorre apenas em ambiente de produção"
+      - "Um teste que verifica comportamento futuro do sistema"
+    correct: 0
+  - question: "Por que testes não garantem ausência de bugs?"
+    options:
+      - "Porque testes são escritos por humanos e humanos erram ao digitar"
+      - "Porque ferramentas de teste não são suficientemente precisas"
+      - "Porque testes só verificam os cenários que você imaginou testar. Se o requisito está errado ou se um caso específico não foi considerado, não existe teste para capturá-lo"
+      - "Porque testes apenas verificam a UI, não a lógica de negócio"
+    correct: 2
+  - question: "O que significa dizer que testes são 'documentação executável'?"
+    options:
+      - "Que testes geram documentação HTML automaticamente"
+      - "Que você pode usar testes no lugar de um README"
+      - "Que testes documentam a porcentagem de cobertura de código"
+      - "Que um teste bem nomeado descreve o comportamento esperado de forma verificável — ao contrário de comentários que ficam desatualizados, os testes falham quando o comportamento muda"
+    correct: 3
 ---
+
+O módulo de React terminou com o blog funcionando — mas testado apenas manualmente. Toda vez que você muda o `LikeButton`, precisa abrir o browser, carregar a página, encontrar um artigo, clicar no botão e verificar que a contagem mudou. Se você mudou `utils.ts` ontem e esqueceu que `formatarData` também é usada no `ArticleCard`, o bug só aparece quando alguém reclamar. Testes automatizados existem para que a máquina faça essa verificação — cada vez, toda vez, em segundos.
+
+## O que testes realmente resolvem
+
+O valor principal de testes não é "provar que o código funciona". É **confiança para mudar código**.
+
+Imagine que você precisa refatorar `calcularTempoLeitura` para usar uma lógica diferente de contagem de palavras. Sem testes, você faz a mudança, reza, e espera que nada quebre. Com testes, você roda a suite e em 300 milissegundos sabe se os casos cobertos ainda passam:
+
+```ts title="calcularTempoLeitura.test.ts — testes que dão segurança para refatorar."
+import { describe, it, expect } from "vitest";
+import { calcularTempoLeitura } from "./utils";
+
+describe("calcularTempoLeitura", () => {
+  it("retorna 1 para textos de até 200 palavras", () => {
+    const texto = "palavra ".repeat(150).trim();
+    expect(calcularTempoLeitura(texto)).toBe(1);
+  });
+
+  it("retorna 2 para textos entre 201 e 400 palavras", () => {
+    const texto = "palavra ".repeat(250).trim();
+    expect(calcularTempoLeitura(texto)).toBe(2);
+  });
+
+  it("retorna 1 para string vazia", () => {
+    expect(calcularTempoLeitura("")).toBe(1);
+  });
+});
+```
+
+Quando você troca a lógica interna e os testes continuam passando, o comportamento público está preservado. Quando um teste quebra, você sabe exatamente o que mudou — antes de fazer commit.
+
+## Regressões — quando algo que funcionava para de funcionar
+
+Regressões são mudanças que quebram código existente — frequentemente em partes que parecem não ter relação com a mudança feita. Um exemplo concreto do blog:
+
+```ts title="Uma mudança inocente em gerarSlug que quebra outro comportamento."
+// Você adiciona suporte a hífens compostos em gerarSlug:
+export function gerarSlug(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")  // remove acentos
+    .replace(/[^a-z0-9\s-]/g, "")     // mantém apenas alfanumérico e hífen
+    .replace(/\s+/g, "-")
+    .trim();
+}
+
+// O que você não percebeu: o caractere '#' que antes ficava como '-hash'
+// agora é removido completamente. gerarSlug("C#") retornava "c-hash",
+// agora retorna "c". Artigos com "C#" no título ficam com slug errado.
+```
+
+Sem testes, essa regressão vai para produção e aparece como um bug reportado dias depois, difícil de rastrear. Com um teste para o caso `"C#"`, o problema aparece no momento da mudança:
+
+```ts title="Teste que captura a regressão imediatamente."
+it("remove caracteres especiais mas mantém letras e números", () => {
+  expect(gerarSlug("C# em 2024")).toBe("c-em-2024");
+  // falha na nova versão — avisa antes do commit
+});
+```
+
+## Documentação executável
+
+Um teste bem nomeado descreve o comportamento esperado de forma que pode ser verificada automaticamente. Diferente de um comentário no código — que fica desatualizado sem aviso —, um teste **falha** quando o comportamento muda:
+
+```ts title="Testes como especificação legível de formatarData."
+describe("formatarData", () => {
+  it("retorna 'agora' para datas dos últimos 60 segundos", () => {
+    const agora = new Date();
+    expect(formatarData(agora)).toBe("agora");
+  });
+
+  it("retorna 'há X minutos' para datas de menos de uma hora", () => {
+    const vinteMinutosAtras = new Date(Date.now() - 20 * 60 * 1000);
+    expect(formatarData(vinteMinutosAtras)).toBe("há 20 minutos");
+  });
+
+  it("retorna data formatada por extenso para datas com mais de 7 dias", () => {
+    const antigamente = new Date("2024-01-15");
+    expect(formatarData(antigamente)).toBe("15 de jan. de 2024");
+  });
+});
+```
+
+Ler essa suite é ler a especificação de `formatarData`. Qualquer pessoa nova no projeto entende o contrato da função sem precisar lê-la internamente. E se a implementação mudar de forma incompatível com o contrato, um teste quebra e avisa.
+
+## O que testes não resolvem
+
+Testes têm limites importantes. Entender esses limites evita a ilusão de que "tem testes, então está correto".
+
+**Lógica de negócio errada.** Se o requisito está errado, o teste do requisito errado passa. Se o cliente queria `calcularTempoLeitura` com 250 palavras por minuto e você implementou e testou com 200, os testes passam — mas o produto está errado.
+
+**Casos que você não imaginou.** Cobertura de 100% não significa que todos os cenários foram testados — significa que todas as linhas foram executadas ao menos uma vez. Uma linha executada não garante que todos os inputs possíveis produzem o resultado correto.
+
+**Bugs visuais.** Testes verificam comportamento e estrutura do DOM — não que o botão está na posição certa, que a cor é exatamente `#61dafb`, ou que o layout não quebra em 375px.
+
+**O custo zero.** Testes têm custo de escrita e manutenção. Testes mal escritos quebram a cada refactor, emitem avisos que não importam e criam resistência a mudanças. A próxima lição mostra como estruturá-los para evitar isso.
+
+## O custo de não testar
+
+O custo de não ter testes é acumulado — não aparece no sprint atual. Aparece meses depois, quando o código cresceu e ninguém mais sabe o que pode mudar com segurança.
+
+O sintoma mais claro: **medo de mexer em código antigo**. "Esse módulo ninguém toca — está funcionando, não vamos arriscar." Isso é código legado — não porque é velho, mas porque não há testes para dar confiança de mudança.
+
+O ciclo sem testes: mudança é feita → vai para produção → usuário reporta bug → você debuga → corrige → repete. Com testes: mudança é feita → suite falha → você corrige antes do push → vai para produção sem o bug.
+
+## Resumo
+
+- **O principal benefício dos testes** é confiança para mudar código — refatorar, adicionar funcionalidades e corrigir bugs sem medo de regressões silenciosas.
+- **Regressão** é quando algo que funcionava para de funcionar após uma mudança. Testes capturam regressões antes de chegar à produção.
+- **Documentação executável**: testes bem nomeados descrevem o comportamento esperado e falham quando ele muda — diferente de comentários que ficam desatualizados.
+- **Limites**: testes não provam ausência de bugs, não cobrem requisitos errados, não veem o visual.
+- **Custo de não testar**: medo de mudar código, regressões em produção, ciclo de debug lento.
+
+A próxima aula apresenta os três tipos de teste — unitário, integração e end-to-end — e quando cada um faz sentido no contexto do blog.

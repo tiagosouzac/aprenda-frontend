@@ -1,6 +1,238 @@
 ---
 title: "Tipografia e cores"
-description: "font-family, font-size, line-height, letter-spacing. Unidades (px, rem, em, %) e formatos de cor (hex, rgb, hsl, oklch). Web fonts."
-comingSoon: true
+description: "font-family, font-size, line-height e letter-spacing. As unidades de medida — px, rem, em, ch. Formatos de cor: hex, rgb, hsl e currentColor."
 order: 9
+hero:
+  titleBefore: "Tipografia"
+  titleAccent: "e cores:"
+  titleAfter: "a voz visual do texto."
+quiz:
+  - question: "Qual é a vantagem de usar rem em vez de px para font-size?"
+    options:
+      - "rem é relativo ao font-size do elemento raiz (html), então respeita a preferência de tamanho de texto do usuário"
+      - "rem é mais rápido de processar pelo navegador"
+      - "rem evita margin collapsing"
+      - "rem não pode ser usado com media queries"
+    correct: 0
+  - question: "Para que serve a unidade ch em CSS?"
+    options:
+      - "Altura de uma letra maiúscula"
+      - "Equivalente a 1% da altura da viewport"
+      - "Largura do caractere '0' na fonte atual — útil para definir max-width de texto legível"
+      - "Unidade de cor hue"
+    correct: 2
+  - question: "Qual é a vantagem do formato de cor hsl sobre hex?"
+    options:
+      - "hsl é mais compacto que hex"
+      - "hsl suporta transparência; hex não"
+      - "hsl é suportado em mais navegadores"
+      - "hsl descreve matiz, saturação e luminosidade — mais intuitivo para criar variações de uma cor"
+    correct: 3
+  - question: "O que é line-height sem unidade, como line-height: 1.6?"
+    options:
+      - "160px de espaço entre linhas"
+      - "Um multiplicador do font-size atual — o espaço entre linhas é 1.6 × font-size"
+      - "1.6 vezes a altura da viewport"
+      - "Equivalente a 1.6rem"
+    correct: 1
 ---
+
+Tipografia é a parte do CSS que mais afeta a legibilidade do seu conteúdo. Um artigo bem estruturado com tipografia ruim — fonte pequena, linhas longas demais, espaçamento inadequado — é difícil de ler. Um artigo com tipografia cuidadosa se lê sem esforço. Esta lição cobre as ferramentas que você tem para controlar tipografia e cor em `estilos.css`.
+
+## Fontes e `font-family`
+
+`font-family` define a fonte do texto. O valor é uma lista de famílias em ordem de prioridade — o navegador usa a primeira que estiver disponível no sistema, e as demais funcionam como fallback.
+
+A **font stack** mais simples usa fontes do sistema:
+
+```css title="Font stacks — sistema e fallbacks por categoria."
+/* stack de sans-serif — usa a fonte do sistema em cada plataforma */
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* system-ui: padrão moderno (Chrome, Firefox)
+     -apple-system: macOS/iOS Safari
+     BlinkMacSystemFont: Chrome macOS antigo
+     "Segoe UI": Windows
+     sans-serif: fallback genérico */
+}
+
+/* stack de monospace para blocos de código */
+code, pre {
+  font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+}
+
+/* stack de serif para citações ou títulos editoriais */
+blockquote {
+  font-family: "Georgia", "Times New Roman", serif;
+}
+```
+
+`font-weight` define o peso — de 100 (extra light) a 900 (black). Os valores nomeados mais comuns são `normal` (400) e `bold` (700). Mas nem toda fonte tem todas as variações: se você pedir `font-weight: 300` em uma fonte que só tem 400 e 700, o navegador usa a mais próxima disponível.
+
+`font-style: italic` ativa a versão itálica da fonte. Se a fonte não tem uma versão itálica real, o navegador inclina artificialmente — o resultado é menos elegante. `font-style: normal` remove o itálico.
+
+Para fontes além das do sistema — fontes customizadas carregadas da web — o caminho mais simples é o Google Fonts. Você adiciona um `<link>` no `<head>` do HTML:
+
+```html title="Carregando fonte do Google Fonts no head do artigo.html."
+<head>
+  <!-- preconnect melhora a performance ao pré-conectar ao domínio da fonte -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- a fonte em si -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Inter:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+</head>
+```
+
+```css title="Usando a fonte carregada do Google Fonts — com fallback na stack."
+/* Lora para títulos, Inter para corpo */
+h1, h2, h3 {
+  font-family: "Lora", Georgia, serif;
+}
+
+body {
+  font-family: "Inter", system-ui, sans-serif;
+}
+```
+
+## Tamanho e espaçamento
+
+`font-size` define o tamanho do texto. Em combinação com `line-height` e `letter-spacing`, controla todo o ritmo tipográfico.
+
+`line-height` é o espaço total que uma linha ocupa — não apenas o tamanho da fonte, mas também o espaço antes e depois. Um `line-height` sem unidade (como `1.6`) é um multiplicador: o espaço da linha é `1.6 × font-size`. Isso é preferível a valores em `px` porque quando o `font-size` muda, o `line-height` acompanha proporcionalmente.
+
+Para leitura de texto corrido, `line-height` entre 1.5 e 1.8 é o intervalo confortável. Títulos grandes geralmente se beneficiam de `line-height` menor, como 1.1 ou 1.2 — porque as letras grandes já têm espaço natural entre si.
+
+`letter-spacing` (também chamado de *tracking*) controla o espaço entre letras. Valores em `em` são preferíveis porque se adaptam proporcionalmente ao tamanho da fonte. Títulos em maiúsculas (*uppercase*) frequentemente precisam de `letter-spacing` positivo para ficarem mais legíveis — letras maiúsculas sem espaço extra ficam visualmente apertadas.
+
+```css title="Escala tipográfica para artigo.html — tamanhos, pesos e espaçamento."
+/* títulos — fonte maior, peso mais alto, line-height mais compacto */
+h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em; /* leve negative tracking em títulos grandes */
+}
+
+h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+/* corpo do artigo — legível e confortável */
+.artigo-corpo {
+  font-size: 1.0625rem; /* 17px — ligeiramente maior que o padrão */
+  line-height: 1.72;
+}
+
+/* metadados — menores, mais claros */
+.artigo-meta {
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.5;
+  color: #6b6b72;
+}
+```
+
+## Unidades de medida
+
+Escolher a unidade certa é uma decisão de intenção: você quer que o valor seja fixo, relativo ao elemento pai, ou relativo às preferências do usuário?
+
+**`px`** é uma unidade absoluta. `font-size: 16px` é sempre 16 pixels, independente de qualquer outra configuração. O problema com `px` em `font-size` é que ele ignora a preferência de tamanho de texto do usuário — quem configurou o navegador para exibir texto maior para melhorar a legibilidade não verá diferença no seu site.
+
+**`rem`** é relativo ao `font-size` do elemento raiz (`html`). O padrão do navegador é `16px` para `html`, então `1rem = 16px`. Mas se o usuário aumentou o tamanho de texto padrão do navegador para 20px, `1rem = 20px` — e toda a tipografia em `rem` escala junto. É a unidade recomendada para `font-size`.
+
+**`em`** é relativo ao `font-size` do **elemento pai** (não do raiz). Isso o torna útil para `padding` e `margin` de componentes que devem se manter proporcionais ao tamanho do texto — um botão com `padding: 0.5em 1em` terá padding que se adapta automaticamente quando o `font-size` do botão muda.
+
+**`ch`** é a largura do caractere "0" na fonte atual. É a unidade perfeita para `max-width` de blocos de texto: `max-width: 65ch` garante que nenhuma linha do parágrafo tenha mais de aproximadamente 65 caracteres — o intervalo recomendado pela tipografia para leitura confortável.
+
+**`%`** é relativo ao pai no contexto de largura, e ao `font-size` do pai para `font-size`. Útil para larguras fluidas.
+
+```css title="Convertendo de px para rem e usando ch para o max-width do artigo."
+/* raiz — define a base do rem */
+html {
+  font-size: 100%; /* respeita a preferência do usuário (padrão: 16px) */
+}
+
+/* corpo do artigo: remover px, usar rem */
+body {
+  font-size: 1rem;      /* 16px base */
+  line-height: 1.6;
+}
+
+h1 { font-size: 2.5rem; }   /* 40px */
+h2 { font-size: 1.75rem; }  /* 28px */
+h3 { font-size: 1.25rem; }  /* 20px */
+
+/* max-width em ch — ideal para legibilidade de texto */
+.artigo-corpo {
+  max-width: 65ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* padding proporcional ao tamanho do texto do botão */
+.botao {
+  font-size: 1rem;
+  padding: 0.625em 1.25em; /* em — proporcional ao font-size do botão */
+  border-radius: 0.25em;
+}
+```
+
+## Formatos de cor
+
+CSS suporta vários formatos para definir cores. Cada um tem seus pontos fortes.
+
+**Hexadecimal** (`#ff5733`) é o mais familiar. Seis dígitos em base 16: dois para vermelho, dois para verde, dois para azul. O shorthand de três dígitos (`#f53`) funciona quando os pares são iguais. A variação de oito dígitos (`#ff573380`) inclui o canal alfa (opacidade).
+
+**`rgb()`** usa números de 0 a 255 para cada canal. `rgba()` adiciona o canal alfa de 0 a 1. No CSS moderno, `rgb()` aceita um quarto valor sem precisar de `rgba()`: `rgb(255 87 51 / 0.5)`.
+
+**`hsl()`** é mais intuitivo para criar variações de uma cor. Os três valores são: matiz (*hue*) em graus (0–360), saturação em porcentagem e luminosidade em porcentagem. Para criar uma versão mais clara ou mais escura de uma cor, você muda apenas a luminosidade. Para uma versão menos saturada, muda a saturação. Fica muito mais fácil do que tentar ajustar os três canais RGB.
+
+**`oklch()`** é o formato moderno recomendado. Funciona de forma perceptualmente uniforme — incrementar a luminosidade de 50% para 60% produz uma mudança visual consistente em qualquer matiz. Hex e HSL não têm essa propriedade: amarelo 50% de luminosidade parece muito mais claro que azul 50%.
+
+**`currentColor`** não é uma cor literal, mas uma referência à `color` do elemento atual. Muito útil para bordas e ícones SVG que devem ter a mesma cor do texto ao redor.
+
+```css title="Formatos de cor no blog — paleta em hsl e uso de currentColor."
+/* paleta de cores do blog em hsl — fácil de criar variações */
+:root {
+  --cor-primaria: hsl(217, 91%, 45%);       /* azul base */
+  --cor-primaria-clara: hsl(217, 91%, 65%); /* azul mais claro — só luminosidade mudou */
+  --cor-primaria-escura: hsl(217, 91%, 30%); /* azul mais escuro */
+
+  --cor-texto: hsl(240, 6%, 5%);
+  --cor-texto-muted: hsl(240, 4%, 43%);
+  --cor-fundo: hsl(0, 0%, 100%);
+  --cor-borda: hsl(0, 0%, 90%);
+}
+
+/* currentColor em bordas e ícones */
+.link-externo {
+  color: var(--cor-primaria);
+  border-bottom: 1px solid currentColor; /* borda na mesma cor do link */
+}
+
+.link-externo:hover {
+  color: var(--cor-primaria-escura); /* borda também escurece */
+}
+
+/* cor com transparência */
+.overlay-modal {
+  background-color: hsl(240 6% 5% / 0.5); /* preto 50% transparente */
+}
+```
+
+## Resumo
+
+- `font-family` aceita uma lista de fontes em ordem de prioridade. Use stacks com fallbacks genéricos (`sans-serif`, `serif`, `monospace`). Para fontes customizadas, Google Fonts é o caminho mais simples.
+- `font-size` + `line-height` + `letter-spacing` formam o ritmo tipográfico. `line-height` sem unidade é um multiplicador do `font-size` — preferível a `px`.
+- **Unidades**: `rem` é relativo ao raiz e respeita preferências do usuário — use em `font-size`. `em` é relativo ao pai — use em `padding`/`margin` de componentes. `ch` é a largura do "0" — ideal para `max-width` de texto legível (55–70ch).
+- **Formatos de cor**: hex para valores rápidos, `hsl()` para paletas onde você precisa criar variações (muda só a luminosidade ou saturação), `oklch()` para precisão perceptual. `currentColor` herda a `color` do elemento — útil para bordas e ícones SVG.

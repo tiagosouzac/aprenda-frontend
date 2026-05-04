@@ -1,6 +1,233 @@
 ---
 title: "Controle de fluxo"
-description: "if/else, switch, for, while, for...of, for...in. Quando usar cada um e por que for...of é o padrão moderno para iterar arrays."
-comingSoon: true
+description: "Truthy e falsy, if/else, switch, for clássico, for...of e while. Como o JavaScript decide qual código executar."
 order: 5
+hero:
+  titleBefore: "Controle"
+  titleAccent: "de fluxo:"
+  titleAfter: "decidindo o que executar."
+quiz:
+  - question: "Quais são os seis valores falsy em JavaScript?"
+    options:
+      - "false, null, undefined, 0, NaN e [] (array vazio)"
+      - "false, null, undefined, 0, NaN e {} (objeto vazio)"
+      - "false, null, undefined, 0, NaN e '' (string vazia)"
+      - "false, null, 0, '', [] e {}"
+    correct: 2
+  - question: "Por que for...of é preferível ao for clássico na maioria dos casos?"
+    options:
+      - "for...of é mais rápido"
+      - "for...of funciona com mais tipos de dados"
+      - "for clássico não funciona com arrays modernos"
+      - "for...of é mais legível — você itera sobre os valores diretamente, sem gerenciar índice, condição de parada e incremento"
+    correct: 3
+  - question: "O que acontece em um switch sem break em cada case?"
+    options:
+      - "O JavaScript gera um erro de sintaxe"
+      - "Fall-through: a execução continua para o próximo case sem verificar a condição — até encontrar um break ou o fim do switch"
+      - "Apenas o primeiro case é executado"
+      - "O switch ignora os cases sem break automaticamente"
+    correct: 1
+  - question: "O que é retorno antecipado em uma função e por que é preferível ao aninhamento de if/else?"
+    options:
+      - "Usar return no início da função para casos inválidos — elimina o aninhamento e deixa o caminho principal do código sem indentação extra"
+      - "Retornar undefined ao invés de um valor"
+      - "Uma técnica para tornar a função mais rápida"
+      - "Retornar o valor antes de todos os cálculos estarem completos"
+    correct: 0
 ---
+
+JavaScript executa código linha por linha, de cima para baixo. Estruturas de controle de fluxo permitem tomar decisões (executar código apenas se uma condição for verdadeira) e repetir operações (executar código para cada item de uma lista). São as ferramentas que tornam um programa capaz de reagir a situações diferentes.
+
+## Truthy e falsy
+
+Em JavaScript, qualquer valor pode ser usado em uma condição — não apenas `true` e `false`. O JavaScript converte o valor para boolean automaticamente. Alguns valores se comportam como `false` e são chamados de **falsy**. Todo o resto é **truthy**.
+
+Os seis valores falsy — e apenas eles:
+
+- `false` — o próprio boolean false
+- `0` — o número zero (e `-0` e `0n`)
+- `""` — string vazia (aspas simples ou duplas sem conteúdo)
+- `null` — ausência intencional de valor
+- `undefined` — variável não inicializada, propriedade inexistente
+- `NaN` — resultado de operação matemática inválida
+
+Tudo o mais é truthy — incluindo surpresas: `[]` (array vazio), `{}` (objeto vazio), `"0"` (string com zero), `"false"` (string com a palavra false).
+
+```js title="Truthy e falsy — verificar cada valor no console."
+// valores falsy — if não executa o bloco
+if (false) { }
+if (0) { }
+if ("") { }
+if (null) { }
+if (undefined) { }
+if (NaN) { }
+
+// valores truthy — if executa o bloco
+if (true) { }
+if (1) { }        // qualquer número diferente de 0
+if ("texto") { }  // qualquer string não vazia
+if ([]) { }       // array vazio é truthy
+if ({}) { }       // objeto vazio é truthy
+if ("0") { }      // string com zero é truthy
+```
+
+Entender truthy e falsy é essencial porque aparece em todo lugar: condicionais `if`, operadores `&&` e `||`, o ternário. Quando você escreve `if (botaoCurtir)`, está verificando se `botaoCurtir` não é `null` ou `undefined` — se o elemento existe no DOM.
+
+## `if`, `else if`, `else`
+
+O `if` executa um bloco se a condição for truthy. `else if` adiciona condições alternativas. `else` é o caso padrão quando nenhuma condição anterior foi verdadeira.
+
+Sempre use chaves `{}` nos blocos, mesmo quando há apenas uma linha — consistência evita bugs quando você adiciona linhas depois.
+
+**Retorno antecipado** é uma técnica para evitar aninhamento excessivo: em vez de envolver o código principal em um `if`, verifique as condições inválidas no início e retorne cedo:
+
+```js title="if/else com retorno antecipado — badge 'Novo' para artigos recentes."
+function exibirBadgeRecente(artigo) {
+  // retorno antecipado: casos inválidos primeiro
+  if (!artigo) return;
+  if (!artigo.publicadoEm) return; // artigo não publicado
+
+  const agora = new Date();
+  const publicadoEm = new Date(artigo.publicadoEm);
+  const diasPassados = (agora - publicadoEm) / (1000 * 60 * 60 * 24);
+
+  if (diasPassados <= 7) {
+    return '<span class="badge-recente">Novo</span>';
+  } else if (diasPassados <= 30) {
+    return '<span class="badge-recente badge-mes">Este mês</span>';
+  } else {
+    return null; // artigo antigo — sem badge
+  }
+}
+```
+
+O retorno antecipado para `!artigo` e `!artigo.publicadoEm` elimina o caso inválido antes de entrar na lógica principal. O código que importa — calcular dias e retornar o badge — fica sem indentação extra.
+
+## `switch`
+
+`switch` compara um valor com uma lista de constantes (*cases*). É mais legível que uma cadeia de `if/else if` quando o mesmo valor é comparado com várias possibilidades conhecidas.
+
+O `break` ao final de cada `case` é obrigatório — sem ele, ocorre *fall-through*: a execução continua para o próximo `case` sem verificar a condição. `default` é o caso quando nenhum `case` combina.
+
+```js title="switch para tipo de notificação do blog."
+function exibirNotificacao(tipo, mensagem) {
+  switch (tipo) {
+    case "sucesso":
+      console.log(`✅ ${mensagem}`);
+      break;
+
+    case "erro":
+      console.error(`❌ ${mensagem}`);
+      break;
+
+    case "aviso":
+      console.warn(`⚠️ ${mensagem}`);
+      break;
+
+    default:
+      console.log(mensagem);
+  }
+}
+
+exibirNotificacao("sucesso", "Artigo curtido!");
+exibirNotificacao("erro", "Falha ao carregar artigos.");
+```
+
+## `for` clássico
+
+O `for` clássico tem três partes: inicialização, condição e incremento. Use quando o índice é necessário — quando você precisa saber a posição do item no array.
+
+```js title="for clássico — quando o índice importa."
+const secoes = document.querySelectorAll(".artigo-secao");
+const indiceSidebar = document.getElementById("indice");
+
+// criar o índice de seções numerado
+for (let i = 0; i < secoes.length; i++) {
+  const item = document.createElement("a");
+  item.href = `#secao-${i + 1}`;
+  item.textContent = `${i + 1}. ${secoes[i].querySelector("h2").textContent}`;
+  indiceSidebar.appendChild(item);
+}
+```
+
+Para a maioria dos casos de iteração sobre arrays, `for...of` é mais legível — use o `for` clássico apenas quando o índice é realmente necessário.
+
+## `for...of` — o padrão moderno
+
+`for...of` itera sobre qualquer iterável — arrays, strings, NodeLists, Sets, Maps. Você acessa o valor diretamente, sem gerenciar índice, condição de parada e incremento. O código fica mais claro:
+
+```js title="for...of — iterando sobre as tags do artigo."
+const tags = ["HTML", "CSS", "JavaScript"];
+const containerTags = document.getElementById("tags-artigo");
+
+// criar um elemento de tag para cada item
+for (const tag of tags) {
+  const span = document.createElement("span");
+  span.className = "tag-artigo";
+  span.textContent = tag;
+  containerTags.appendChild(span);
+}
+
+// se precisar do índice junto com o valor
+for (const [indice, tag] of tags.entries()) {
+  console.log(`${indice}: ${tag}`);
+}
+// 0: HTML
+// 1: CSS
+// 2: JavaScript
+```
+
+`for...of` também funciona com strings (itera caractere por caractere) e com NodeLists retornadas por `querySelectorAll`:
+
+```js title="for...of com NodeList — aplicar estilo a múltiplos elementos."
+const todosOsLinks = document.querySelectorAll("a[href^='https']");
+
+for (const link of todosOsLinks) {
+  link.setAttribute("target", "_blank");
+  link.setAttribute("rel", "noopener noreferrer");
+}
+```
+
+## `while` e `break`/`continue`
+
+`while` executa enquanto a condição for truthy. Use quando você não sabe quantas iterações serão necessárias — a condição de parada depende do que acontece dentro do loop.
+
+`break` interrompe o loop imediatamente — útil para parar quando você encontrou o que procurava. `continue` pula para a próxima iteração — útil para ignorar itens que não atendem a um critério.
+
+Atenção com `while`: se a condição nunca se tornar falsy, o loop roda para sempre — travando o navegador. Certifique-se de que algo dentro do loop muda a condição ou que há um `break`.
+
+```js title="while com break — encontrar o primeiro artigo não curtido."
+const artigos = carregarArtigos();
+const curtidos = JSON.parse(localStorage.getItem("curtidos")) ?? [];
+let proximoParaLer = null;
+let indice = 0;
+
+while (indice < artigos.length) {
+  const artigo = artigos[indice];
+
+  if (!curtidos.includes(artigo.id)) {
+    proximoParaLer = artigo;
+    break; // encontrou — para o loop
+  }
+
+  indice++;
+}
+
+// continue — pular artigos sem imagem de capa
+for (const artigo of artigos) {
+  if (!artigo.imagemCapa) continue; // pular para o próximo
+
+  // só chega aqui se tem imagem de capa
+  renderizarCardComImagem(artigo);
+}
+```
+
+## Resumo
+
+- Os **seis valores falsy**: `false`, `0`, `""`, `null`, `undefined`, `NaN`. Todo o resto é truthy — incluindo `[]`, `{}` e `"0"`.
+- **`if`/`else if`/`else`**: sempre use `{}` nos blocos. Prefira **retorno antecipado** para casos inválidos — elimina aninhamento desnecessário.
+- **`switch`**: mais limpo que uma cadeia de `if/else if` para o mesmo valor. O `break` em cada `case` é obrigatório para evitar fall-through.
+- **`for` clássico**: use quando o índice é necessário. Prefira `for...of` para a maioria dos casos.
+- **`for...of`**: itera sobre qualquer iterável — arrays, strings, NodeLists. Acesso direto ao valor, sem gerenciar índice.
+- **`while`**: executa enquanto a condição for truthy. `break` para o loop; `continue` pula para a próxima iteração. Cuidado com loops infinitos.

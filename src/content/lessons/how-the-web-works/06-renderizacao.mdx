@@ -1,6 +1,185 @@
 ---
 title: "Como o navegador renderiza"
-description: "De bytes até pixels: parsing do HTML, DOM, CSSOM, render tree, layout, paint e composição. Onde o JavaScript entra."
-comingSoon: true
+description: "De bytes até pixels: parsing do HTML, DOM, CSSOM, render tree, layout, paint e composição. Onde o JavaScript entra no pipeline."
 order: 6
+hero:
+  titleBefore: "De bytes"
+  titleAccent: "até pixels"
+  titleAfter: "na tela."
+quiz:
+  - question: "O que é o DOM?"
+    options:
+      - "Uma linguagem de programação para estilizar páginas"
+      - "Um servidor que armazena cópias de páginas web"
+      - "Uma árvore em memória que representa a estrutura HTML do documento"
+      - "Um protocolo de segurança para criptografar dados"
+    correct: 2
+  - question: "Qual é a ordem correta do pipeline de renderização?"
+    options:
+      - "Paint → Layout → Render tree → CSSOM → DOM"
+      - "CSSOM → DOM → Paint → Layout → Render tree"
+      - "Layout → Paint → DOM → CSSOM → Render tree"
+      - "DOM → CSSOM → Render tree → Layout → Paint"
+    correct: 3
+  - question: "Por que elementos com display:none não entram na render tree?"
+    options:
+      - "Porque o navegador não consegue parsear elementos invisíveis"
+      - "Porque não participam da renderização visual — não têm posição nem pixels"
+      - "Porque são descartados durante o parse do HTML"
+      - "Porque o CSS não é aplicado a eles"
+    correct: 1
+  - question: "Por que transform e opacity são propriedades CSS eficientes para animações?"
+    options:
+      - "Porque afetam apenas a etapa de compositing, sem disparar layout nem paint"
+      - "Porque o navegador as ignora durante o layout"
+      - "Porque são processadas pelo servidor antes de chegar ao cliente"
+      - "Porque o JavaScript não consegue modificá-las"
+    correct: 0
 ---
+
+O navegador recebeu o HTML. A requisição terminou, os bytes chegaram. Mas o trabalho ainda está longe de acabar — aquele texto precisa se tornar uma página visual, e o processo que transforma marcação em pixels é mais estruturado do que parece.
+
+Entender esse pipeline de renderização não é detalhe técnico sem utilidade prática. É o que explica por que certas animações CSS são suaves e outras são entrecortadas, por que JavaScript que parece inocente pode travar a página, e por que algumas propriedades CSS são consideradas "baratas" enquanto outras são "caras". Quando o devtools mostrar um aviso de performance, o contexto para entendê-lo está nesta lição.
+
+## Do HTML ao DOM
+
+Quando o navegador começa a receber os bytes do HTML, ele não espera o documento inteiro chegar antes de começar a trabalhar. Ele parseia o HTML de forma incremental — processando os bytes à medida que chegam pela rede.
+
+À medida que encontra cada tag, o navegador vai construindo o **DOM** — *Document Object Model*. O DOM é uma árvore em memória que representa a estrutura hierárquica do documento. Cada tag HTML vira um **nó** nessa árvore: o `<html>` é a raiz, o `<head>` e o `<body>` são filhos da raiz, os títulos e parágrafos são filhos do `<body>`, e assim por diante.
+
+```html title="HTML que o navegador transforma em árvore DOM."
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <title>artigo.dev — Introdução</title>
+  </head>
+  <body>
+    <header>
+      <h1>Como a web funciona</h1>
+    </header>
+    <main>
+      <p>Tudo começa com uma URL.</p>
+    </main>
+  </body>
+</html>
+```
+
+O DOM resultante é uma árvore de nós relacionados:
+
+```
+html
+├── head
+│   └── title "artigo.dev — Introdução"
+└── body
+    ├── header
+    │   └── h1 "Como a web funciona"
+    └── main
+        └── p "Tudo começa com uma URL."
+```
+
+Essa árvore é o modelo vivo do documento. Quando o JavaScript adiciona um elemento, remove uma classe ou muda o texto de um parágrafo, está modificando o DOM. O navegador observa essas mudanças e as reflete na tela — mas isso tem um custo, que vamos ver mais adiante.
+
+O parse do HTML pode ser interrompido. Se o navegador encontrar uma tag `<script>` sem os atributos `defer` ou `async`, ele **pausa o parse inteiro** até o script terminar de carregar e executar. A razão é que o JavaScript pode modificar o DOM enquanto o parse ainda está em andamento — então o navegador prefere executar o script antes de continuar, para garantir que o DOM esteja no estado que o script espera. Isso é por que colocar scripts no final do `<body>`, ou usar `defer`, é uma prática tão difundida.
+
+## Do CSS ao CSSOM
+
+Enquanto o navegador parseia o HTML, ele também precisa processar o CSS. Cada `<link rel="stylesheet">` no `<head>` dispara uma requisição para buscar o arquivo de estilo. Quando o CSS chega, o navegador o parseia e constrói o **CSSOM** — *CSS Object Model* — uma estrutura análoga ao DOM, mas de regras de estilo.
+
+O CSSOM não é simplesmente uma lista de regras. Ele resolve a cascata e a herança: para cada elemento, o navegador calcula quais regras se aplicam (levando em conta especificidade, ordem de declaração e herança de propriedades), e o CSSOM armazena o resultado — o conjunto de estilos efetivos para cada nó.
+
+```css title="Regras CSS que o navegador processa e organiza no CSSOM."
+body {
+  font-family: "Bricolage Grotesque", sans-serif;
+  color: #0a0a0b;
+}
+
+h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+}
+
+p {
+  line-height: 1.72;
+  max-width: 62ch;
+}
+```
+
+Há uma característica importante do CSS que o distingue do HTML: o **CSS bloqueia a renderização**. O navegador não pinta nada na tela enquanto não termina de processar todo o CSS. A razão é simples — sem saber os estilos, o navegador não consegue calcular o aspecto final dos elementos. Pintar antes e depois reformular causaria um flash de conteúdo sem estilo (*FOUC — Flash of Unstyled Content*), que seria visualmente perturbador.
+
+É por isso que arquivos CSS devem ser referenciados no `<head>`, antes do conteúdo. Colocá-los no final do `<body>` faz o navegador começar a renderizar sem estilos e reformular tudo quando o CSS finalmente chega — exatamente o FOUC que o bloqueio existe para prevenir.
+
+## Render tree, layout e paint
+
+Com o DOM e o CSSOM prontos, o navegador tem as duas metades do que precisa: a estrutura do documento e as regras de apresentação. A próxima etapa é combiná-los.
+
+A **render tree** é essa combinação. O navegador percorre o DOM e, para cada nó visível, consulta o CSSOM para descobrir os estilos calculados. O resultado é uma nova árvore que contém apenas os elementos que vão aparecer na tela, cada um já com seus estilos finais aplicados.
+
+"Apenas os elementos que vão aparecer na tela" é uma distinção importante. Elementos com `display: none` não entram na render tree — eles não ocupam espaço nem são pintados. Já elementos com `visibility: hidden` entram, porque continuam ocupando espaço na página (apenas ficam transparentes). A tag `<head>` e seu conteúdo também não entram — metadados, scripts e estilos não são elementos visuais.
+
+Com a render tree montada, o navegador sabe *o quê* desenhar e *como* estilizar cada coisa — mas ainda não sabe *onde*. É aí que entra o **layout**, também chamado de *reflow*.
+
+O layout é o processo de calcular a posição exata e o tamanho de cada elemento na viewport. O navegador leva em conta as dimensões da janela, as regras de `width`, `height`, `padding`, `margin`, `border`, e os modos de layout (`block`, `inline`, `flexbox`, `grid`). O resultado é um conjunto de caixas retangulares, cada uma com coordenadas precisas em pixels.
+
+O layout é a etapa mais cara do pipeline. Uma mudança em um elemento pode deslocar todos os elementos seguintes — o navegador precisa recalcular a posição de qualquer coisa que possa ter sido afetada. Isso é especialmente problemático quando o JavaScript modifica o DOM repetidamente, forçando vários reflows em sequência.
+
+```js title="Leitura e escrita do DOM em loop — dispara um reflow por iteração."
+const elementos = document.querySelectorAll(".item");
+
+// ❌ lento: cada iteração lê offsetHeight (força reflow) e depois escreve
+for (const el of elementos) {
+  const altura = el.offsetHeight; // força um reflow para calcular
+  el.style.height = altura + 10 + "px"; // invalida o layout calculado
+}
+```
+
+A solução é separar as leituras das escritas: primeiro leia todas as medidas que precisar, depois aplique todas as mudanças. Assim o navegador faz apenas um reflow, não um por iteração.
+
+```js title="Leituras em batch, depois escritas em batch — um único reflow."
+const elementos = document.querySelectorAll(".item");
+
+// ✅ rápido: lê tudo primeiro
+const alturas = Array.from(elementos).map((el) => el.offsetHeight);
+
+// depois escreve tudo
+elementos.forEach((el, i) => {
+  el.style.height = alturas[i] + 10 + "px";
+});
+```
+
+Por último vem o **paint**. Com as posições calculadas, o navegador converte o layout em pixels: desenha texto, aplica cores de fundo, traça bordas, renderiza sombras e exibe imagens. O paint não necessariamente redesenha a página inteira de uma vez — o navegador a divide em **camadas** (*layers*), e cada camada pode ser pintada de forma independente.
+
+Depois de pintar todas as camadas, a etapa final é o **compositing**: combinar as camadas em ordem para produzir a imagem final que aparece na tela. Essa etapa é executada na GPU, o que a torna muito eficiente.
+
+## Onde o JavaScript entra no pipeline
+
+O JavaScript pode intervir em vários pontos do pipeline — às vezes de formas que custam mais do que parecem.
+
+Durante o parse do HTML, uma tag `<script>` sem `defer` ou `async` bloqueia o parser. O navegador para de processar o HTML, executa o script, e só então continua. É o comportamento padrão, e é o motivo pelo qual scripts lentos podem atrasar a exibição da página inteira.
+
+O atributo **`defer`** muda isso: o script é baixado em paralelo com o parse do HTML, mas só executa depois que o documento inteiro foi parseado. É o comportamento mais seguro para a maioria dos scripts, porque o DOM está completo quando o script roda.
+
+O atributo **`async`** também baixa em paralelo, mas executa assim que o download termina — potencialmente no meio do parse do HTML. É útil para scripts que não dependem do DOM nem de outros scripts (como analytics), mas a ordem de execução não é garantida.
+
+```html title="Três formas de incluir um script — com comportamentos de carregamento diferentes."
+<!-- bloqueia o parse até o script carregar e executar -->
+<script src="bloqueia.js"></script>
+
+<!-- baixa em paralelo; executa após o parse completo do HTML -->
+<script src="seguro.js" defer></script>
+
+<!-- baixa em paralelo; executa assim que termina o download -->
+<script src="independente.js" async></script>
+```
+
+Depois que a página carrega, o JavaScript pode modificar o DOM a qualquer momento. Cada modificação marca partes da render tree como "sujas" e invalida o layout correspondente. Antes do próximo frame ser pintado na tela, o navegador precisa recalcular o que mudou.
+
+Propriedades CSS que afetam apenas o compositing — como `transform` e `opacity` — são a exceção. Quando você anima um elemento com `transform: translateX(100px)`, o navegador não precisa refazer o layout nem repintar — ele simplesmente move a camada já pintada durante o compositing. Por isso animações feitas com `transform` e `opacity` rodam suavemente mesmo em páginas complexas, enquanto animações que mudam `width`, `height` ou `top` podem causar jank — frames saltados por excesso de trabalho de layout.
+
+## Resumo
+
+- O HTML é parseado incrementalmente em uma árvore chamada DOM; cada tag vira um nó nessa árvore.
+- O CSS é parseado em paralelo e produz o CSSOM, que armazena os estilos calculados para cada elemento; o CSS bloqueia a renderização até estar completo.
+- DOM e CSSOM se combinam em uma render tree, que contém apenas elementos visíveis com seus estilos aplicados.
+- O layout (reflow) calcula a posição e o tamanho de cada elemento; é a etapa mais cara e pode ser disparado repetidamente por JavaScript que alterna leituras e escritas no DOM.
+- O paint converte o layout em pixels por camadas; o compositing combina as camadas na GPU — é onde `transform` e `opacity` operam, sem custo de layout ou paint.
+- Scripts sem `defer` ou `async` bloqueiam o parse do HTML; `defer` é a opção mais segura para scripts que dependem do DOM.

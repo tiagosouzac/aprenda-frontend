@@ -1,6 +1,238 @@
 ---
 title: "Compartilhando estado entre componentes"
 description: "Lifting state up, prop drilling, quando passar callbacks para baixo. Sinais de que o estado está no lugar errado."
-comingSoon: true
 order: 11
+hero:
+  titleBefore: "Compartilhando"
+  titleAccent: "estado"
+  titleAfter: "entre componentes."
+quiz:
+  - question: "O que significa 'lifting state up' em React?"
+    options:
+      - "Mover o estado para o componente pai mais próximo que precisa compartilhá-lo com dois ou mais filhos. O pai gerencia o estado e distribui para os filhos via props"
+      - "Usar um gerenciador de estado global como Redux"
+      - "Usar localStorage para compartilhar estado"
+      - "Duplicar o estado em cada componente que precisa dele"
+    correct: 0
+  - question: "O que é prop drilling e quando começa a ser problemático?"
+    options:
+      - "Prop drilling é quando você passa props diretamente de pai para filho — sempre problemático"
+      - "Prop drilling só acontece com arrays"
+      - "Prop drilling é passar props por componentes intermediários que não usam o valor — apenas repassam. É aceitável em 2–3 níveis. Começa a ser problemático quando muitos componentes precisam repassar props que não os dizem respeito, tornando o código frágil a mudanças"
+      - "Prop drilling é um padrão recomendado para qualquer profundidade"
+    correct: 2
+  - question: "Como um componente filho comunica eventos ao seu pai em React?"
+    options:
+      - "Mutando diretamente a prop recebida"
+      - "Usando uma variável global"
+      - "Chamando um método no componente pai via ref"
+      - "Via callback passado como prop pelo pai. O filho chama a função com os dados relevantes — o pai decide o que fazer. Dados descem via props, eventos sobem via callbacks"
+    correct: 3
+  - question: "Quais são os sinais de que o estado está no lugar errado na árvore?"
+    options:
+      - "O componente tem mais de um useState"
+      - "Props passando por vários níveis sem uso intermediário, ou dois componentes distantes na árvore precisando do mesmo valor sem um ancestral comum razoável. Ambos indicam que o estado deve subir ou usar Context"
+      - "O estado é um objeto em vez de um primitivo"
+      - "O componente tem muitos filhos"
+    correct: 1
 ---
+
+Props fluem de pai para filho — é o modelo fundamental do React. Mas quando dois ou mais componentes precisam do mesmo estado, é preciso posicioná-lo no **ancestral comum mais próximo** e distribuí-lo para baixo via props. Essa técnica se chama *lifting state up*. Entender quando e como movimentar estado é uma das habilidades centrais de arquitetura em React.
+
+## Lifting state up
+
+Imagine que o `LikeButton` precisa saber se o artigo está curtido, e o `ArticleCard` precisa exibir o número de curtidas — ambos dependem do mesmo estado. Se cada um gerencia o próprio estado, eles ficam fora de sincronia.
+
+A solução: elevar o estado para o `ArticleCard`, que é o pai comum de ambos:
+
+```tsx title="Antes — estado duplicado, componentes fora de sincronia."
+// ❌ cada componente gerencia o próprio estado — dessincronizados
+function LikeButton({ artigoId }: { artigoId: number }) {
+  const [curtido, setCurtido] = useState(false); // estado local
+  return <button onClick={() => setCurtido(p => !p)}>{curtido ? "❤️" : "🤍"}</button>;
+}
+
+function ArticleCard({ artigo }: { artigo: Artigo }) {
+  const [curtidas, setCurtidas] = useState(artigo.curtidas); // estado duplicado
+  return (
+    <article>
+      <h2>{artigo.titulo}</h2>
+      <span>{curtidas} curtidas</span>
+      <LikeButton artigoId={artigo.id} />
+      {/* LikeButton e o span nunca ficam sincronizados */}
+    </article>
+  );
+}
+```
+
+```tsx title="Depois — estado elevado para o pai comum."
+// ✅ estado no pai — distribuído para os filhos via props
+function ArticleCard({ artigo }: { artigo: Artigo }) {
+  const [curtido, setCurtido] = useState(false);
+  const [curtidas, setCurtidas] = useState(artigo.curtidas);
+
+  function handleCurtir() {
+    setCurtido(prev => !prev);
+    setCurtidas(prev => curtido ? prev - 1 : prev + 1);
+  }
+
+  return (
+    <article>
+      <h2>{artigo.titulo}</h2>
+      <span>{curtidas} curtidas</span>
+      {/* LikeButton recebe estado e callback do pai */}
+      <LikeButton curtido={curtido} onCurtir={handleCurtir} />
+    </article>
+  );
+}
+
+// LikeButton — sem estado próprio, controlado pelo pai
+function LikeButton({ curtido, onCurtir }: { curtido: boolean; onCurtir: () => void }) {
+  return (
+    <button aria-pressed={curtido} onClick={onCurtir}>
+      {curtido ? "❤️ Curtido" : "🤍 Curtir"}
+    </button>
+  );
+}
+```
+
+O `LikeButton` agora é um **componente controlado** — não tem estado próprio, depende inteiramente das props que recebe. Isso torna o `LikeButton` mais simples e testável — ele só renderiza o que o pai diz.
+
+## Callbacks como props
+
+Dados descem, eventos sobem. Para que um filho avise o pai de algo, o pai passa uma **função como prop**:
+
+```tsx title="Callbacks — filho avisa pai via função passada como prop."
+interface ArticleCardProps {
+  artigo: Artigo;
+  curtido: boolean;
+  onCurtir: (id: number) => void;   // callback tipado
+}
+
+export function ArticleCard({ artigo, curtido, onCurtir }: ArticleCardProps) {
+  return (
+    <article>
+      <h2>{artigo.titulo}</h2>
+      <LikeButton
+        curtido={curtido}
+        onCurtir={() => onCurtir(artigo.id)}  // repassa o callback com o id
+      />
+    </article>
+  );
+}
+
+// pai — gerencia o estado da lista de curtidos
+export function ArticleList({ artigos }: { artigos: Artigo[] }) {
+  const [curtidos, setCurtidos] = useState<Set<number>>(new Set());
+
+  function handleCurtir(id: number) {
+    setCurtidos(prev => {
+      const novos = new Set(prev);
+      if (novos.has(id)) {
+        novos.delete(id);
+      } else {
+        novos.add(id);
+      }
+      return novos;
+    });
+  }
+
+  return (
+    <section>
+      {artigos.map(artigo => (
+        <ArticleCard
+          key={artigo.id}
+          artigo={artigo}
+          curtido={curtidos.has(artigo.id)}
+          onCurtir={handleCurtir}
+        />
+      ))}
+    </section>
+  );
+}
+```
+
+O padrão se repete na prática inteira do React: **estado no pai, eventos no filho, callback como ponte**.
+
+## Prop drilling
+
+Quando o estado elevado precisa chegar a componentes que estão vários níveis abaixo, ele passa por componentes intermediários que apenas o repassam — sem usá-lo. Isso se chama **prop drilling**:
+
+```tsx title="Prop drilling — tema passando por níveis intermediários."
+// App gerencia o tema
+function App() {
+  const [tema, setTema] = useState<"claro" | "escuro">("claro");
+
+  return <Header tema={tema} onAlternarTema={() => setTema(p => p === "claro" ? "escuro" : "claro")} />;
+}
+
+// Header repassa — não usa tema diretamente
+function Header({ tema, onAlternarTema }: HeaderProps) {
+  return (
+    <header>
+      <Logo />
+      <Nav tema={tema} onAlternarTema={onAlternarTema} />  {/* repassa */}
+    </header>
+  );
+}
+
+// Nav também só repassa
+function Nav({ tema, onAlternarTema }: NavProps) {
+  return (
+    <nav>
+      <NavLinks />
+      <ThemeToggle tema={tema} onAlternarTema={onAlternarTema} />  {/* repassa */}
+    </nav>
+  );
+}
+
+// ThemeToggle finalmente usa
+function ThemeToggle({ tema, onAlternarTema }: ThemeToggleProps) {
+  return (
+    <button onClick={onAlternarTema}>
+      {tema === "claro" ? "🌙 Escuro" : "☀️ Claro"}
+    </button>
+  );
+}
+```
+
+`Header` e `Nav` não usam `tema` para nada próprio — apenas repassam para o próximo nível. Em 2–3 níveis, é aceitável. Em 4+, cada mudança na interface de `tema` exige alterar múltiplos componentes intermediários — o código fica frágil.
+
+## Quando o estado está no lugar errado
+
+Dois sinais de que o estado precisa ser movido:
+
+**Sinal 1 — props passando por muitos níveis sem uso intermediário.** Como no exemplo de `tema` acima: `App → Header → Nav → ThemeToggle`. `Header` e `Nav` não usam `tema` — são condutos. Isso sugere Context.
+
+**Sinal 2 — dois componentes distantes na árvore precisam do mesmo valor.** Se `ArticleList` e `ArticleCount` (em lugares diferentes da página) ambos precisam de `curtidos`, o estado precisa de um ancestral comum — que pode estar longe ou ser o `App` inteiro. Nesse caso, Context é a solução.
+
+```tsx title="Identificando o lugar certo para o estado."
+// estado de busca — local, só HomePage usa
+function HomePage() {
+  const [query, setQuery] = useState("");
+
+  return (
+    <>
+      <SearchInput value={query} onChange={setQuery} />
+      <ArticleList artigos={artigos} query={query} />
+    </>
+  );
+}
+
+// estado de curtidos — precisa estar no nível de App
+// porque tanto HomePage quanto ArticlePage podem curtir artigos
+function App() {
+  const [curtidos, setCurtidos] = useState<Set<number>>(new Set());
+  // ...distribui curtidos e handleCurtir para as páginas
+}
+```
+
+A regra: o estado deve viver **no nível mais baixo possível** que ainda consiga compartilhá-lo com todos que precisam. Não mais alto do que necessário — isso força prop drilling. Não mais baixo do que necessário — isso força duplicação.
+
+## Resumo
+
+- **Lifting state up**: quando dois componentes precisam do mesmo estado, mova-o para o ancestral comum mais próximo. O pai gerencia, filhos consomem.
+- **Componentes controlados**: sem estado próprio, governados inteiramente pelas props recebidas. Mais simples e testáveis.
+- **Callbacks como props**: dados descem via props, eventos sobem via callbacks. O filho chama a função, o pai decide o que fazer.
+- **Prop drilling**: props passando por intermediários que não as usam. Aceitável em 2–3 níveis; em 4+, considere Context.
+- **Estado no lugar certo**: o mais baixo possível que permita o compartilhamento necessário. Dois sinais de que está no lugar errado: drilling em vários níveis ou dois componentes distantes precisando do mesmo valor.

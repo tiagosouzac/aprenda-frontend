@@ -1,6 +1,101 @@
 ---
 title: "Recapitulando"
 description: "Mapa do que foi coberto no curso e do que essa base permite construir agora. Como cada módulo se conecta ao próximo passo."
-comingSoon: true
 order: 1
+hero:
+  titleBefore: "Do começo"
+  titleAccent: "ao React"
+  titleAfter: "— o que você construiu."
+quiz:
+  - question: "O que o conhecimento de HTML, CSS e JavaScript juntos permite fazer que cada um separado não permite?"
+    options:
+      - "Criar bancos de dados relacionais"
+      - "Publicar aplicativos em lojas de aplicativo"
+      - "Construir qualquer interface web do zero — estrutura (HTML), aparência (CSS) e comportamento (JS) são as três camadas de qualquer site. Juntos, você pode reproduzir a UI de qualquer produto que abre no browser"
+      - "Criar APIs REST"
+    correct: 2
+  - question: "Por que TypeScript foi introduzido depois de JavaScript no curso, e não antes?"
+    options:
+      - "TypeScript é mais difícil e requer mais experiência"
+      - "TypeScript e JavaScript são linguagens independentes"
+      - "TypeScript só é útil com React"
+      - "TypeScript é uma camada sobre JavaScript — para entender o que TypeScript adiciona (tipos, interfaces, generics), é preciso conhecer o JavaScript que ele está tipando. A ordem mostra o problema antes da solução"
+    correct: 3
+  - question: "O que o curso não cobriu e que faz parte do desenvolvimento web real?"
+    options:
+      - "Como usar o browser"
+      - "Roteamento entre páginas em React, renderização no servidor (SSR/SSG), comunicação com banco de dados, deploy automatizado, autenticação e autorização"
+      - "Como escrever HTML, CSS e JavaScript"
+      - "Como usar o devtools do browser"
+    correct: 1
 ---
+
+Você abriu o curso com uma pergunta — o que acontece quando você digita uma URL e pressiona Enter? — e terminou com um blog em React com TypeScript, testes automatizados e deploy na web. Sete módulos depois, cada camada daquele momento inicial faz sentido: a requisição DNS, o HTML que o servidor devolveu, o CSS que o browser aplicou, o JavaScript que tornou a página interativa, o TypeScript que detectou erros antes de rodar, o React que declarou a UI em função do estado, e os testes que garantem que tudo isso continua funcionando.
+
+Este módulo é diferente dos anteriores — menos tutorial, mais mapa. O objetivo não é ensinar uma tecnologia nova, mas mostrar o horizonte: o que existe além do que foi visto, por onde começar, e como decidir o que aprender a seguir.
+
+## O que foi construído
+
+O blog cresceu módulo a módulo. O produto final foi o mesmo desde o começo — mas a camada de tecnologia mudou com cada módulo:
+
+```
+HTML puro
+  → estrutura semântica: article, section, nav, header, footer
+
++ CSS
+  → estilo: layout com Flexbox e Grid, responsividade, tema claro/escuro
+
++ JavaScript
+  → comportamento: curtidas, busca por tag, artigos do JSON, localStorage
+
++ TypeScript
+  → tipos: interfaces Artigo e Autor, erros detectados antes de rodar
+
++ React
+  → componentes: ArticleCard, LikeButton, ThemeToggle, Context de tema
+
++ Testes
+  → confiança: unitários para utils, componentes com Testing Library, E2E com Playwright
+```
+
+Cada camada não substituiu a anterior — adicionou. O React usa HTML e CSS. O TypeScript é JavaScript com tipos. Os testes verificam o comportamento construído nas camadas anteriores. É a mesma pilha que qualquer aplicação web moderna usa.
+
+## O que cada módulo permite fazer agora
+
+**Como a web funciona** — você consegue ler um erro 404, entender por que uma página demora a carregar (ver o tamanho do bundle no devtools), debugar uma requisição de rede no painel Network, e explicar por que HTTPS importa.
+
+**HTML** — você consegue estruturar qualquer conteúdo de forma semântica e acessível. Leitores de tela conseguem navegar pelas suas páginas porque os elementos têm os papéis corretos.
+
+**CSS** — você consegue criar layouts responsivos com Flexbox e Grid, implementar temas com variáveis CSS, e raciocinar sobre especificidade e cascata sem adivinhar por que um estilo está sobrescrevendo o outro.
+
+**JavaScript** — você consegue manipular o DOM, consumir uma API com `fetch` e `async/await`, organizar código em módulos e trabalhar com arrays e objetos de forma funcional.
+
+**TypeScript** — você consegue tipar dados de uma API, definir contratos entre componentes com interfaces, e usar generics quando necessário. Mais importante: o TypeScript avisa sobre erros antes de você descobrir no browser.
+
+**React** — você consegue construir UIs declarativas com componentes reutilizáveis, gerenciar estado com `useState`, comunicar entre componentes via props e Context, e buscar dados com `useEffect` e `fetch`.
+
+**Testes** — você consegue escrever testes unitários para funções puras, testar componentes React com Testing Library, e verificar fluxos completos com Playwright. Mudar código sem medo.
+
+## O que ainda não foi visto
+
+Este curso cobriu os fundamentos — o vocabulário e a base conceitual. O desenvolvimento web real envolve mais camadas que este mapa ainda não tocou:
+
+**Roteamento em React.** O blog tem uma página. Aplicações reais têm dezenas. Como fazer `/artigos/css-grid` carregar o artigo correto sem recarregar a página? React puro não tem roteamento — isso é responsabilidade de um framework ou de uma biblioteca como React Router.
+
+**Renderização no servidor.** O blog React é uma SPA (Single Page Application) — o servidor entrega um HTML quase vazio, e o JavaScript monta a página no browser. Isso é ruim para SEO (robôs de busca veem pouco conteúdo) e para a percepção de velocidade (primeiro paint lento). SSR (Server-Side Rendering) e SSG (Static Site Generation) resolvem isso.
+
+**Backend e banco de dados.** Os artigos estão num `artigos.json`. Em produção, viriam de um banco de dados — alguém precisa escrever a API que serve esses dados, garantir autenticação, e gerenciar o banco.
+
+**Deploy e CI/CD.** O blog existe na sua máquina. Para que qualquer pessoa acesse, precisa de um servidor, um domínio, e um processo automático que publica cada mudança.
+
+As próximas lições deste módulo são um mapa dessas fronteiras — não tutoriais completos, mas orientação suficiente para saber por onde começar e o que procurar.
+
+## Resumo
+
+- O curso cobriu a pilha completa de frontend moderno: HTML → CSS → JavaScript → TypeScript → React → Testes.
+- Cada módulo adicionou uma camada sobre as anteriores — o produto final é o mesmo blog, com mais capacidade de mudança segura.
+- O que cada módulo habilita: estruturar, estilizar, comportamento, tipos, componentes, confiança.
+- O que ainda está por vir: roteamento, SSR/SSG, backend, deploy automatizado, autenticação.
+- Este módulo é um mapa do horizonte — não um tutorial de cada tecnologia, mas orientação de onde aprofundar.
+
+As próximas aulas percorrem cada área com recomendações concretas: frameworks, estilização avançada, backend, ferramentas de build, deploy e carreira.

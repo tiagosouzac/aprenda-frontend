@@ -1,6 +1,247 @@
 ---
 title: "Seletores"
-description: "Por tag, classe, id, atributo, descendente, filho, irmão. Pseudo-classes (:hover, :focus, :nth-child) e pseudo-elementos (::before, ::after)."
-comingSoon: true
+description: "Como apontar para os elementos certos: por tag, classe, id, atributo, relação entre elementos. Pseudo-classes e pseudo-elementos."
 order: 2
+hero:
+  titleBefore: "Seletores:"
+  titleAccent: "apontar"
+  titleAfter: "para o elemento certo."
+quiz:
+  - question: "Qual seletor aplica estilo a todos os parágrafos dentro de um elemento nav, em qualquer profundidade?"
+    options:
+      - "nav p"
+      - "nav > p"
+      - "nav + p"
+      - "nav ~ p"
+    correct: 0
+  - question: "O que faz o seletor [href^='https']?"
+    options:
+      - "Seleciona links cujo href termina com 'https'"
+      - "Seleciona links cujo href contém a palavra 'https'"
+      - "Seleciona links cujo href começa com 'https'"
+      - "Seleciona todos os links externos"
+    correct: 2
+  - question: "Qual é a diferença entre :first-child e :first-of-type?"
+    options:
+      - "Não há diferença — são sinônimos"
+      - ":first-child funciona apenas com parágrafos; :first-of-type com qualquer elemento"
+      - ":first-child é mais específico que :first-of-type"
+      - ":first-child seleciona o primeiro filho de qualquer tipo; :first-of-type seleciona o primeiro do mesmo tipo de tag"
+    correct: 3
+  - question: "O que os pseudo-elementos ::before e ::after precisam obrigatoriamente para renderizar?"
+    options:
+      - "Um id no elemento pai"
+      - "A propriedade content, mesmo que vazia"
+      - "A propriedade display: block"
+      - "Um position: relative no elemento pai"
+    correct: 1
 ---
+
+O CSS que você escreveu na lição anterior usa seletores de tag — `h1`, `body`, `*`. Eles funcionam, mas são grosseiros demais para um projeto real. Se você escrever `p { color: gray }`, todos os parágrafos ficam cinza — o do título, o do rodapé, o da navegação. Para controlar a aparência com precisão, você precisa de seletores mais específicos: por classe, por relação entre elementos, por estado de interação.
+
+Esta lição cobre o repertório completo de seletores que você vai usar no dia a dia.
+
+## Seletores básicos
+
+O seletor de **tag** seleciona todos os elementos daquele tipo no documento. `p` afeta todos os parágrafos, `h2` afeta todos os títulos de segundo nível. É o seletor mais simples e o de menor especificidade — o que significa que é fácil de sobrescrever quando necessário.
+
+O seletor de **classe** usa um ponto como prefixo: `.artigo-meta`. Seleciona qualquer elemento que tenha aquela classe no atributo `class`. A mesma classe pode aparecer em múltiplos elementos, e o mesmo elemento pode ter múltiplas classes. É o seletor mais comum na prática — baixa especificidade, alto reuso.
+
+O seletor de **id** usa um `#` como prefixo: `#conteudo-principal`. Seleciona o elemento com aquele `id` único na página. A especificidade do id é muito mais alta que a de uma classe — isso torna sobrescritas mais difíceis e é um dos motivos pelos quais muitos projetos evitam ids em CSS, reservando-os para JavaScript.
+
+O seletor **universal** `*` seleciona todos os elementos. Você já o viu no reset `* { box-sizing: border-box }`. Combinado com outros seletores, como `section *`, seleciona todos os descendentes de `section`. Use com parcimônia em seletores complexos — o navegador avalia cada elemento da página.
+
+```css title="Seletores básicos aplicados ao artigo.html — tag, classe, id e universal."
+/* seletor de tag — todos os parágrafos */
+p {
+  line-height: 1.72;
+}
+
+/* seletor de classe — qualquer elemento com essa classe */
+.artigo-meta {
+  font-size: 0.875rem;
+  color: #6b6b72;
+}
+
+/* seletor de id — o elemento único com esse id */
+#conteudo-principal {
+  max-width: 720px;
+}
+
+/* múltiplos seletores — mesma regra para h1, h2 e h3 */
+h1,
+h2,
+h3 {
+  font-weight: 700;
+  line-height: 1.2;
+}
+```
+
+## Seletores de atributo
+
+Elementos HTML têm atributos — `href`, `type`, `required`, `data-*`. Os seletores de atributo permitem selecionar elementos baseado na presença ou no valor desses atributos.
+
+`[required]` seleciona qualquer elemento que tenha o atributo `required`, independente do valor. Útil para estilizar campos obrigatórios de formulário sem precisar de uma classe.
+
+`[type="email"]` seleciona apenas elementos cujo `type` seja exatamente `email`. Isso permite diferenciar visualmente `<input type="text">` de `<input type="email">` sem nenhuma classe extra.
+
+`[href^="https"]` seleciona elementos cujo `href` **começa** com `https`. O `^=` é o operador "começa com". Analogamente, `$=` é "termina com" e `*=` é "contém".
+
+```css title="Seletores de atributo — diferenciando links externos de internos por href."
+/* estiliza todos os campos obrigatórios do formulário */
+input[required],
+textarea[required],
+select[required] {
+  border-left: 3px solid #2563eb;
+}
+
+/* links externos têm ícone indicando que abrem em outra aba */
+a[href^="https"][target="_blank"]::after {
+  content: " ↗";
+  font-size: 0.75em;
+}
+
+/* links para PDF recebem indicação do tipo de arquivo */
+a[href$=".pdf"]::after {
+  content: " (PDF)";
+  font-size: 0.75em;
+  color: #6b6b72;
+}
+```
+
+Note o seletor `a[href^="https"][target="_blank"]` — dois seletores de atributo encadeados. Isso seleciona apenas links que começam com `https` **e** têm `target="_blank"`, ou seja, links externos seguros. É mais preciso do que selecionar todos os links externos.
+
+## Combinadores
+
+Combinadores definem a relação entre dois seletores. Em vez de selecionar um elemento por sua própria identidade, você seleciona por sua posição em relação a outro elemento.
+
+O combinador **descendente** é um espaço: `nav a` seleciona qualquer `a` dentro de `nav`, em qualquer profundidade — filho direto, neto, bisneto. É o combinador mais usado e o mais permissivo.
+
+O combinador de **filho direto** é `>`: `nav > a` seleciona apenas os `a` que são filhos imediatos de `nav`. Um `a` dentro de um `<li>` dentro do `nav` não seria selecionado. Use quando você precisa de precisão e não quer que a regra vaze para elementos mais profundos.
+
+O combinador de **irmão adjacente** é `+`: `h2 + p` seleciona o `p` que está imediatamente após um `h2`, no mesmo nível. Se houver outro elemento entre eles, o seletor não casa. Muito útil para dar ao primeiro parágrafo de uma seção um estilo diferente dos demais.
+
+O combinador de **irmão geral** é `~`: `h2 ~ p` seleciona todos os `p` que são irmãos de `h2` e aparecem depois dele no HTML. Mais permissivo que o adjacente.
+
+```css title="Combinadores no artigo.html — descendente, filho direto e irmão adjacente."
+/* qualquer link dentro da nav, em qualquer profundidade */
+nav a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* apenas links que são filhos diretos da nav — não links dentro de listas */
+nav > a {
+  font-weight: 600;
+}
+
+/* primeiro parágrafo após cada h2 — texto de introdução da seção */
+h2 + p {
+  font-size: 1.0625rem;
+  color: #3a3a3f;
+}
+
+/* todos os parágrafos irmãos do h2 (depois dele) — corpo da seção */
+h2 ~ p {
+  margin-top: 0.75rem;
+}
+```
+
+## Pseudo-classes
+
+Pseudo-classes selecionam elementos baseado em **estado** ou **posição**, não em atributos ou classes declaradas no HTML. Elas são prefixadas com `:`.
+
+As pseudo-classes de **interação** respondem ao comportamento do usuário: `:hover` quando o ponteiro está sobre o elemento, `:focus` quando o elemento tem foco (via teclado ou clique), `:active` no momento do clique. São fundamentais para feedback visual em links e botões.
+
+As pseudo-classes **estruturais** selecionam por posição na árvore do DOM: `:first-child` seleciona o elemento que é o primeiro filho do seu pai, `:last-child` o último, `:nth-child(n)` o de posição `n`. A notação `nth-child` aceita fórmulas: `odd` para ímpares, `even` para pares, `3n` para múltiplos de três, `3n+1` para o primeiro de cada grupo de três.
+
+`:not(seletor)` inverte a seleção — `a:not([href^="https"])` seleciona links que não começam com `https`. `:is(a, b, c)` é uma forma compacta de agrupar seletores com a mesma especificidade. `:where(a, b, c)` faz o mesmo mas com especificidade zero — útil em resets.
+
+Para formulários, `:valid` e `:invalid` respondem à validação nativa do navegador, `:required` seleciona campos obrigatórios, `:disabled` campos desabilitados.
+
+```css title="Pseudo-classes de interação e estruturais no artigo."
+/* feedback visual ao passar o mouse nos links da nav */
+nav a:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+/* foco visível para navegação por teclado — nunca remova sem alternativa */
+a:focus,
+button:focus,
+input:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* primeiro item de cada lista no artigo — sem margem superior */
+li:first-child {
+  margin-top: 0;
+}
+
+/* linhas ímpares de uma lista destacadas */
+li:nth-child(odd) {
+  background-color: #f4f2ed;
+}
+
+/* todos os links exceto os externos */
+a:not([href^="https"]):not([href^="http"]) {
+  color: inherit;
+}
+
+/* campos de formulário inválidos após interação do usuário */
+input:invalid:not(:focus) {
+  border-color: #dc2626;
+}
+```
+
+## Pseudo-elementos
+
+Pseudo-elementos selecionam **partes** de um elemento ou inserem conteúdo virtual. Eles são prefixados com `::` (embora a sintaxe antiga com `:` ainda funcione por compatibilidade).
+
+`::before` e `::after` são os mais usados. Eles inserem um elemento virtual antes ou depois do conteúdo do elemento selecionado. Eles precisam obrigatoriamente da propriedade `content` para aparecer na página — mesmo que o valor seja uma string vazia `content: ""`. Isso porque sem `content`, o pseudo-elemento simplesmente não é renderizado.
+
+`::placeholder` estiliza o texto de placeholder de inputs — cor, tamanho, estilo. `::selection` estiliza o texto selecionado pelo usuário — você pode mudar a cor de fundo e a cor do texto da seleção.
+
+`::first-line` aplica estilo apenas à primeira linha visível de um bloco de texto, independente de quantos caracteres ela tenha — o navegador recalcula quando a viewport muda. `::marker` estiliza o marcador de itens de lista — o bullet ou o número.
+
+```css title="Pseudo-elementos no artigo — ícone em blockquote e personalização de seleção."
+/* ícone de aspas antes de blockquotes — sem markup extra no HTML */
+blockquote::before {
+  content: "\201C"; /* aspas tipográficas abertas */
+  font-size: 3rem;
+  color: #2563eb;
+  line-height: 0;
+  vertical-align: -0.5em;
+  margin-right: 0.125rem;
+}
+
+/* personalizar o marcador das listas do artigo */
+li::marker {
+  color: #2563eb;
+  font-size: 1.2em;
+}
+
+/* cor de seleção do blog */
+::selection {
+  background-color: #dbeafe;
+  color: #0a0a0b;
+}
+
+/* placeholder dos campos de formulário */
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af;
+  font-style: italic;
+}
+```
+
+O poder de `::before` e `::after` vai além de inserir texto. Com `content: ""` e usando `display: block` ou `position: absolute`, você pode criar formas geométricas, linhas decorativas e efeitos visuais sem adicionar markup ao HTML. O elemento visual existe apenas no CSS.
+
+## Resumo
+
+- Seletores de **tag** afetam todos os elementos daquele tipo; de **classe** (`.nome`) são os mais usados — reusáveis e com especificidade moderada; de **id** (`#nome`) são únicos e têm alta especificidade, use com parcimônia em CSS.
+- **Seletores de atributo** (`[attr]`, `[attr="val"]`, `[attr^="val"]`, `[attr$="val"]`) permitem selecionar por valor de atributo sem classes extras — ótimos para formulários e links.
+- **Combinadores** definem relações: espaço (descendente), `>` (filho direto), `+` (irmão adjacente), `~` (irmão geral). O irmão adjacente `h2 + p` é especialmente útil para estilizar o primeiro parágrafo de cada seção.
+- **Pseudo-classes** (`:hover`, `:focus`, `:nth-child`, `:not`) selecionam por estado ou posição — sem precisar adicionar classes ao HTML.
+- **Pseudo-elementos** (`::before`, `::after`, `::placeholder`, `::selection`, `::marker`) selecionam partes de elementos ou inserem conteúdo virtual; `::before` e `::after` precisam de `content` para aparecer.

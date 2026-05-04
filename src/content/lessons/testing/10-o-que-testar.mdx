@@ -1,6 +1,207 @@
 ---
 title: "O que testar e o que não testar"
-description: "Foco em comportamento, não implementação. Sinais de teste frágil. Cobertura como guia, não meta."
-comingSoon: true
+description: "Foco em comportamento, não implementação. Sinais de teste frágil. Cobertura como guia, não como meta."
 order: 10
+hero:
+  titleBefore: "O que"
+  titleAccent: "testar"
+  titleAfter: "— e o que não."
+quiz:
+  - question: "O que significa testar comportamento em vez de implementação?"
+    options:
+      - "Testar apenas a UI visível, não o JavaScript interno"
+      - "Verificar o que o sistema faz do ponto de vista do usuário ou do chamador — 'clicar curtir incrementa o contador' — não como ele faz internamente — 'useState foi chamado com o valor correto'. Se a implementação muda mas o comportamento é o mesmo, o teste não deve quebrar"
+      - "Usar apenas testes E2E, que testam o comportamento real"
+      - "Não testar funções internas, apenas APIs públicas"
+    correct: 1
+  - question: "Qual é o sinal mais claro de um teste frágil?"
+    options:
+      - "Renomear uma variável de estado, extrair uma função auxiliar ou mover um componente para outra pasta quebra o teste — mesmo que o comportamento público seja idêntico. O teste está testando a estrutura do código, não o comportamento"
+      - "O teste leva mais de 1 segundo para rodar"
+      - "O teste usa async/await"
+      - "O teste tem mais de 10 linhas"
+    correct: 0
+  - question: "Por que 100% de cobertura de código não garante que o software funciona corretamente?"
+    options:
+      - "Porque ferramentas de cobertura têm bugs"
+      - "Porque cobertura só funciona com testes unitários"
+      - "Cobertura mede quais linhas foram executadas — não quantos cenários foram verificados. Uma linha pode ser executada por um teste que não verifica seu resultado. Você pode ter 100% de cobertura com testes que não fazem nenhuma asserção real"
+      - "Porque 100% é impossível na prática"
+    correct: 2
+  - question: "O que NÃO precisa de teste automatizado?"
+    options:
+      - "Funções que formatam dados"
+      - "Componentes React com estado"
+      - "Fluxos de formulário"
+      - "Configuração de bibliotecas (como o setup do Vitest), código gerado automaticamente, tipos TypeScript puros (sem lógica), e código tão simples que o teste seria mais complexo que o código testado"
+    correct: 3
 ---
+
+Escrever testes não é uma obrigação a ser cumprida mecanicamente. É uma ferramenta que serve a um objetivo: confiança para mudar código. Quando você escreve testes que testam a implementação em vez do comportamento, ou que quebram a cada refactor, a ferramenta trabalha contra você. Esta lição é sobre como distinguir testes que valem o investimento dos que não valem.
+
+## Testar comportamento, não implementação
+
+A distinção mais importante em testes:
+
+**Teste de implementação**: verifica como o código funciona internamente — nomes de variáveis, estrutura de componentes, quais hooks são usados, em que ordem funções são chamadas.
+
+**Teste de comportamento**: verifica o que o sistema faz do ponto de vista de quem o usa — o usuário clica no botão e o contador incrementa.
+
+```tsx title="Implementação vs. comportamento — o mesmo cenário, dois enfoques."
+// ❌ teste de implementação — verifica o estado interno
+it("useState é chamado com false inicialmente", () => {
+  const useStateSpy = vi.spyOn(React, "useState");
+  render(<LikeButton curtido={false} onCurtir={() => {}} contagem={5} />);
+  expect(useStateSpy).toHaveBeenCalledWith(false);
+});
+// Se o LikeButton for refatorado para não usar useState (estado vem só de props),
+// este teste quebra — mas o comportamento público é idêntico
+
+// ✅ teste de comportamento — verifica o que o usuário vê
+it("exibe ❤️ quando curtido e 🤍 quando não curtido", () => {
+  const { rerender } = render(
+    <LikeButton curtido={false} onCurtir={() => {}} contagem={5} />
+  );
+  expect(screen.getByRole("button")).toHaveTextContent("🤍");
+
+  rerender(<LikeButton curtido={true} onCurtir={() => {}} contagem={6} />);
+  expect(screen.getByRole("button")).toHaveTextContent("❤️");
+});
+// Se a implementação interna mudar, este teste continua válido
+```
+
+A regra prática: **se renomear uma variável de estado ou extrair uma função auxiliar quebrar o teste, o teste está testando implementação**.
+
+## Sinais de teste frágil
+
+Um teste frágil quebra com frequência por razões que não indicam um bug real:
+
+**Sinal 1 — seletores de CSS interno.** Testes que encontram elementos por classes CSS internas quebram quando você refatora o estilo:
+
+```tsx title="Seletor CSS vs. papel de acessibilidade."
+// ❌ frágil — quebra se você renomear a classe
+screen.getByTestId("botao-curtir");
+document.querySelector(".botao-curtir--ativo");
+
+// ✅ robusto — o papel e o nome acessível raramente mudam
+screen.getByRole("button", { name: /curtir/i });
+```
+
+**Sinal 2 — verificar detalhes de renderização irrelevantes.** Testar que o HTML tem uma estrutura específica de `<div>` dentro de `<span>` dentro de `<article>` — em vez de que o conteúdo certo aparece no lugar certo.
+
+**Sinal 3 — muitos mocks.** Quando um teste substitui tantas dependências que pouca coisa real está sendo testada:
+
+```ts title="Excesso de mocks — o que está sendo testado aqui?"
+// ❌ tudo está mockado — o teste verifica apenas que os mocks são chamados
+vi.mock("./useArtigos");
+vi.mock("./filtrarArtigos");
+vi.mock("./ArticleCard");
+
+it("HomePage chama useArtigos e passa artigos para ArticleList", () => {
+  vi.mocked(useArtigos).mockReturnValue({ artigos: [], carregando: false, erro: null });
+  render(<HomePage />);
+  expect(useArtigos).toHaveBeenCalled(); // teste do mock, não do código
+});
+```
+
+**Sinal 4 — testes que dependem de ordem.** Se rodar os testes em ordem diferente muda os resultados, há vazamento de estado entre testes — geralmente `localStorage` ou variáveis globais não limpos no `beforeEach`.
+
+## O que não precisa de teste
+
+Nem tudo precisa de teste automatizado. O critério: **o benefício (confiança, documentação, detecção de regressão) justifica o custo (escrever, manter)?**
+
+```ts title="Casos que geralmente não precisam de teste."
+// configuração de ferramentas — não tem lógica de negócio
+// vitest.config.ts, vite.config.ts, tsconfig.json
+
+// tipos TypeScript sem lógica
+type Artigo = { id: number; titulo: string; }; // o TypeScript já valida
+
+// código gerado automaticamente (build output, mocks gerados)
+
+// wrappers triviais
+function log(msg: string) { console.log(msg); }
+// o teste seria: expect(console.log).toHaveBeenCalledWith("...")
+// mais complexo que o código
+
+// componentes de apresentação sem lógica
+function Divider() { return <hr className="divisor" />; }
+// teste seria: expect(getByRole("separator")).toBeInTheDocument()
+// valor mínimo — o componente não tem lógica
+```
+
+**O que precisa de teste:**
+- Funções puras com lógica não trivial (formatação, cálculo, filtro)
+- Componentes com comportamento (interação, estado, condicional)
+- Integração entre componente e efeito/fetch/localStorage
+- Fluxos críticos do produto (E2E)
+
+## Cobertura como guia, não meta
+
+O relatório de cobertura mostra quais linhas foram executadas ao menos uma vez durante os testes. É uma ferramenta útil para identificar código não testado — não para garantir que o código funciona:
+
+```bash title="Gerar relatório de cobertura."
+npm run coverage
+# ou
+npx vitest run --coverage
+```
+
+Output típico:
+
+```
+File            | % Stmts | % Branch | % Funcs | % Lines
+----------------|---------|----------|---------|--------
+utils.ts        |   94.23 |    87.50 |  100.00 |   94.23
+ArticleCard.tsx |   78.12 |    66.66 |   83.33 |   78.12
+LikeButton.tsx  |  100.00 |   100.00 |  100.00 |  100.00
+```
+
+O que os números dizem:
+- `ArticleCard.tsx` com 78% de linhas cobertas → há cenários não testados. Vale investigar quais.
+- `LikeButton.tsx` com 100% → todas as linhas foram executadas. Não garante que todos os cenários foram verificados — só que todas as linhas rodaram.
+
+O número que importa: **os casos críticos do produto têm testes?** Se o fluxo de curtir está testado e o filtro de tag está testado, 78% de cobertura no `ArticleCard` pode ser aceitável. Se a função de cálculo de tempo de leitura não tem nenhum teste, 100% de cobertura em outros arquivos não ajuda.
+
+## Refatorar um teste frágil
+
+```tsx title="Refatoração — de frágil para robusto."
+// ❌ frágil — dependente de estrutura HTML interna e data-testid
+it("exibe o badge 'Novo' para artigos recentes", () => {
+  render(<ArticleCard artigo={artigoRecente} curtido={false} onCurtir={() => {}} />);
+
+  const badge = document.querySelector("[data-testid='badge-novo']");
+  expect(badge).not.toBeNull();
+  expect(badge?.classList.contains("badge-novo")).toBe(true);
+});
+
+// ✅ robusto — baseado no texto visível que o usuário vê
+it("exibe o badge 'Novo' para artigos publicados nos últimos 7 dias", () => {
+  const artigoRecente = {
+    ...artigoFixture,
+    publicadoEm: new Date().toISOString(), // hoje
+  };
+
+  render(<ArticleCard artigo={artigoRecente} curtido={false} onCurtir={() => {}} />);
+
+  expect(screen.getByText("Novo")).toBeInTheDocument();
+});
+
+it("não exibe o badge 'Novo' para artigos com mais de 7 dias", () => {
+  const artigoAntigo = {
+    ...artigoFixture,
+    publicadoEm: "2023-01-01T00:00:00Z",
+  };
+
+  render(<ArticleCard artigo={artigoAntigo} curtido={false} onCurtir={() => {}} />);
+
+  expect(screen.queryByText("Novo")).not.toBeInTheDocument();
+});
+```
+
+## Resumo
+
+- **Comportamento, não implementação**: o teste não deve quebrar quando você renomeia variáveis, extrai funções ou reorganiza a implementação — apenas quando o comportamento público muda.
+- **Testes frágeis**: seletores CSS internos, verificação de estrutura HTML irrelevante, excesso de mocks, dependência de ordem de execução.
+- **O que não testar**: configuração de ferramentas, tipos TypeScript sem lógica, wrappers triviais, componentes de apresentação sem comportamento.
+- **Cobertura como guia**: use para identificar pontos não testados, não como meta. 100% de cobertura não é 100% correto.
+- A pergunta que guia cada decisão: **o benefício de ter este teste justifica o custo de mantê-lo?**

@@ -1,6 +1,226 @@
 ---
 title: "Componentes"
 description: "Função que retorna JSX, exportação e importação, composição de componentes. Convenção de nome em PascalCase."
-comingSoon: true
 order: 4
+hero:
+  titleBefore: "Componentes:"
+  titleAccent: "funções"
+  titleAfter: "que retornam JSX."
+quiz:
+  - question: "Por que componentes React têm nome em PascalCase?"
+    options:
+      - "Porque o compilador JSX usa a capitalização para distinguir componentes React de tags HTML — <div> é uma tag HTML, <ArticleCard> é um componente"
+      - "Por convenção de estilo sem impacto técnico"
+      - "Porque PascalCase melhora a performance"
+      - "Por compatibilidade com TypeScript"
+    correct: 0
+  - question: "Por que named exports são preferíveis a default exports para componentes?"
+    options:
+      - "Porque default exports não funcionam em TypeScript"
+      - "Porque named exports são mais rápidos"
+      - "Porque named exports obrigam o importador a usar o nome correto — ferramentas de refactor (Rename Symbol) funcionam consistentemente. Com default, o importador pode dar qualquer nome"
+      - "Porque o Vite não suporta default exports"
+    correct: 2
+  - question: "O que significa retornar null de um componente React?"
+    options:
+      - "Causa um erro — componentes devem sempre retornar JSX"
+      - "O componente é removido da árvore de componentes"
+      - "O componente renderiza um elemento vazio <span>"
+      - "O componente não renderiza nada no DOM — é uma forma válida de esconder um componente sem removê-lo da árvore"
+    correct: 3
+  - question: "Qual é a vantagem de compor componentes pequenos em vez de um componente grande?"
+    options:
+      - "Componentes menores são mais rápidos"
+      - "Cada componente tem uma responsabilidade clara, pode ser testado isoladamente, pode ser reutilizado em outros contextos e é mais fácil de entender sem ler o arquivo inteiro"
+      - "O React exige que componentes tenham menos de 100 linhas"
+      - "Componentes menores usam menos memória"
+    correct: 1
 ---
+
+Um componente React é uma função JavaScript — com uma convenção de nome e um retorno específico. A simplicidade do modelo é intencional: um componente é exatamente o que parece. Mas há padrões de organização, exportação e composição que tornam projetos grandes gerenciáveis.
+
+## Função que retorna JSX
+
+A definição de um componente é uma função que:
+1. Tem nome começando com letra maiúscula (PascalCase)
+2. Retorna JSX ou `null`
+
+```tsx title="ArticleCard.tsx — o componente básico do blog."
+// função em PascalCase que retorna JSX
+function ArticleCard() {
+  return (
+    <article className="card-artigo">
+      <h2>CSS em geral</h2>
+      <p>O que é CSS, anatomia de uma regra e como conectar ao HTML.</p>
+    </article>
+  );
+}
+```
+
+A razão para o PascalCase é técnica: o compilador JSX usa a capitalização para decidir como processar a tag. Uma tag em minúsculas (`<div>`, `<article>`) é uma tag HTML nativa — o compilador passa a string `"div"` para `createElement`. Uma tag em PascalCase (`<ArticleCard>`) é um componente — o compilador passa a **referência da função** para `createElement`.
+
+```tsx title="PascalCase vs minúsculas — o compilador trata diferente."
+// <div> → React.createElement("div", null) — string, tag HTML nativa
+// <ArticleCard> → React.createElement(ArticleCard, null) — referência de função
+
+// se você usar minúsculas por engano:
+function articleCard() { return <p>...</p>; } // nome errado
+// <articlecard /> seria tratada como tag HTML desconhecida — sem erro, mas não funciona
+```
+
+Um componente pode retornar `null` para não renderizar nada:
+
+```tsx title="Retornar null — componente condicional."
+function Badge({ texto }: { texto: string | null }) {
+  if (!texto) return null; // não renderiza nada — válido em React
+  return <span className="badge">{texto}</span>;
+}
+```
+
+## Exportar e importar
+
+A convenção do curso é **named exports** — não default exports:
+
+```tsx title="Named export — o padrão do curso."
+// ArticleCard.tsx
+export function ArticleCard() {
+  return (
+    <article className="card-artigo">
+      <h2>CSS em geral</h2>
+    </article>
+  );
+}
+
+// importar em outro arquivo
+import { ArticleCard } from "./components/ArticleCard";
+```
+
+A razão para preferir named exports: ferramentas de refactor como "Rename Symbol" (F2) funcionam consistentemente — se você renomear `ArticleCard`, o import é atualizado automaticamente. Com `export default`, o importador pode dar qualquer nome (`import MeuCard from "./ArticleCard"`), o que dificulta rastrear usos.
+
+## Compor componentes
+
+Componentes se compõem usando a sintaxe JSX — você usa um componente como se fosse uma tag HTML:
+
+```tsx title="Header.tsx — componente de cabeçalho simples."
+export function Header() {
+  return (
+    <header className="site-header">
+      <a href="/" className="site-logo">Blog</a>
+      <nav>
+        <a href="/artigos">Artigos</a>
+        <a href="/sobre">Sobre</a>
+      </nav>
+    </header>
+  );
+}
+```
+
+```tsx title="Footer.tsx — rodapé do blog."
+export function Footer() {
+  return (
+    <footer className="site-footer">
+      <p>Blog React — construído com Vite e TypeScript</p>
+    </footer>
+  );
+}
+```
+
+```tsx title="App.tsx — composição dos componentes na raiz."
+import { Header } from "./components/Header";
+import { Footer } from "./components/Footer";
+import { ArticleList } from "./components/ArticleList";
+
+function App() {
+  return (
+    <div className="app">
+      <Header />
+      <main>
+        <ArticleList />
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+export default App;
+```
+
+`<Header />` — a barra `/` fecha a tag quando o componente não tem filhos. Se tiver, abre e fecha: `<Header>...</Header>`.
+
+## Criar os componentes do blog
+
+Com os conceitos básicos, você pode criar a estrutura de componentes do blog. Cada componente em um arquivo próprio com o mesmo nome:
+
+```tsx title="ThemeToggle.tsx — botão de toggle de tema."
+export function ThemeToggle() {
+  // estado e lógica virão na lição de useState
+  return (
+    <button className="theme-toggle" aria-label="Alternar tema">
+      🌙
+    </button>
+  );
+}
+```
+
+```tsx title="ArticleCard.tsx — card de artigo com dados estáticos por enquanto."
+export function ArticleCard() {
+  return (
+    <article className="card-artigo">
+      <h2 className="card-titulo">CSS em geral</h2>
+      <p className="card-descricao">
+        O que é CSS, anatomia de uma regra e como conectar ao HTML.
+      </p>
+      <div className="card-meta">
+        <span>Por Dev Aprendiz</span>
+        <time dateTime="2025-03-15">15 de março de 2025</time>
+      </div>
+      <div className="card-tags">
+        <span className="tag">css</span>
+        <span className="tag">frontend</span>
+      </div>
+    </article>
+  );
+}
+```
+
+```tsx title="ArticleList.tsx — lista de cards."
+import { ArticleCard } from "./ArticleCard";
+
+export function ArticleList() {
+  return (
+    <section className="lista-artigos" aria-label="Lista de artigos">
+      <ArticleCard />
+      <ArticleCard />
+      <ArticleCard />
+    </section>
+  );
+}
+```
+
+Os dados são estáticos por enquanto — nas próximas lições, props e estado vão tornar os componentes dinâmicos.
+
+## Onde cada componente deve ficar
+
+A estrutura de pastas reflete a natureza do componente:
+
+```bash title="Estrutura de componentes — organização por responsabilidade."
+src/components/
+├── ArticleCard.tsx     # reutilizável em qualquer lista
+├── ArticleList.tsx     # lista de cards — usa ArticleCard
+├── Header.tsx          # cabeçalho — aparece em todas as páginas
+├── Footer.tsx          # rodapé — aparece em todas as páginas
+├── LikeButton.tsx      # botão de curtir — reutilizável
+├── ThemeToggle.tsx     # toggle de tema — reutilizável
+└── Badge.tsx           # badge de texto — genérico
+```
+
+A regra de ouro: **um arquivo por componente, com o mesmo nome**. `ArticleCard.tsx` exporta `ArticleCard`. Isso torna os imports previsíveis e o grep por nome sempre encontra o arquivo certo.
+
+## Resumo
+
+- Um **componente React** é uma função em PascalCase que retorna JSX ou `null`.
+- **PascalCase é obrigatório** — o compilador usa a capitalização para distinguir componentes de tags HTML nativas.
+- Prefira **named exports** (`export function ArticleCard`) a `export default` — refactor consistente.
+- **Composição**: um componente usa outros como tags JSX. `App` usa `Header`, `ArticleList`, `Footer`.
+- Retornar `null` é válido — o componente não renderiza nada.
+- **Um arquivo por componente**, com o mesmo nome — imports previsíveis.

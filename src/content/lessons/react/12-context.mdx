@@ -1,6 +1,265 @@
 ---
 title: "Context API"
-description: "Compartilhando estado sem passar props manualmente em vários níveis. Quando faz sentido e quando é exagero."
-comingSoon: true
+description: "Compartilhando estado sem passar props manualmente em vários níveis. createContext, Provider, useContext e custom hooks para Context."
 order: 12
+hero:
+  titleBefore: "Context:"
+  titleAccent: "estado global"
+  titleAfter: "sem prop drilling."
+quiz:
+  - question: "O que é o Context no React e para que serve?"
+    options:
+      - "Um mecanismo para disponibilizar um valor para toda a subárvore de componentes sem passar props manualmente em cada nível. Não substitui useState — o estado ainda vive em useState, Context distribui o acesso"
+      - "Um banco de dados interno do React para persistir dados entre sessões"
+      - "Um substituto para useEffect ao sincronizar dados externos"
+      - "Uma forma de comunicação entre componentes irmãos sem passar pelo pai"
+    correct: 0
+  - question: "O que acontece quando o value de um Provider muda?"
+    options:
+      - "Apenas o Provider re-renderiza"
+      - "Apenas os filhos diretos do Provider re-renderizam"
+      - "Todos os componentes que consomem aquele Context com useContext re-renderizam, independentemente de onde estão na árvore"
+      - "Nada — o Context é imutável"
+    correct: 2
+  - question: "Por que é boa prática criar um custom hook para encapsular useContext?"
+    options:
+      - "Para que o TypeScript consiga inferir os tipos corretamente"
+      - "Porque useContext não pode ser chamado diretamente em componentes"
+      - "Para evitar re-renderizações desnecessárias"
+      - "Para encapsular o useContext e adicionar uma verificação de que o hook está sendo usado dentro do Provider correto — lançando um erro descritivo se não estiver, em vez de retornar o valor padrão silenciosamente"
+    correct: 3
+  - question: "Quando Context NÃO é a solução certa?"
+    options:
+      - "Quando você tem mais de dois componentes usando o mesmo valor"
+      - "Para estado que muda com alta frequência (como posição do mouse ou progresso de scroll) — todos os consumidores re-renderizam a cada mudança. Também quando a solução mais simples seria prop drilling em 2–3 níveis ou composition"
+      - "Quando o estado é um objeto"
+      - "Context é sempre a solução certa para estado compartilhado"
+    correct: 1
 ---
+
+A lição anterior mostrou que prop drilling — passar props por componentes intermediários que não as usam — se torna problemático em árvores mais profundas. Context é a solução do React para esse problema: um mecanismo que disponibiliza um valor para qualquer componente na subárvore sem precisar passá-lo manualmente por cada nível.
+
+## O que é Context
+
+Context não armazena estado — ele **distribui** estado. Você ainda usa `useState` para gerenciar o valor; Context cuida de torná-lo acessível sem prop drilling:
+
+```tsx title="Sem Context vs. com Context — o tema no blog."
+// sem Context — tema precisa passar por cada nível
+<App tema={tema}>
+  <Layout tema={tema}>
+    <Header tema={tema}>
+      <Nav tema={tema}>
+        <ThemeToggle tema={tema} />   {/* finalmente usa */}
+      </Nav>
+    </Header>
+  </Layout>
+</App>
+
+// com Context — ThemeToggle consome diretamente do contexto
+<TemaProvider>
+  <Layout>
+    <Header>
+      <Nav>
+        <ThemeToggle />   {/* acessa o tema via useContext */}
+      </Nav>
+    </Header>
+  </Layout>
+</TemaProvider>
+```
+
+Os casos ideais para Context: tema da aplicação, idioma, usuário autenticado, preferências globais — valores que mudam com pouca frequência e que muitos componentes na árvore precisam.
+
+## Criando e usando Context
+
+A receita completa tem três partes: `createContext`, `Provider` e `useContext`.
+
+```tsx title="TemaContext.tsx — Context completo para o tema do blog."
+import { createContext, useState, useContext, type ReactNode } from "react";
+
+// 1. criar o Context com um valor padrão
+//    o valor padrão é usado quando o componente não está dentro de um Provider
+interface TemaContextValue {
+  tema: "claro" | "escuro";
+  alternarTema: () => void;
+}
+
+const TemaContext = createContext<TemaContextValue | null>(null);
+
+// 2. criar o Provider — componente que fornece o valor para a subárvore
+interface TemaProviderProps {
+  children: ReactNode;
+}
+
+export function TemaProvider({ children }: TemaProviderProps) {
+  const [tema, setTema] = useState<"claro" | "escuro">(() => {
+    const salvo = localStorage.getItem("tema");
+    return salvo === "escuro" ? "escuro" : "claro";
+  });
+
+  function alternarTema() {
+    setTema(prev => {
+      const novo = prev === "claro" ? "escuro" : "claro";
+      localStorage.setItem("tema", novo);
+      document.documentElement.setAttribute("data-theme", novo);
+      return novo;
+    });
+  }
+
+  return (
+    <TemaContext.Provider value={{ tema, alternarTema }}>
+      {children}
+    </TemaContext.Provider>
+  );
+}
+
+// 3. custom hook para consumir o Context
+//    encapsula o useContext e adiciona verificação de uso correto
+export function useTema(): TemaContextValue {
+  const ctx = useContext(TemaContext);
+  if (!ctx) {
+    throw new Error("useTema deve ser usado dentro de <TemaProvider>");
+  }
+  return ctx;
+}
+```
+
+O `createContext(null)` com o tipo `TemaContextValue | null` é intencional: o valor padrão `null` garante que qualquer uso do Context fora de um Provider seja detectável (o custom hook lança um erro). Se você usar um valor padrão "real", o erro de uso errado passa silenciosamente.
+
+## Usando o Provider e o hook
+
+Envolva a aplicação com o Provider uma vez — normalmente no componente raiz:
+
+```tsx title="main.tsx — Provider na raiz da aplicação."
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { TemaProvider } from "./context/TemaContext";
+import { App } from "./App";
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <TemaProvider>
+      <App />
+    </TemaProvider>
+  </StrictMode>
+);
+```
+
+Qualquer componente dentro de `TemaProvider` pode acessar o tema sem receber props:
+
+```tsx title="ThemeToggle.tsx — consumindo Context com o custom hook."
+import { useTema } from "../context/TemaContext";
+
+export function ThemeToggle() {
+  const { tema, alternarTema } = useTema();
+
+  return (
+    <button
+      className="botao-tema"
+      onClick={alternarTema}
+      aria-label={`Mudar para tema ${tema === "claro" ? "escuro" : "claro"}`}
+    >
+      {tema === "claro" ? "🌙" : "☀️"}
+    </button>
+  );
+}
+```
+
+```tsx title="Header.tsx — lê o tema sem receber como prop."
+import { useTema } from "../context/TemaContext";
+import { ThemeToggle } from "./ThemeToggle";
+
+export function Header() {
+  const { tema } = useTema();
+
+  return (
+    <header className={`header header-${tema}`}>
+      <span className="logo">aprenda-frontend</span>
+      <ThemeToggle />
+    </header>
+  );
+}
+```
+
+## Context para curtidas
+
+Outro caso concreto: o estado de curtidas precisa ser compartilhado entre `HomePage` (exibe os cards) e potencialmente `ArticlePage` (exibe o botão de curtir do artigo completo). Em vez de elevar para o `App` e fazer prop drilling por todas as páginas, use Context:
+
+```tsx title="CurtidasContext.tsx — Context para o estado de curtidas."
+import { createContext, useState, useContext, type ReactNode } from "react";
+
+interface CurtidasContextValue {
+  curtidos: Set<number>;
+  toggleCurtida: (id: number) => void;
+}
+
+const CurtidasContext = createContext<CurtidasContextValue | null>(null);
+
+export function CurtidasProvider({ children }: { children: ReactNode }) {
+  const [curtidos, setCurtidos] = useState<Set<number>>(() => {
+    const salvo = localStorage.getItem("curtidos");
+    return salvo ? new Set(JSON.parse(salvo)) : new Set();
+  });
+
+  function toggleCurtida(id: number) {
+    setCurtidos(prev => {
+      const novos = new Set(prev);
+      if (novos.has(id)) {
+        novos.delete(id);
+      } else {
+        novos.add(id);
+      }
+      localStorage.setItem("curtidos", JSON.stringify([...novos]));
+      return novos;
+    });
+  }
+
+  return (
+    <CurtidasContext.Provider value={{ curtidos, toggleCurtida }}>
+      {children}
+    </CurtidasContext.Provider>
+  );
+}
+
+export function useCurtidas() {
+  const ctx = useContext(CurtidasContext);
+  if (!ctx) throw new Error("useCurtidas deve ser usado dentro de <CurtidasProvider>");
+  return ctx;
+}
+```
+
+Agora qualquer componente pode curtir um artigo com `useCurtidas()` — sem receber `curtidos` e `toggleCurtida` como props em cada nível.
+
+## Quando não usar Context
+
+Context faz todos os componentes que consomem re-renderizarem quando o valor muda. Para estado que muda com alta frequência, isso pode ser caro:
+
+```tsx title="Context inadequado — estado que muda muito."
+// ❌ posição do mouse muda centenas de vezes por segundo
+//    todos os consumidores re-renderizam a cada movimento
+const MouseContext = createContext({ x: 0, y: 0 });
+
+function MouseProvider({ children }: { children: ReactNode }) {
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  useEffect(() => {
+    window.addEventListener("mousemove", e => setPos({ x: e.clientX, y: e.clientY }));
+  }, []);
+  return <MouseContext.Provider value={pos}>{children}</MouseContext.Provider>;
+}
+// qualquer componente que consome MouseContext re-renderiza a cada pixel movido
+```
+
+A regra prática: Context é para estado que muda com **pouca frequência** e que **muitos componentes** na árvore precisam. Para:
+
+- **Estado local** (só um componente usa): `useState` no próprio componente
+- **Estado em 2–3 níveis**: prop drilling — simples e explícito
+- **Estado frequente e localizado**: `useState` no nível mais baixo, passar via props apenas para quem usa
+- **Estado global e de baixa frequência**: Context — tema, idioma, usuário autenticado
+
+## Resumo
+
+- **Context distribui estado**, não armazena — `useState` ainda gerencia o valor.
+- Receita: `createContext` → `Provider` com o valor → `useContext` no consumidor.
+- **Custom hook** para encapsular `useContext`: interface limpa e verificação de uso fora do Provider.
+- Quando o `value` do Provider muda, **todos os consumidores re-renderizam** — tenha isso em mente para estado frequente.
+- Context é ideal para: tema, idioma, usuário autenticado, curtidas globais. Não para: posição do mouse, scroll, estado local de um componente.
+- Antes de Context: avalie se prop drilling de 2–3 níveis não é mais simples.

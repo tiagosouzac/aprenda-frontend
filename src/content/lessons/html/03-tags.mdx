@@ -1,6 +1,174 @@
 ---
 title: "Tags, elementos e atributos"
-description: "Como escrever marcação válida: tags de abertura e fechamento, aninhamento correto, elementos vazios e atributos globais."
-comingSoon: true
+description: "Como escrever marcação válida: tags de abertura e fechamento, aninhamento correto, elementos vazios, atributos globais."
 order: 3
+hero:
+  titleBefore: "Tags,"
+  titleAccent: "elementos"
+  titleAfter: "e atributos."
+quiz:
+  - question: "Qual é a diferença entre uma tag e um elemento HTML?"
+    options:
+      - "Não há diferença — os dois termos significam a mesma coisa"
+      - "A tag é o conteúdo; o elemento é a marcação ao redor"
+      - "A tag é a marcação em si; o elemento é a tag mais o conteúdo entre abertura e fechamento"
+      - "Tags são usadas no head; elementos são usados no body"
+    correct: 2
+  - question: "Quais elementos HTML não precisam de tag de fechamento?"
+    options:
+      - "p, div e span"
+      - "h1, h2 e h3"
+      - "header, main e footer"
+      - "img, input, br, hr e meta"
+    correct: 3
+  - question: "O que são atributos booleanos?"
+    options:
+      - "Atributos com valor verdadeiro ou falso entre aspas"
+      - "Atributos cuja simples presença na tag significa ativo — não precisam de valor"
+      - "Atributos que só funcionam com JavaScript"
+      - "Atributos globais que funcionam em qualquer elemento"
+    correct: 1
+  - question: "Qual é a regra de aninhamento em HTML?"
+    options:
+      - "O elemento que abre por último deve fechar por primeiro"
+      - "Qualquer elemento pode conter qualquer outro"
+      - "Elementos de bloco não podem conter elementos inline"
+      - "Apenas elementos semânticos podem ser aninhados"
+    correct: 0
 ---
+
+O vocabulário do HTML é feito de tags. Você as vê em todo arquivo HTML — `<p>`, `<h1>`, `<img>`, `<a>` — mas entender a diferença entre tag, elemento e atributo, e saber como eles se relacionam, é o que permite ler e escrever HTML com precisão.
+
+Esta lição cobre a sintaxe do HTML em si: como uma tag vira um elemento, o que são atributos e como o aninhamento correto garante que o navegador interprete o documento como você espera.
+
+## Tag vs. elemento
+
+Uma **tag** é a marcação em si — os caracteres com os símbolos de menor e maior que delimitam o nome do elemento. `<p>` é uma tag de abertura. `</p>` é uma tag de fechamento. A barra `/` na tag de fechamento é o que indica ao navegador que aquele elemento terminou.
+
+Um **elemento** é a unidade completa: a tag de abertura, o conteúdo, e a tag de fechamento. `<p>Depois de três semanas, consegui publicar.</p>` é um elemento de parágrafo — ele começa na tag `<p>`, tem o texto como conteúdo, e termina em `</p>`.
+
+```html title="Tag de abertura, conteúdo e tag de fechamento formam um elemento completo."
+<!-- tag de abertura → conteúdo → tag de fechamento -->
+<p>Depois de três semanas, consegui publicar meu primeiro site.</p>
+
+<!-- o elemento pode conter outros elementos como conteúdo -->
+<h2>O que aprendi</h2>
+```
+
+A distinção importa na prática. Quando uma mensagem de erro diz "unexpected closing tag `</div>`", ela está falando de uma tag. Quando a documentação fala em "o elemento `<article>`", ela está falando do elemento — o conceito semântico, não apenas a marcação.
+
+## Tags de fechamento e elementos vazios
+
+A maioria dos elementos HTML tem uma tag de abertura e uma de fechamento. O conteúdo entre elas pode ser texto, outros elementos, ou ambos. A tag de fechamento é sempre o mesmo nome da abertura, precedido por `/`.
+
+Mas alguns elementos não têm conteúdo — e portanto não precisam de tag de fechamento. Eles são chamados de **elementos vazios** (*void elements*). Faz sentido: se um elemento não tem conteúdo, não há nada para fechar. Os mais comuns são:
+
+- `<img>` — incorpora uma imagem
+- `<input>` — campo de formulário
+- `<br>` — quebra de linha
+- `<hr>` — linha horizontal temática
+- `<meta>` — metadado no `<head>`
+- `<link>` — link para recurso externo (CSS, favicon)
+
+```html title="Elementos com fechamento vs. elementos vazios em artigo.html."
+<!-- elementos com fechamento — têm conteúdo -->
+<p>Um relato de aprendizado.</p>
+<h1>Meu primeiro projeto web</h1>
+
+<!-- elementos vazios — não têm conteúdo, não têm tag de fechamento -->
+<img src="projeto.png" alt="Screenshot do meu primeiro projeto" />
+<input type="email" placeholder="seu@email.com" />
+<meta charset="utf-8" />
+```
+
+Você vai notar a barra `/` antes do `>` nos elementos vazios: `<img />`, `<input />`. Em HTML5, essa barra é opcional — `<img>` e `<img />` são equivalentes. Mas muitos times de desenvolvimento a incluem por convenção, para tornar visualmente claro que o elemento não tem fechamento separado.
+
+## Atributos
+
+**Atributos** ficam na tag de abertura e fornecem informações adicionais ao elemento. Eles não aparecem visualmente na página — são metadados para o navegador, para CSS e para JavaScript.
+
+A sintaxe de um atributo é `nome="valor"`, com aspas duplas ao redor do valor e sem espaços em torno do sinal de igual. Um elemento pode ter vários atributos, separados por espaço:
+
+```html title="Atributos mais comuns em artigo.html — cada elemento usa os que fazem sentido para ele."
+<!-- href define o destino do link -->
+<a href="https://github.com/usuario/projeto">Ver no GitHub</a>
+
+<!-- src é o caminho da imagem; alt é o texto alternativo -->
+<img src="projeto.png" alt="Screenshot do projeto finalizado" width="800" height="450" />
+
+<!-- type define o tipo do campo; name identifica o dado no formulário -->
+<input type="email" name="email" placeholder="seu@email.com" />
+```
+
+Cada elemento tem atributos que fazem sentido para ele: `href` em `<a>`, `src` em `<img>`, `type` em `<input>`. Esses são atributos específicos. Mas existem também os atributos globais, que funcionam em qualquer elemento.
+
+Um caso especial são os **atributos booleanos**: aqueles cuja simples presença significa "ativo". Eles não têm valor — ou têm o próprio nome como valor, por convenção. `required`, `disabled`, `checked` e `hidden` são exemplos:
+
+```html title="Atributos booleanos — a presença é suficiente para ativá-los."
+<!-- required torna o campo obrigatório -->
+<input type="email" name="email" required />
+
+<!-- disabled desabilita o botão -->
+<button type="submit" disabled>Enviando...</button>
+
+<!-- checked pré-marca a caixa de seleção -->
+<input type="checkbox" name="newsletter" checked />
+```
+
+## Atributos globais
+
+Alguns atributos funcionam em qualquer elemento HTML. Os mais importantes são `id`, `class` e `data-*`.
+
+**`id`** é um identificador único na página — um elemento com `id="contato"` é o único com esse id no documento inteiro. O `id` serve como âncora para links internos (`<a href="#contato">`), como alvo de CSS específico e como ponto de acesso para JavaScript. Use `id` com moderação: se muitos elementos precisam de um id, provavelmente você quer usar `class`.
+
+**`class`** agrupa elementos para estilização e manipulação. Diferente do `id`, a mesma classe pode aparecer em múltiplos elementos, e um elemento pode ter várias classes separadas por espaço. As classes que você definir aqui vão ser usadas pelo CSS no próximo módulo:
+
+```html title="id e class em artigo.html — serão usados pelo CSS e pelo JavaScript."
+<!-- id para âncora de link interno e para JavaScript -->
+<section id="aprendizados">
+  <!-- ... -->
+</section>
+
+<!-- class para estilização com CSS -->
+<p class="introducao destaque">
+  Depois de três semanas estudando, consegui publicar meu primeiro site.
+</p>
+
+<!-- múltiplas classes no mesmo elemento -->
+<a class="link-externo link-referencia" href="https://developer.mozilla.org">
+  MDN Web Docs
+</a>
+```
+
+**`data-*`** permite armazenar dados customizados em elementos HTML. O nome após `data-` é livre — você define. O valor fica acessível via JavaScript. É útil para passar informações do HTML para o script sem usar atributos improvisados:
+
+```html title="Atributo data-* armazena informação customizada acessível via JavaScript."
+<!-- data-id será lido pelo JavaScript para identificar o artigo -->
+<article data-id="42" data-categoria="tutorial">
+  <h2>Meu primeiro projeto web</h2>
+</article>
+```
+
+## Aninhamento correto
+
+Elementos HTML podem conter outros elementos, criando a hierarquia que vira o DOM. A regra de aninhamento é simples: **o que abre por último, fecha por primeiro** — como uma pilha.
+
+```html title="Aninhamento correto — LIFO: o que abre por último fecha por primeiro."
+<!-- correto: em fecha antes de strong, que abriu depois de p -->
+<p>Aprendi <strong>HTML <em>semântico</em></strong> neste projeto.</p>
+
+<!-- incorreto: em abre dentro de strong mas tenta fechar depois de strong -->
+<!-- <p>Aprendi <strong>HTML <em>semântico</strong></em> neste projeto.</p> -->
+```
+
+Quando o aninhamento está incorreto, o navegador tenta corrigir automaticamente — e quase sempre corrige de um jeito inesperado. O resultado pode parecer certo visualmente mas estar errado no DOM, o que afeta CSS, JavaScript e leitores de tela. Fechar elementos na ordem errada é um dos erros mais comuns em HTML e um dos mais silenciosos: o navegador não avisa, apenas interpreta da sua própria maneira.
+
+Ferramentas de desenvolvimento ajudam aqui. A aba Elements do devtools sempre mostra o DOM como o navegador interpretou — se estiver diferente do que você escreveu, há um problema de aninhamento.
+
+## Resumo
+
+- Tag é a marcação (`<p>`, `</p>`); elemento é a unidade completa — tag de abertura, conteúdo e tag de fechamento.
+- Elementos vazios (`<img>`, `<input>`, `<br>`, `<meta>`) não têm conteúdo nem tag de fechamento.
+- Atributos ficam na tag de abertura com sintaxe `nome="valor"`; atributos booleanos (`required`, `disabled`) não precisam de valor — a presença é suficiente.
+- Atributos globais funcionam em qualquer elemento: `id` para identificadores únicos, `class` para agrupamento, `data-*` para dados customizados.
+- A regra de aninhamento é LIFO: o elemento que abre por último deve fechar por primeiro.

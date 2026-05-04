@@ -1,6 +1,253 @@
 ---
 title: "Tipos utilitários"
 description: "Partial, Required, Pick, Omit, Record, ReturnType, Awaited. Como combinar para descrever transformações comuns."
-comingSoon: true
 order: 9
+hero:
+  titleBefore: "Tipos"
+  titleAccent: "utilitários"
+  titleAfter: "— transformar tipos."
+quiz:
+  - question: "Qual é a diferença entre Partial<T> e Pick<T, K>?"
+    options:
+      - "São equivalentes"
+      - "Partial é para interfaces; Pick é para types"
+      - "Pick remove propriedades; Partial as torna readonly"
+      - "Partial<T> mantém todas as propriedades de T mas as torna opcionais; Pick<T, K> seleciona apenas as propriedades K de T (que permanecem com seus modificadores originais)"
+    correct: 3
+  - question: "Quando usar Record<K, V>?"
+    options:
+      - "Para substituir arrays"
+      - "Quando você precisa de um objeto/mapa onde as chaves são de um tipo K e os valores são de um tipo V — especialmente útil quando K é uma union de literais"
+      - "Para criar objetos aninhados"
+      - "Record é uma forma mais verbosa de escrever { [key: string]: V }"
+    correct: 1
+  - question: "O que Awaited<Promise<Artigo[]>> resulta?"
+    options:
+      - "Artigo[] — Awaited extrai o tipo do valor resolvido de uma Promise"
+      - "Promise<Artigo[]>"
+      - "Artigo"
+      - "never"
+    correct: 0
+  - question: "Por que Omit<Artigo, 'id' | 'slug'> é útil para formulários de criação?"
+    options:
+      - "Porque formulários não suportam id"
+      - "Porque Omit remove propriedades readonly"
+      - "Porque ao criar um artigo novo, o servidor gera o id e o slug — o formulário não deve incluir essas propriedades, e Omit cria o tipo correto sem duplicar a interface"
+      - "Porque Omit é obrigatório para formulários em TypeScript"
+    correct: 2
 ---
+
+TypeScript tem um conjunto de tipos utilitários embutidos — tipos genéricos que transformam outros tipos. Em vez de criar um novo tipo manualmente toda vez que precisar de uma variação de `Artigo`, você usa `Partial<Artigo>`, `Pick<Artigo, "titulo" | "descricao">` ou `Omit<Artigo, "id">`. O resultado é código mais seco: a interface base é a fonte da verdade, e as variações são derivadas dela automaticamente.
+
+## `Partial`, `Required` e `Readonly`
+
+**`Partial<T>`** torna todas as propriedades de `T` opcionais. É o tipo perfeito para uma atualização parcial de objeto — um formulário de edição onde nem todos os campos precisam ser preenchidos:
+
+```ts title="Partial — update parcial de artigo."
+interface Artigo {
+  id: number;
+  titulo: string;
+  descricao: string;
+  publicado: boolean;
+  curtidas: number;
+}
+
+// tipo para um update parcial — qualquer combinação de campos
+type AtualizacaoArtigo = Partial<Artigo>;
+// equivale a:
+// { id?: number; titulo?: string; descricao?: string; publicado?: boolean; curtidas?: number }
+
+function atualizarArtigo(id: number, campos: AtualizacaoArtigo): Artigo {
+  const artigo = artigos.find(a => a.id === id)!;
+  return { ...artigo, ...campos }; // spread — campos sobrescreve apenas o que foi passado
+}
+
+atualizarArtigo(1, { titulo: "Novo título" });         // ok — só título
+atualizarArtigo(1, { publicado: true, curtidas: 50 }); // ok — dois campos
+```
+
+**`Required<T>`** faz o inverso — torna todas as propriedades obrigatórias, mesmo as opcionais. Útil quando uma etapa do processo exige que todos os campos estejam presentes:
+
+```ts title="Required — artigo completo antes de publicar."
+interface RascunhoArtigo {
+  titulo?: string;
+  descricao?: string;
+  tags?: string[];
+  autor?: Autor;
+}
+
+type ArtigoParaPublicar = Required<RascunhoArtigo>;
+// todos os campos são obrigatórios — precisa preencher tudo antes de publicar
+
+function publicar(artigo: ArtigoParaPublicar): void {
+  // artigo.titulo é string, não string | undefined
+}
+```
+
+**`Readonly<T>`** torna todas as propriedades `readonly`. Útil para representar dados que não devem ser modificados após criação:
+
+```ts title="Readonly — configuração imutável."
+const config: Readonly<{ apiUrl: string; timeout: number }> = {
+  apiUrl: "/artigos.json",
+  timeout: 5000,
+};
+
+config.apiUrl = "/outro.json"; // TS erro: Cannot assign to 'apiUrl' because it is a read-only property
+```
+
+## `Pick` e `Omit`
+
+**`Pick<T, K>`** seleciona apenas as propriedades `K` de `T`. Perfeito para criar tipos menores a partir de uma interface grande:
+
+```ts title="Pick — selecionar apenas o que o componente precisa."
+interface Artigo {
+  id: number;
+  titulo: string;
+  descricao: string;
+  autor: Autor;
+  tags: Tag[];
+  curtidas: number;
+  publicado: boolean;
+  publicadoEm: string | null;
+  slug: string;
+}
+
+// card só precisa de alguns campos
+type DadosCard = Pick<Artigo, "id" | "titulo" | "descricao" | "tags" | "curtidas" | "slug">;
+
+function renderizarCard(artigo: DadosCard): string {
+  return `
+    <article data-id="${artigo.id}">
+      <h2>${artigo.titulo}</h2>
+      <p>${truncar(artigo.descricao)}</p>
+    </article>
+  `;
+}
+```
+
+**`Omit<T, K>`** faz o oposto — cria um tipo com todas as propriedades de `T` exceto as listadas em `K`. Mais conveniente que `Pick` quando você quer quase tudo, exceto alguns campos:
+
+```ts title="Omit — tipo de criação sem id e slug gerados pelo servidor."
+// ao criar um artigo, o servidor gera id e slug
+// o formulário não deve incluir esses campos
+type NovoArtigo = Omit<Artigo, "id" | "slug" | "curtidas">;
+// tem: titulo, descricao, autor, tags, publicado, publicadoEm
+
+async function criarArtigo(dados: NovoArtigo): Promise<Artigo> {
+  const response = await fetch("/artigos", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(dados),
+  });
+  return response.json() as Promise<Artigo>;
+}
+```
+
+## `Record`
+
+**`Record<K, V>`** cria um tipo de objeto onde todas as chaves são do tipo `K` e todos os valores são do tipo `V`. É mais preciso que o índice genérico `{ [key: string]: V }` quando você conhece as chaves possíveis:
+
+```ts title="Record — mapear status para labels de exibição."
+type StatusArtigo = "rascunho" | "publicado" | "arquivado";
+
+// Record com union literal como chave — garante que todos os status têm um label
+const labelsStatus: Record<StatusArtigo, string> = {
+  rascunho: "Rascunho",
+  publicado: "Publicado",
+  arquivado: "Arquivado",
+};
+// se você omitir um dos três, TypeScript avisa
+
+// Record com string como chave — mapa/dicionário dinâmico
+const cache: Record<string, Artigo> = {};
+cache["css-em-geral"] = artigo;
+
+// Record aninhado — configurações por módulo
+type ConfigModulo = Record<string, { ativo: boolean; prefixo: string }>;
+```
+
+## `ReturnType` e `Parameters`
+
+Esses utilitários derivam tipos de funções existentes — úteis quando você precisa do tipo de retorno ou dos parâmetros de uma função sem repetir a definição:
+
+```ts title="ReturnType e Parameters — derivar tipos de funções."
+function prepararCard(artigo: Artigo, curtido: boolean) {
+  return {
+    html: renderizarCard(artigo),
+    ariaPressed: curtido,
+    dataId: artigo.id,
+  };
+}
+
+// ReturnType extrai o tipo de retorno sem precisar repetir a estrutura
+type DadosCard = ReturnType<typeof prepararCard>;
+// tipo: { html: string; ariaPressed: boolean; dataId: number }
+
+// Parameters extrai os parâmetros como tupla
+type ParamsCard = Parameters<typeof prepararCard>;
+// tipo: [artigo: Artigo, curtido: boolean]
+
+// útil quando você não controla a função (biblioteca externa)
+type ParamsCallback = Parameters<typeof window.addEventListener>;
+```
+
+## `Awaited`
+
+**`Awaited<T>`** extrai o tipo resolvido de uma `Promise`. Com `async/await`, o tipo de retorno de funções assíncronas é sempre `Promise<T>` — `Awaited` acessa o `T`:
+
+```ts title="Awaited — extrair o tipo resolvido de Promises."
+async function buscarArtigos(): Promise<Artigo[]> {
+  const response = await fetch("/artigos.json");
+  return response.json();
+}
+
+// Awaited extrai Artigo[] de Promise<Artigo[]>
+type ResultadoBusca = Awaited<ReturnType<typeof buscarArtigos>>;
+// tipo: Artigo[]
+
+// sem Awaited: ReturnType<typeof buscarArtigos> seria Promise<Artigo[]>
+// com Awaited: extrai o tipo após resolver a promise
+```
+
+## Combinando utilitários
+
+A utilidade real aparece quando você combina esses tipos:
+
+```ts title="Combinando utilitários — tipo para formulário de edição."
+interface Artigo {
+  id: number;
+  titulo: string;
+  descricao: string;
+  autor: Autor;
+  tags: Tag[];
+  curtidas: number;
+  publicado: boolean;
+  publicadoEm: string | null;
+  readonly slug: string;
+}
+
+// formulário de edição: sem id (não editável), sem slug (gerado), sem curtidas (não editável)
+// todos os campos restantes são opcionais — pode editar apenas o que mudar
+type FormularioEdicao = Partial<Omit<Artigo, "id" | "slug" | "curtidas">>;
+
+// equivale a:
+// {
+//   titulo?: string;
+//   descricao?: string;
+//   autor?: Autor;
+//   tags?: Tag[];
+//   publicado?: boolean;
+//   publicadoEm?: string | null;
+// }
+```
+
+## Resumo
+
+- **`Partial<T>`**: todas as propriedades opcionais — updates parciais, formulários de edição.
+- **`Required<T>`**: todas as propriedades obrigatórias — validação antes de persistir.
+- **`Readonly<T>`**: todas as propriedades readonly — configurações imutáveis.
+- **`Pick<T, K>`**: selecionar as propriedades `K` de `T` — tipo mínimo para um componente.
+- **`Omit<T, K>`**: todas as propriedades de `T` exceto `K` — tipo de criação sem campos gerados pelo servidor.
+- **`Record<K, V>`**: objeto com chaves `K` e valores `V` — mapas/dicionários tipados; com union literal como chave, garante cobertura de todos os casos.
+- **`ReturnType<typeof f>`**: tipo de retorno de `f`. **`Parameters<typeof f>`**: tipos dos parâmetros de `f`. **`Awaited<Promise<T>>`**: extrai `T` da Promise.
+- Combine utilitários: `Partial<Omit<Artigo, "id" | "slug">>` para formulários de edição que não enviam campos gerados pelo servidor.

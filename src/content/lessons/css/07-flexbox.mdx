@@ -1,6 +1,252 @@
 ---
 title: "Flexbox"
-description: "Layout em uma dimensão. display: flex, eixos principal e cruzado, justify-content, align-items, gap, flex-grow/shrink/basis."
-comingSoon: true
+description: "O sistema de layout para uma dimensão. Container e items, eixos, justify-content, align-items, flex-grow/shrink/basis e gap."
 order: 7
+hero:
+  titleBefore: "Flexbox:"
+  titleAccent: "layout"
+  titleAfter: "em uma dimensão."
+quiz:
+  - question: "Qual propriedade você coloca no container flex para distribuir os items com espaço igual entre eles (sem espaço nas pontas)?"
+    options:
+      - "justify-content: space-between"
+      - "align-items: space-between"
+      - "justify-content: space-evenly"
+      - "flex-wrap: wrap"
+    correct: 0
+  - question: "O que flex: 1 significa?"
+    options:
+      - "O item tem largura de 1px"
+      - "O item é o primeiro na ordem visual"
+      - "flex-grow: 1, flex-shrink: 1, flex-basis: 0 — o item cresce para preencher o espaço disponível"
+      - "O item tem opacidade de 1"
+    correct: 2
+  - question: "Qual é a diferença entre justify-content e align-items?"
+    options:
+      - "justify-content alinha no eixo cruzado; align-items no eixo principal"
+      - "Não há diferença — são sinônimos"
+      - "justify-content é para grid; align-items é para flexbox"
+      - "justify-content distribui ao longo do eixo principal; align-items alinha no eixo cruzado"
+    correct: 3
+  - question: "Por que flex-wrap: nowrap (o padrão) pode ser problemático?"
+    options:
+      - "Porque impede o uso de gap"
+      - "Porque os items encolhem indefinidamente para caber numa linha, podendo ficar menores do que o conteúdo permite"
+      - "Porque desativa o eixo cruzado"
+      - "Porque não funciona em mobile"
+    correct: 1
 ---
+
+O fluxo normal que você aprendeu na lição anterior — onde blocos empilham verticalmente e inline flui horizontalmente — é poderoso para documentos de texto, mas limitado para interfaces. Colocar elementos lado a lado com espaçamento uniforme, centralizar um item vertical e horizontalmente, fazer colunas de alturas iguais independente do conteúdo — tudo isso é trabalhoso no fluxo normal e direto com Flexbox.
+
+Flexbox é um sistema de layout para **uma dimensão**: você organiza items em uma linha ou em uma coluna por vez. Para layout em duas dimensões simultaneamente, existe Grid — assunto da próxima lição.
+
+## O modelo mental do Flexbox
+
+Flexbox trabalha com dois atores: o **flex container** e os **flex items**.
+
+O container é o elemento pai onde você declara `display: flex`. Esse simples valor muda como os filhos diretos se organizam: eles se tornam flex items e passam a obedecer às propriedades do container.
+
+Os flex items são os filhos diretos do container. Apenas os filhos diretos são afetados — netos e bisnetos não. Cada item pode ter suas próprias propriedades de tamanho e alinhamento que sobrescrevem o comportamento padrão definido pelo container.
+
+O ponto de partida ao ativar Flexbox:
+
+```css title="Comportamento padrão ao ativar display: flex no container do header."
+/* sem flex: header e nav são blocos, empilham verticalmente */
+/* com flex: filhos diretos viram items, ficam lado a lado */
+.site-header {
+  display: flex;
+  /* padrão: flex-direction: row, flex-wrap: nowrap, justify-content: flex-start */
+}
+```
+
+Imediatamente, os filhos diretos — o logo e o `<nav>` — ficam lado a lado na mesma linha. O comportamento padrão coloca todos os items em uma linha horizontal, sem quebrar.
+
+## Direção e quebra
+
+`flex-direction` define o **eixo principal** — a direção em que os items se organizam.
+
+`row` (padrão): items ficam em linha horizontal, da esquerda para a direita. O eixo principal é horizontal, o eixo cruzado é vertical.
+
+`column`: items ficam em coluna vertical, de cima para baixo. O eixo principal é vertical, o eixo cruzado é horizontal.
+
+`row-reverse` e `column-reverse` invertem a ordem visual sem mudar a ordem no HTML — útil para casos de acessibilidade onde a ordem de leitura e a ordem visual precisam ser diferentes.
+
+`flex-wrap` controla o que acontece quando os items não cabem no container. `nowrap` (padrão) encolhe os items para caber em uma linha — até um ponto em que o conteúdo começa a vazar. `wrap` permite que os items quebrem para a próxima linha, criando múltiplas linhas.
+
+```css title="flex-direction e flex-wrap — controle do eixo e da quebra de linha."
+/* header: logo à esquerda, nav à direita, centralizados verticalmente */
+.site-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 24px;
+  height: 64px;
+}
+
+/* galeria de cards — quebra para múltiplas linhas em viewports menores */
+.grade-artigos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+/* coluna de links na sidebar */
+.sidebar-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+```
+
+## Distribuição no eixo principal
+
+`justify-content` distribui os items ao longo do **eixo principal** — horizontal para `row`, vertical para `column`.
+
+`flex-start` (padrão): todos os items agrupados no início do container.
+`flex-end`: agrupados no final.
+`center`: agrupados no centro.
+`space-between`: primeiro item no início, último no final, espaço igual entre os demais. Não há espaço nas pontas.
+`space-around`: espaço igual ao redor de cada item — o espaço nas pontas é metade do espaço entre items.
+`space-evenly`: espaço exatamente igual entre todos os items e nas pontas.
+
+```css title="justify-content — distribuindo logo e nav no header."
+/* logo à esquerda, nav à direita — sem items no meio */
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* links da nav centralizados */
+.nav-links {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+}
+
+/* metadados do artigo — autor e data juntos, separados do tempo de leitura */
+.artigo-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+```
+
+## Alinhamento no eixo cruzado
+
+`align-items` alinha os items no **eixo cruzado** — perpendicular ao eixo principal.
+
+`stretch` (padrão): todos os items se esticam para preencher a altura (ou largura, se `column`) do container. Isso é o que faz cards em uma linha terem a mesma altura mesmo com conteúdo diferente.
+
+`center`: items centralizados no eixo cruzado. Para `row`, centraliza verticalmente — muito mais simples do que qualquer truque com `margin: auto` ou `padding` igual em cima e embaixo.
+
+`flex-start`: items alinhados ao início do eixo cruzado (topo para `row`).
+`flex-end`: alinhados ao final.
+`baseline`: alinhados pela linha de base do texto — útil quando items têm tamanhos de fonte diferentes.
+
+`align-self` é a propriedade equivalente aplicada no **item individual**, sobrescrevendo o `align-items` do container para aquele item específico.
+
+Quando há múltiplas linhas (com `flex-wrap: wrap`), `align-content` controla como as linhas se distribuem no eixo cruzado — análogo ao `justify-content`, mas para linhas.
+
+```css title="align-items e align-self — alinhamento no eixo cruzado."
+/* centralizar ícone e texto verticalmente no componente de metadados */
+.artigo-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* card com imagem e texto — esticar para altura igual */
+.grade-artigos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch; /* padrão — cards terão mesma altura */
+}
+
+/* botão de destaque alinhado ao final enquanto os outros estão no início */
+.acoes-artigo {
+  display: flex;
+  align-items: center;
+}
+
+.botao-destaque {
+  align-self: flex-end;
+}
+```
+
+## Tamanho dos flex items
+
+Três propriedades controlam como cada item ocupa espaço dentro do container: `flex-grow`, `flex-shrink` e `flex-basis`. O shorthand `flex` combina as três.
+
+**`flex-basis`** define o tamanho inicial do item antes de qualquer distribuição de espaço livre — é o equivalente a `width` no eixo principal. `flex-basis: auto` usa o `width` do item (ou o tamanho do conteúdo se `width` não for declarado). `flex-basis: 0` ignora o conteúdo e começa do zero.
+
+**`flex-grow`** define como o item cresce para preencher espaço livre. O valor é um fator de proporção. Se um item tem `flex-grow: 2` e outro `flex-grow: 1`, o primeiro recebe o dobro do espaço livre que o segundo.
+
+**`flex-shrink`** define como o item encolhe quando falta espaço. Funciona analogamente ao `flex-grow`, mas na direção oposta.
+
+`flex: 1` é o shorthand para `flex: 1 1 0` — cresce, encolhe, começa do zero. Quando todos os items têm `flex: 1`, o espaço é distribuído igualmente entre eles, independente do conteúdo.
+
+```css title="flex-grow, flex-basis e flex: 1 — controlando o tamanho dos items."
+/* layout com conteúdo principal e sidebar */
+.layout-artigo {
+  display: flex;
+  gap: 48px;
+}
+
+/* conteúdo principal ocupa 3 partes do espaço livre */
+.conteudo-artigo {
+  flex: 3;
+}
+
+/* sidebar ocupa 1 parte */
+.sidebar-artigo {
+  flex: 1;
+  min-width: 200px; /* evitar que encolha demais */
+}
+
+/* cards de artigos relacionados com tamanho igual */
+.artigos-relacionados {
+  display: flex;
+  gap: 16px;
+}
+
+.card-relacionado {
+  flex: 1; /* todos com o mesmo tamanho */
+}
+```
+
+## Gap
+
+`gap` define o espaço entre flex items — sem precisar de margens em cada item. É o equivalente ao `margin` entre items, mas sem os problemas de margem no primeiro ou último item.
+
+```css title="gap — espaçamento limpo entre items sem margens individuais."
+/* gap único: mesmo espaço em todas as direções */
+.grade-artigos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+/* row-gap e column-gap separados */
+.grid-conteudo {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 32px;    /* espaço entre linhas */
+  column-gap: 16px; /* espaço entre colunas */
+}
+
+/* antes do gap existir (evite — gap é suportado em todos os navegadores modernos) */
+/* .item + .item { margin-left: 24px; } */
+```
+
+`gap` também funciona com `flex-direction: column` — cria espaço entre os items na coluna. E é a mesma propriedade que existe no Grid, então o comportamento é consistente entre os dois sistemas.
+
+## Resumo
+
+- Flexbox organiza items em **uma dimensão** (linha ou coluna). `display: flex` no container transforma os filhos diretos em flex items.
+- **Eixos**: o eixo principal é definido por `flex-direction` (`row` = horizontal, `column` = vertical). O eixo cruzado é o perpendicular.
+- **`justify-content`** distribui items no eixo principal: `flex-start`, `center`, `flex-end`, `space-between`, `space-around`, `space-evenly`.
+- **`align-items`** alinha items no eixo cruzado: `stretch` (padrão), `center`, `flex-start`, `flex-end`, `baseline`. `align-self` sobrescreve para um item individual.
+- **`flex: 1`** é `flex-grow: 1, flex-shrink: 1, flex-basis: 0` — o item preenche o espaço disponível proporcionalmente.
+- **`gap`** define espaçamento entre items sem margens individuais — mais limpo e sem casos de borda com primeiro/último item.

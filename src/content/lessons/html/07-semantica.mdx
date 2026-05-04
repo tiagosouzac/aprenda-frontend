@@ -1,6 +1,217 @@
 ---
 title: "HTML semântico"
-description: "Por que div em todo lugar não é suficiente. header, main, nav, section, article, aside, footer e o que cada um significa."
-comingSoon: true
+description: "Por que div em todo lugar não é suficiente. header, main, nav, section, article, aside e footer — e quando usar div e span."
 order: 7
+hero:
+  titleBefore: "HTML"
+  titleAccent: "semântico"
+  titleAfter: "e significado."
+quiz:
+  - question: "O que é HTML semântico?"
+    options:
+      - "HTML que usa apenas tags modernas do HTML5"
+      - "HTML que não usa div nem span"
+      - "HTML que usa elementos que descrevem o papel e o significado do conteúdo, não apenas sua aparência"
+      - "HTML que segue uma estrutura de grid"
+    correct: 2
+  - question: "Qual elemento deve envolver o conteúdo principal e único de uma página?"
+    options:
+      - "section"
+      - "article"
+      - "div"
+      - "main"
+    correct: 3
+  - question: "Qual é a diferença entre article e section?"
+    options:
+      - "Não há diferença prática entre os dois"
+      - "article é para conteúdo independente que faz sentido fora do contexto; section é para agrupamento temático"
+      - "article só pode ser usado dentro de section"
+      - "section é para conteúdo longo; article para conteúdo curto"
+    correct: 1
+  - question: "Quando usar div em vez de um elemento semântico?"
+    options:
+      - "Quando nenhum elemento semântico descreve o papel do contêiner"
+      - "Nunca — div é obsoleto no HTML5"
+      - "Sempre que precisar de um contêiner de bloco"
+      - "Quando o elemento precisa de estilização CSS"
+    correct: 0
 ---
+
+Você já sabe escrever HTML que funciona. Agora vamos falar de HTML que *comunica*. A diferença entre um documento com `<div>` em todo lugar e um com elementos semânticos não é visual — o resultado na tela pode ser idêntico. A diferença está no que o código comunica para o navegador, para tecnologias assistivas, para mecanismos de busca e para outros desenvolvedores que vão ler o código no futuro.
+
+Semântica é o ato de escolher o elemento que melhor descreve o papel do conteúdo — não o que produz o visual desejado.
+
+## Por que semântica importa
+
+O HTML tem dois tipos de elementos: os que descrevem o papel do conteúdo e os que são neutros. `<h1>` diz "isso é o título principal". `<nav>` diz "isso é navegação". `<article>` diz "isso é um conteúdo independente". `<div>`, por outro lado, não diz nada — é um contêiner sem significado.
+
+Quando você usa `<div>` para tudo, a estrutura do documento se torna opaca. Veja a diferença:
+
+```html title="A mesma seção do artigo — versão com div e versão semântica."
+<!-- versão com div — estrutura visualmente igual, semanticamente vazia -->
+<div class="cabecalho">
+  <div class="logo">artigo.dev</div>
+  <div class="menu">
+    <div><a href="/">Home</a></div>
+    <div><a href="/artigos">Artigos</a></div>
+  </div>
+</div>
+
+<!-- versão semântica — o mesmo visual, mas cada elemento declara seu papel -->
+<header>
+  <a href="/" class="logo">artigo.dev</a>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/artigos">Artigos</a>
+  </nav>
+</header>
+```
+
+Para um usuário vendo a página, as duas versões são indistinguíveis. Mas um leitor de tela anuncia o `<header>` como "cabeçalho" e o `<nav>` como "navegação", permitindo que o usuário pule direto para onde quer. O Google entende que os links dentro de `<nav>` são navegação, não conteúdo. Outro desenvolvedor que lê o código entende a estrutura imediatamente, sem precisar inferir pelo nome da classe.
+
+## Estrutura de página com `<header>`, `<main>`, `<footer>`
+
+Esses três elementos definem a estrutura de alto nível de praticamente qualquer página:
+
+**`<header>`** representa o cabeçalho de uma página ou de uma seção. No nível de página, geralmente contém o logo, o título do site e a navegação principal. Pode também aparecer dentro de um `<article>` ou `<section>`, representando o cabeçalho daquele conteúdo específico.
+
+**`<main>`** contém o conteúdo principal e único da página — o que diferencia esta página de todas as outras do mesmo site. Só deve aparecer uma vez por página e não deve estar dentro de outros elementos de landmark como `<header>`, `<footer>` ou `<aside>`.
+
+**`<footer>`** representa o rodapé de uma página ou seção. No nível de página, geralmente contém créditos, links secundários, informações de contato e formulários. Como o `<header>`, também pode aparecer dentro de `<article>` ou `<section>`.
+
+```html title="artigo.html com estrutura de página usando header, main e footer."
+<body>
+  <header>
+    <!-- logo e navegação do site -->
+    <a href="/" class="logo">artigo.dev</a>
+    <nav aria-label="Navegação principal">
+      <a href="/">Home</a>
+      <a href="/artigos">Artigos</a>
+      <a href="/sobre">Sobre</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- conteúdo único desta página — o artigo -->
+    <article>
+      <header>
+        <!-- cabeçalho do artigo em si -->
+        <h1>Meu primeiro projeto web</h1>
+        <p>Publicado em <time datetime="2025-03-15">15 de março de 2025</time></p>
+      </header>
+      <!-- corpo do artigo -->
+    </article>
+  </main>
+
+  <footer>
+    <!-- rodapé do site -->
+    <p>© 2025 artigo.dev</p>
+  </footer>
+</body>
+```
+
+Note o `<header>` dentro de `<article>`: é o cabeçalho do artigo (título, data, autor), não o cabeçalho do site. Isso é semântica correta — cada `<article>` pode ter seu próprio `<header>` e `<footer>`.
+
+## Navegação com `<nav>`
+
+**`<nav>`** marca um bloco de links de navegação. Não toda coleção de links precisa de `<nav>` — apenas as navegações principais: o menu do site, o índice de um artigo longo, links de paginação.
+
+Uma página pode ter múltiplos `<nav>`. Quando há mais de um, use `aria-label` para diferenciá-los — leitores de tela anunciam o label junto com o papel:
+
+```html title="Dois elementos nav na página — diferenciados por aria-label."
+<!-- navegação principal do site -->
+<nav aria-label="Navegação principal">
+  <a href="/">Home</a>
+  <a href="/artigos">Artigos</a>
+  <a href="/sobre">Sobre</a>
+</nav>
+
+<!-- índice de seções dentro do artigo -->
+<nav aria-label="Índice do artigo">
+  <a href="#o-que-eu-construi">O que eu construí</a>
+  <a href="#o-processo">O processo</a>
+  <a href="#aprendizados">O que aprendi</a>
+</nav>
+```
+
+Um `<nav>` sem `aria-label` é anunciado apenas como "navegação". Com dois `<nav>` na página, o usuário consegue distinguir "navegação: Navegação principal" de "navegação: Índice do artigo".
+
+## Conteúdo com `<article>`, `<section>` e `<aside>`
+
+Esses três elementos organizam o conteúdo dentro do `<main>`.
+
+**`<article>`** representa um conteúdo **independente e reutilizável** — algo que faz sentido sozinho, fora do contexto da página. Um post de blog, uma notícia, um comentário de usuário, um widget de previsão do tempo. A pergunta para decidir se usar `<article>` é: "este conteúdo faria sentido se eu o publicasse separadamente ou em um feed RSS?" Se sim, `<article>` é o elemento certo.
+
+**`<section>`** representa um **agrupamento temático** dentro de um conteúdo maior. É para dividir o artigo em capítulos ou partes relacionadas. Diferente do `<article>`, uma `<section>` não faz sentido sozinha — ela é parte de algo maior. Cada `<section>` deveria ter um cabeçalho (`<h2>`, `<h3>` etc.) que descreva seu tema.
+
+**`<aside>`** representa conteúdo **tangencialmente relacionado** ao conteúdo ao redor — algo que enriquece mas não é essencial para a compreensão do texto principal. Uma barra lateral, uma nota de rodapé, uma caixa de "leitura relacionada", uma citação destacada.
+
+```html title="article com sections e aside no artigo.html."
+<article>
+  <header>
+    <h1>Meu primeiro projeto web</h1>
+  </header>
+
+  <section id="o-que-eu-construi">
+    <h2>O que eu construí</h2>
+    <p>Um site de portfólio simples com três páginas...</p>
+  </section>
+
+  <section id="o-processo">
+    <h2>O processo</h2>
+
+    <aside>
+      <!-- informação relacionada mas não essencial para o texto principal -->
+      <p>
+        <strong>Ferramenta usada:</strong> VS Code com as extensões
+        Prettier e Live Server.
+      </p>
+    </aside>
+
+    <p>Comecei pelo HTML, sem CSS, para garantir que a estrutura...</p>
+  </section>
+
+  <section id="aprendizados">
+    <h2>O que aprendi</h2>
+    <ul>
+      <li>HTML define estrutura, CSS define aparência</li>
+      <li>Semântica importa para acessibilidade e SEO</li>
+    </ul>
+  </section>
+</article>
+```
+
+## Quando usar `<div>` e `<span>`
+
+`<div>` e `<span>` são contêineres sem semântica. Eles não descrevem nenhum papel — são neutros. Isso tem um uso legítimo: quando você precisa de um contêiner para fins de layout ou estilização com CSS, e nenhum elemento semântico descreve o que aquele contêiner representa.
+
+A regra prática: antes de usar `<div>`, pergunte "existe um elemento semântico que descreve o papel deste contêiner?" Se a resposta for sim — se é navegação, use `<nav>`; se é cabeçalho, use `<header>`; se é conteúdo independente, use `<article>` — use esse elemento. Se nenhum elemento semântico se encaixa, `<div>` é a escolha correta.
+
+`<span>` é o equivalente inline de `<div>`. Use-o para aplicar CSS a parte de um texto quando nenhum elemento semântico inline se aplica:
+
+```html title="div e span usados corretamente — quando nenhum elemento semântico se aplica."
+<!-- div para um wrapper de layout sem significado semântico -->
+<div class="grade-artigos">
+  <article><!-- ... --></article>
+  <article><!-- ... --></article>
+  <article><!-- ... --></article>
+</div>
+
+<!-- span para estilizar parte de um texto sem semântica adicional -->
+<p>
+  O projeto usa
+  <span class="destaque-tecnologia">HTML5</span>,
+  <span class="destaque-tecnologia">CSS Grid</span> e
+  <span class="destaque-tecnologia">JavaScript vanilla</span>.
+</p>
+```
+
+O erro comum é usar `<div>` por hábito ou preguiça, quando um elemento semântico existe e seria mais correto. Uma boa forma de auditar: leia o HTML em voz alta substituindo cada `<div>` por "bloco sem significado". Se ficar estranho — se aquele bloco claramente é navegação, ou rodapé, ou artigo — troque pelo elemento semântico correspondente.
+
+## Resumo
+
+- HTML semântico é usar o elemento que melhor descreve o papel do conteúdo — não apenas o que produz o visual desejado.
+- `<header>`, `<main>` e `<footer>` definem as três grandes divisões de uma página; `<header>` e `<footer>` também podem aparecer dentro de `<article>` e `<section>`.
+- `<nav>` marca blocos de navegação principal; use `aria-label` quando houver múltiplos `<nav>` na mesma página.
+- `<article>` é para conteúdo independente que faz sentido fora de contexto; `<section>` é para agrupamento temático dentro de um conteúdo maior; `<aside>` é para conteúdo tangencialmente relacionado.
+- `<div>` e `<span>` são para quando nenhum elemento semântico se aplica — contêineres neutros para layout e estilização.

@@ -1,6 +1,169 @@
 ---
 title: "Variáveis e tipos"
-description: "let, const e por que var foi substituído. Tipos primitivos: string, number, boolean, null, undefined, symbol, bigint. Coerção e armadilhas."
-comingSoon: true
+description: "const, let e por que var deve ser evitado. Os sete tipos primitivos do JavaScript e como typeof e a coerção implícita funcionam."
 order: 3
+hero:
+  titleBefore: "Variáveis"
+  titleAccent: "e tipos:"
+  titleAfter: "o estado do programa."
+quiz:
+  - question: "Quando usar let em vez de const?"
+    options:
+      - "Quando a variável contém um array ou objeto"
+      - "Quando a variável está dentro de uma função"
+      - "Quando o valor precisa ser reatribuído depois da declaração — const não permite reatribuição"
+      - "Quando o tipo do valor pode mudar"
+    correct: 2
+  - question: "Qual é a diferença entre null e undefined em JavaScript?"
+    options:
+      - "Não há diferença — são sinônimos"
+      - "null é um número; undefined é uma string"
+      - "undefined é mais moderno e deve substituir null"
+      - "null representa ausência intencional de valor (atribuído explicitamente); undefined é o estado padrão de variáveis não inicializadas e propriedades inexistentes"
+    correct: 3
+  - question: "Por que '5' + 3 resulta em '53' mas '5' - 3 resulta em 2?"
+    options:
+      - "É um bug do JavaScript"
+      - "O operador + em JavaScript também concatena strings, então se um operando for string ele converte o outro para string. O operador - não tem esse comportamento — converte tudo para número"
+      - "Porque 5 e 3 são coercidos para strings diferentes em cada caso"
+      - "Porque + tem precedência maior que -"
+    correct: 1
+  - question: "Qual é o resultado de typeof null?"
+    options:
+      - "'object'"
+      - "'null'"
+      - "'undefined'"
+      - "'primitive'"
+    correct: 0
 ---
+
+Variáveis são a forma de guardar valores na memória para usar mais tarde. Em JavaScript moderno, você declara variáveis com `const` ou `let`. O tipo do valor que você guarda — número, texto, booleano — determina o que você pode fazer com ele.
+
+## Declarar variáveis: `const`, `let` e por que não `var`
+
+**`const`** declara uma variável que não pode ser reatribuída. O nome é um pouco enganoso: `const` não significa que o valor é imutável, mas que a **ligação** entre o nome e o valor não pode mudar. Você não pode fazer `const x = 1; x = 2` — isso gera um erro. Mas se o valor for um objeto ou array, o conteúdo interno ainda pode ser modificado.
+
+Use `const` por padrão para tudo. Quando você lê `const botaoTema = document.getElementById("botao-tema")`, fica imediatamente claro que `botaoTema` sempre vai apontar para aquele elemento — nunca será reatribuído a outra coisa.
+
+**`let`** declara uma variável que **pode** ser reatribuída depois. Use apenas quando a reatribuição é necessária — um contador que incrementa, um valor que muda conforme o estado da aplicação, uma variável de loop.
+
+```js title="const e let no script.js do blog."
+// const: referências que não mudam — elementos do DOM, configurações
+const botaoTema = document.getElementById("botao-tema");
+const botaoCurtir = document.getElementById("botao-curtir");
+const barraProgresso = document.getElementById("barra-progresso");
+
+// let: valores que mudam ao longo do tempo
+let curtidasContagem = 0;
+let temasAlternados = 0;
+```
+
+**`var`** é o modo antigo de declarar variáveis. Tem dois comportamentos que tornam o código difícil de prever: o **escopo é por função** (não por bloco), então uma variável declarada com `var` dentro de um `if` vaza para a função inteira. E o **içamento** (*hoisting*) significa que declarações com `var` são movidas para o topo da função — você pode ler uma variável `var` antes de declará-la, e o valor é `undefined` em vez de um erro. Não use `var`. `const` e `let` têm escopo de bloco e comportamento previsível.
+
+```js title="Por que var é problemático — escopo de bloco vs de função."
+// ❌ var vaza do bloco if para a função inteira
+function exemplo() {
+  if (true) {
+    var x = 10; // x existe em toda a função
+  }
+  console.log(x); // → 10 (não um erro!)
+}
+
+// ✅ let respeita o bloco
+function exemplo2() {
+  if (true) {
+    let y = 10; // y existe apenas dentro do if
+  }
+  console.log(y); // ReferenceError: y is not defined
+}
+```
+
+## Tipos primitivos
+
+JavaScript tem sete tipos primitivos. Primitivos são valores imutáveis — quando você copia um primitivo, o valor é copiado, não uma referência.
+
+**`string`** é texto. Pode ser declarada com aspas simples `'texto'`, aspas duplas `"texto"` ou backticks `` `texto` ``. Backticks habilitam *template literals* — interpolação de expressões com `${}` e suporte a múltiplas linhas. A diferença entre aspas simples e duplas é apenas de convenção — escolha uma e seja consistente.
+
+**`number`** representa todos os números em JavaScript — inteiros e decimais no mesmo tipo. `42`, `3.14`, `-7`, `0.1`. Há dois valores especiais: `NaN` (*Not a Number*) é o resultado de operações matemáticas inválidas como `"texto" / 2`. `Infinity` é o resultado de dividir por zero.
+
+**`boolean`** é `true` ou `false`. É o resultado de comparações e condicionais.
+
+**`null`** representa a **ausência intencional** de valor. Você atribui `null` explicitamente quando quer dizer "não há valor aqui ainda" ou "esse campo é vazio". É uma escolha do programador.
+
+**`undefined`** é o valor padrão de variáveis declaradas mas não inicializadas, de parâmetros não passados e de propriedades que não existem em um objeto. É o que JavaScript usa quando *você* não atribuiu nada.
+
+**`symbol`** cria identificadores únicos e imutáveis — raramente usado diretamente em código de aplicação, mais comum em bibliotecas que precisam de chaves privadas.
+
+**`bigint`** representa inteiros arbitrariamente grandes — além do limite seguro de `number` (`Number.MAX_SAFE_INTEGER = 9007199254740991`). Declarado com `n` no final: `9007199254740993n`.
+
+```js title="Variáveis tipadas para um artigo do blog."
+// string — texto
+const titulo = "Meu primeiro projeto web";
+const slug = "meu-primeiro-projeto-web";
+const autor = "Dev Aprendiz";
+
+// number — inteiros e decimais no mesmo tipo
+const curtidas = 42;
+const tempoLeituraMins = 7;
+const notaMedia = 4.8;
+
+// boolean — verdadeiro ou falso
+const publicado = true;
+const destacado = false;
+
+// null — ausência intencional (artigo ainda não publicado não tem data)
+const publicadoEm = null;
+
+// undefined — se você acessar uma propriedade que não existe
+const artigo = { titulo: "Meu primeiro projeto web" };
+console.log(artigo.autor); // → undefined
+```
+
+## `typeof` e coerção
+
+O operador `typeof` retorna o tipo de um valor como string. É útil para verificar o tipo antes de operar em um valor:
+
+```js title="typeof — verificando tipos em tempo de execução."
+typeof "texto"        // → "string"
+typeof 42             // → "number"
+typeof true           // → "boolean"
+typeof undefined      // → "undefined"
+typeof null           // → "object"  ← bug histórico — null não é objeto
+typeof {}             // → "object"
+typeof []             // → "object"  ← arrays também são objetos
+typeof function(){}   // → "function"
+```
+
+`typeof null === "object"` é o bug mais famoso do JavaScript — uma decisão de implementação de 1995 que não pode ser corrigida. Para verificar se algo é `null`, compare diretamente: `valor === null`.
+
+**Coerção** é a conversão automática de tipos que JavaScript faz em operações com tipos diferentes. Às vezes é conveniente; na maioria dos casos, é fonte de bugs:
+
+```js title="Coerção implícita — prever os resultados antes de ver."
+// operador + concatena se um operando for string
+"5" + 3         // → "53" (3 virou string)
+"5" + true      // → "5true"
+
+// operador - sempre tenta converter para número
+"5" - 3         // → 2 ("5" virou número)
+"5" - "3"       // → 2 (ambas viraram número)
+"texto" - 1     // → NaN (conversão impossível)
+
+// comparação com coerção (==) vs estrita (===)
+"5" == 5        // → true  (coerção — evitar)
+"5" === 5       // → false (estrita — use sempre)
+null == undefined  // → true  (== considera iguais)
+null === undefined // → false (=== considera diferentes)
+0 == false      // → true  (coerção — evitar)
+0 === false     // → false (estrita)
+```
+
+A regra é simples: **use sempre `===` para comparações**. O operador `===` compara valor e tipo — sem surpresas de coerção. O `==` permite coerção e produz resultados que podem não ser o que você esperava.
+
+## Resumo
+
+- **`const`** é o padrão: declara uma variável que não pode ser reatribuída. Comunica a intenção de que esse valor não vai mudar.
+- **`let`** é para quando a reatribuição é necessária: contadores, variáveis de estado, resultados de loops.
+- **`var`** deve ser evitado: escopo de função (não de bloco), içamento e comportamento imprevisível.
+- Os **sete tipos primitivos**: `string` (texto), `number` (inteiros e decimais), `boolean` (`true`/`false`), `null` (ausência intencional), `undefined` (valor padrão não inicializado), `symbol` (identificador único) e `bigint` (inteiros grandes).
+- **`typeof null === "object"`** é um bug histórico. Para checar null: `valor === null`.
+- **Coerção** é a conversão automática de tipos. O `+` concatena se um operando for string. Use sempre **`===`** para comparações estritas — sem coerção, sem surpresas.

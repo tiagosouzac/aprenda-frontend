@@ -1,6 +1,155 @@
 ---
 title: "Anatomia de um documento"
-description: "A estrutura mínima de uma página: DOCTYPE, html, head, body. Metadados essenciais no head: charset, viewport, title, description, ícone."
-comingSoon: true
+description: "A estrutura mínima de qualquer página HTML: DOCTYPE, html, head e body. O que cada tag do cabeçalho faz e como organizar o body do artigo."
 order: 2
+hero:
+  titleBefore: "A anatomia"
+  titleAccent: "de um documento"
+  titleAfter: "HTML."
+quiz:
+  - question: "Para que serve o <!DOCTYPE html> no início de um arquivo HTML?"
+    options:
+      - "Para importar o CSS padrão do navegador"
+      - "Para definir o idioma do documento"
+      - "Para declarar que o documento usa HTML5 e ativar o modo padrão de renderização"
+      - "Para conectar o arquivo ao servidor"
+    correct: 2
+  - question: "Por que o atributo lang no elemento html é importante?"
+    options:
+      - "Define qual versão do HTML está sendo usada"
+      - "É obrigatório para que o CSS funcione"
+      - "Bloqueia acesso de usuários de outros países"
+      - "Ajuda leitores de tela e mecanismos de busca a entender o idioma do conteúdo"
+    correct: 3
+  - question: "Qual é o efeito de omitir meta charset='utf-8'?"
+    options:
+      - "A página não carrega no navegador"
+      - "Caracteres especiais como acentos podem ser exibidos incorretamente"
+      - "O CSS para de funcionar"
+      - "O JavaScript não executa"
+    correct: 1
+  - question: "Onde deve ficar o conteúdo visível de uma página HTML?"
+    options:
+      - "No body"
+      - "No head"
+      - "No meta"
+      - "No DOCTYPE"
+    correct: 0
 ---
+
+Todo documento HTML, independente do tamanho ou complexidade, segue a mesma estrutura de base. Há um conjunto mínimo de elementos que o navegador espera encontrar, e cada um tem uma função precisa. Entender o que cada peça faz — antes de colocar qualquer conteúdo — é o que separa um documento correto de um que "funciona por acidente".
+
+Nesta lição, você vai construir o esqueleto de `artigo.html`: a página do post "Meu primeiro projeto web". Por enquanto, sem conteúdo real — apenas a estrutura que todo documento HTML precisa ter.
+
+## A estrutura mínima
+
+Abra qualquer editor de texto, crie um arquivo chamado `artigo.html` e comece assim:
+
+```html title="Estrutura mínima obrigatória de qualquer documento HTML."
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Meu primeiro projeto web</title>
+  </head>
+  <body>
+    <!-- conteúdo visível vai aqui -->
+  </body>
+</html>
+```
+
+Quatro elementos obrigatórios, cada um com um papel:
+
+**`<!DOCTYPE html>`** não é uma tag HTML — é uma declaração para o navegador. Ela diz: "este arquivo usa HTML5". Sem ela, alguns navegadores entram em *quirks mode* — um modo de compatibilidade com comportamentos imprevisíveis que existiu para não quebrar sites dos anos 1990. Com ela, o navegador usa o modo padrão, que segue as especificações modernas. Sempre coloque na primeira linha, antes de qualquer coisa.
+
+**`<html lang="pt-BR">`** é a raiz do documento — todos os outros elementos ficam dentro dele. O atributo `lang` declara o idioma do conteúdo. Leitores de tela usam essa informação para escolher o sotaque de síntese de voz correto: um leitor configurado para português vai pronunciar palavras de forma diferente de um configurado para inglês. Mecanismos de busca também usam `lang` para indexação regionalizada. Para conteúdo em português brasileiro, o valor correto é `"pt-BR"`.
+
+**`<head>`** contém metadados — informações sobre o documento que o navegador usa, mas que o usuário não vê diretamente na página. É aqui que ficam o título da aba, a descrição para mecanismos de busca, o link para o arquivo CSS e várias configurações de comportamento.
+
+**`<body>`** contém tudo que é visível — o conteúdo da página. Títulos, parágrafos, imagens, links, formulários. Qualquer coisa que o usuário vê ou com que interage fica aqui.
+
+## O que vai no `<head>`
+
+O `<head>` do `artigo.html` vai crescer ao longo do módulo, mas desde o início deve ter os metadados essenciais:
+
+```html title="head completo de artigo.html com todos os metadados necessários."
+<head>
+  <!-- define como o texto é codificado — sem isso, acentos quebram -->
+  <meta charset="utf-8" />
+
+  <!-- necessário para que o layout funcione em telas de celular -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- aparece na aba do navegador e nos resultados de busca -->
+  <title>Meu primeiro projeto web — artigo.dev</title>
+
+  <!-- resumo para mecanismos de busca e previews de link -->
+  <meta
+    name="description"
+    content="Um relato de aprendizado: como construí e publiquei meu primeiro site em três semanas."
+  />
+
+  <!-- ícone na aba do navegador -->
+  <link rel="icon" href="/favicon.ico" />
+
+  <!-- CSS será linkado aqui quando o módulo de CSS começar -->
+  <!-- <link rel="stylesheet" href="estilos.css" /> -->
+</head>
+```
+
+Cada linha tem uma razão de existir:
+
+**`<meta charset="utf-8">`** define a codificação de caracteres do documento. O UTF-8 é o padrão universal — ele consegue representar praticamente qualquer caractere de qualquer idioma, incluindo todos os acentos do português. Sem essa declaração, o navegador tenta adivinhar a codificação e muitas vezes erra. O resultado são os famosos caracteres quebrados: "MenÃ§Ã£o" em vez de "Menção". Sempre coloque essa tag **antes** de qualquer outro conteúdo no `<head>` — o navegador precisa saber a codificação antes de começar a interpretar o texto.
+
+**`<meta name="viewport">`** instrui o navegador de celular sobre como renderizar a página. Sem ela, o celular renderiza a página como se fosse um desktop e depois encolhe tudo para caber na tela — o resultado é texto minúsculo e ilegível. Com `width=device-width`, o navegador usa a largura real da tela. Com `initial-scale=1`, o zoom inicial é 1:1. É a única linha necessária para que o CSS responsivo funcione.
+
+**`<title>`** define o texto que aparece na aba do navegador e no resultado do mecanismo de busca. É um dos fatores mais importantes de SEO — o Google usa o título para entender do que trata a página. Seja específico e descritivo. "Meu primeiro projeto web — artigo.dev" comunica mais do que "artigo" ou "página 1".
+
+**`<meta name="description">`** fornece um resumo do conteúdo para mecanismos de busca e para os previews de link (quando alguém compartilha a URL em uma rede social). Não é um fator de ranking direto, mas influencia a taxa de clique — uma descrição clara e relevante convida mais pessoas a clicarem.
+
+**`<link rel="icon">`** define o favicon — o ícone pequeno que aparece na aba do navegador, nos favoritos e, em celulares, na tela inicial. Não é obrigatório, mas sua ausência é perceptível.
+
+## Estrutura do `<body>` do artigo
+
+O `<body>` de `artigo.html` vai conter três partes grandes: o cabeçalho do site (logo e navegação), o conteúdo principal do artigo e o rodapé com o formulário de contato. Cada uma dessas partes tem um elemento HTML semântico específico — assunto da lição 7 — mas já é útil ver a divisão desde o início.
+
+```html title="body de artigo.html com as grandes divisões estruturais."
+<body>
+
+  <!-- cabeçalho do site: logo e navegação principal -->
+  <header>
+    <a href="/">artigo.dev</a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/artigos">Artigos</a>
+      <a href="/sobre">Sobre</a>
+    </nav>
+  </header>
+
+  <!-- conteúdo principal: o artigo em si -->
+  <main>
+    <article>
+      <!-- título, seções, imagens e código do post vão aqui -->
+    </article>
+  </main>
+
+  <!-- rodapé: formulário de contato e créditos -->
+  <footer>
+    <!-- formulário de contato vai aqui -->
+    <p>© 2025 artigo.dev</p>
+  </footer>
+
+</body>
+```
+
+Este esqueleto já tem uma hierarquia clara. O `<header>` contém o que aparece no topo de todas as páginas do site. O `<main>` contém o conteúdo principal — o que muda de página para página. O `<footer>` contém o que aparece na base. Dentro de `<main>`, o `<article>` marca que o conteúdo é um artigo independente — um post de blog que faz sentido mesmo fora do contexto do site.
+
+As próximas lições vão preencher cada uma dessas partes. Por enquanto, o que importa é a divisão: você sabe onde cada coisa vai morar antes de começar a escrevê-la.
+
+## Resumo
+
+- Todo documento HTML começa com `<!DOCTYPE html>` para ativar o modo de renderização padrão do navegador.
+- `<html lang="pt-BR">` é a raiz do documento; o atributo `lang` é essencial para leitores de tela e mecanismos de busca.
+- `<head>` contém metadados invisíveis ao usuário: charset, viewport, title, description, favicon, links para CSS.
+- `<meta charset="utf-8">` deve ser o primeiro elemento do `<head>` — sem ele, acentos e caracteres especiais podem quebrar.
+- `<body>` contém todo o conteúdo visível; no `artigo.html`, ele é dividido em `<header>`, `<main>` e `<footer>`.

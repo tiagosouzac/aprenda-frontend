@@ -1,6 +1,185 @@
 ---
 title: "Outras bibliotecas de UI"
 description: "Vue, Svelte, Solid, Qwik. Comparação rápida com React em modelo mental e ergonomia."
-comingSoon: true
 order: 3
+hero:
+  titleBefore: "Além"
+  titleAccent: "do React"
+  titleAfter: "— outros modelos mentais."
+quiz:
+  - question: "Qual é a principal diferença de modelo mental entre Vue e React?"
+    options:
+      - "Vue usa templates HTML com diretivas especiais (v-if, v-for, @click) e reatividade baseada em proxies — o estado é um objeto observável. React usa JSX e reatividade explícita via hooks (useState, useReducer)"
+      - "Vue usa JavaScript; React usa TypeScript"
+      - "Vue é mais rápido que React em qualquer cenário"
+      - "Vue não tem sistema de componentes"
+    correct: 0
+  - question: "O que torna o Svelte diferente de React e Vue em termos de arquitetura?"
+    options:
+      - "Svelte não tem componentes"
+      - "Svelte usa TypeScript obrigatoriamente"
+      - "Svelte é um compilador — transforma componentes em JavaScript puro sem nenhum runtime no browser. React e Vue enviam um runtime (a biblioteca em si) para o browser executar. Svelte gera código vanilla JS que manipula o DOM diretamente"
+      - "Svelte só funciona com SSR"
+    correct: 2
+  - question: "Por que conhecer outras bibliotecas além do React vale a pena?"
+    options:
+      - "Para poder usar qualquer framework em qualquer projeto"
+      - "Porque o mercado exige conhecimento de todas as bibliotecas"
+      - "Porque React vai ser descontinuado em breve"
+      - "Para entender o que React faz de especial — e o que é uma convenção específica do React que poderia ter sido diferente. Diferentes modelos mentais iluminam o porquê de escolhas de design"
+    correct: 3
+  - question: "O que é reatividade granular no Solid.js?"
+    options:
+      - "Uma forma de re-renderizar o componente inteiro mais rapidamente"
+      - "Quando o sistema de reatividade atualiza apenas o nó do DOM que realmente mudou, sem re-executar a função do componente inteiro — em contraste com React, que re-executa o componente e compara o virtual DOM"
+      - "Uma técnica de memoização automática"
+      - "O mesmo que o sistema de signals do Angular"
+    correct: 1
 ---
+
+React domina o mercado de frontend — mas não é a única biblioteca de UI, e não é necessariamente a melhor para todos os casos. Vue, Svelte, Solid e Qwik existem porque têm propostas diferentes: modelos mentais alternativos, tradeoffs de performance distintos, e ergonomias que alguns desenvolvedores preferem. Conhecer essas alternativas não é sobre migrar do React — é sobre entender o que React faz de especial, e o que é convenção arbitrária que poderia ter sido diferente.
+
+## Vue — templates e reatividade por objeto
+
+Vue usa uma abordagem diferente do JSX: **templates HTML** com diretivas especiais. A sintaxe parece mais próxima do HTML original, o que muitos iniciantes acham mais intuitiva.
+
+```vue title="ArticleCard.vue — componente Vue com Composition API."
+<template>
+  <article class="card-artigo">
+    <h2>{{ artigo.titulo }}</h2>
+    <p>{{ artigo.descricao }}</p>
+
+    <!-- v-if é a renderização condicional de Vue -->
+    <span v-if="ehNovo" class="badge">Novo</span>
+
+    <div class="card-tags">
+      <!-- v-for é o .map() do React, com :key -->
+      <span v-for="tag in artigo.tags" :key="tag" class="tag">{{ tag }}</span>
+    </div>
+
+    <!-- @click é o onClick do React -->
+    <button @click="handleCurtir" :aria-pressed="curtido">
+      {{ curtido ? '❤️' : '🤍' }} {{ contagem }}
+    </button>
+  </article>
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import type { Artigo } from '../types';
+
+// props — equivalente ao interface Props do React
+const props = defineProps<{ artigo: Artigo }>();
+
+// ref() é o useState() do Vue
+const curtido = ref(false);
+const contagem = ref(props.artigo.curtidas);
+
+// computed() é o useMemo() do React
+const ehNovo = computed(() => {
+  const sete = new Date();
+  sete.setDate(sete.getDate() - 7);
+  return props.artigo.publicadoEm ? new Date(props.artigo.publicadoEm) > sete : false;
+});
+
+function handleCurtir() {
+  curtido.value = !curtido.value;
+  contagem.value += curtido.value ? 1 : -1;
+}
+</script>
+```
+
+A reatividade do Vue é baseada em **proxies** — quando você muda `curtido.value`, Vue detecta a mudança e atualiza o DOM. Não há `setState` explícito — a mutação do valor já notifica o sistema.
+
+**Vue tem dois estilos**: a Composition API (mostrada acima, mais próxima de hooks do React) e a Options API (um objeto com `data`, `methods`, `computed` separados — mais comum em código Vue mais antigo).
+
+## Svelte — o compilador
+
+Svelte tem uma premissa diferente de React e Vue: **não é uma biblioteca que vai para o browser — é um compilador**. Componentes Svelte são transformados em JavaScript puro em tempo de build.
+
+```svelte title="LikeButton.svelte — reatividade sem runtime."
+<script lang="ts">
+  // let com reatividade automática — sem ref(), sem useState()
+  export let artigo: Artigo;
+
+  let curtido = false;
+  let contagem = artigo.curtidas;
+
+  function handleCurtir() {
+    curtido = !curtido;           // mutação direta — Svelte reage automaticamente
+    contagem += curtido ? 1 : -1; // sem setter explícito
+  }
+</script>
+
+<button
+  aria-pressed={curtido}
+  on:click={handleCurtir}
+>
+  {curtido ? '❤️' : '🤍'} {contagem}
+</button>
+
+<style>
+  /* estilos com escopo automático — não vaza para fora do componente */
+  button { border-radius: 9999px; }
+</style>
+```
+
+O que Svelte gera em build time é JavaScript que manipula o DOM diretamente — sem virtual DOM, sem runtime da biblioteca. O bundle gerado é menor e a performance frequentemente melhor que React ou Vue, especialmente em dispositivos lentos.
+
+**A troca**: sem virtual DOM, algumas otimizações que React faz automaticamente precisam ser explícitas em Svelte. E o ecossistema é menor — menos bibliotecas e componentes prontos.
+
+## Solid — reatividade granular
+
+Solid tem uma API que parece muito com o React — `createSignal`, `createEffect`, JSX. Mas por baixo, funciona de forma radicalmente diferente.
+
+```tsx title="LikeButton em Solid — API parecida com React, mecanismo diferente."
+import { createSignal } from 'solid-js';
+
+function LikeButton(props: { artigo: Artigo }) {
+  // createSignal é o useState() do Solid
+  const [curtido, setCurtido] = createSignal(false);
+  const [contagem, setContagem] = createSignal(props.artigo.curtidas);
+
+  function handleCurtir() {
+    setCurtido(prev => !prev);
+    setContagem(prev => curtido() ? prev - 1 : prev + 1);
+  }
+
+  return (
+    <button aria-pressed={curtido()} onClick={handleCurtir}>
+      {curtido() ? '❤️' : '🤍'} {contagem()}
+    </button>
+  );
+}
+```
+
+A diferença invisível na sintaxe mas fundamental em performance: quando `curtido` muda, **Solid não re-executa a função do componente**. Ele atualiza apenas o nó do DOM que usa `curtido()`. Isso é **reatividade granular** — o update é cirúrgico, sem virtual DOM, sem re-render de componente.
+
+Para quem vem do React, a curva de aprendizado de Solid é pequena — a sintaxe é familiar. Mas as garantias são diferentes: funções de componente rodam apenas uma vez, não a cada render.
+
+## Qwik — resumabilidade
+
+Qwik tem uma proposta radical: **resumabilidade** em vez de hidratação. Em SSR tradicional (Next.js, por exemplo), o servidor gera HTML e o browser precisa "hidratar" — executar todo o JavaScript para tornar a página interativa. Em páginas grandes, isso pode ser lento.
+
+Qwik serializa o estado da aplicação no HTML e "retoma" no browser exatamente de onde o servidor parou, executando JavaScript apenas quando necessário — lazy loading extremamente granular. O resultado são métricas de first interaction extremamente rápidas.
+
+**Para quem considerar:** aplicações grandes com muito conteúdo e muitos componentes interativos, onde o tempo de hidratação inicial é um problema mensurável.
+
+## O que vale aprender além do React
+
+Não é necessário dominar todas as bibliotecas — mas vale entender o modelo mental de pelo menos uma alternativa. Sugestões por objetivo:
+
+| Objetivo | Recomendação |
+|---|---|
+| Trabalhar no mercado brasileiro | Aprofundar em React + Next.js |
+| Curiosidade técnica, abrir a mente | Experimentar Svelte (curva baixa, modelo diferente) |
+| Performance máxima em casos específicos | Solid ou Qwik |
+| Trabalhar em empresa que usa Vue | Vue com Nuxt |
+
+## Resumo
+
+- **Vue**: templates HTML com diretivas (`v-if`, `v-for`, `@click`) e reatividade via proxies (`ref`, `reactive`). Modelo mental diferente do React, mas com as mesmas soluções para os mesmos problemas.
+- **Svelte**: compilador — não vai para o browser. Reatividade automática por mutação, estilos com escopo. Bundle menor, performance frequentemente superior. Ecossistema menor.
+- **Solid**: API parecida com React, reatividade granular sem virtual DOM. Funções de componente rodam uma vez. Ótima performance.
+- **Qwik**: resumabilidade — serializa o estado no HTML, hidratação instantânea. Para aplicações grandes com problema real de hidratação.
+- Conhecer alternativas não é para migrar do React — é para entender por que React faz as escolhas que faz.

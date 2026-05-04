@@ -1,6 +1,197 @@
 ---
 title: "Operadores e expressões"
-description: "Aritméticos, comparação (=== vs. ==), lógicos (&&, ||, ??), ternário, atribuição. Curto-circuito."
-comingSoon: true
+description: "Aritméticos, comparação estrita, lógicos com curto-circuito, nullish coalescing, ternário e atribuição composta."
 order: 4
+hero:
+  titleBefore: "Operadores"
+  titleAccent: "e expressões:"
+  titleAfter: "transformar valores."
+quiz:
+  - question: "Qual é a diferença entre || e ?? (nullish coalescing)?"
+    options:
+      - "|| retorna o operando direito se o esquerdo for null ou undefined; ?? retorna se for qualquer valor falsy"
+      - "São sinônimos — fazem a mesma coisa"
+      - "?? retorna o operando direito se o esquerdo for null ou undefined; || retorna se for qualquer valor falsy — incluindo 0, '' e false"
+      - "|| funciona com booleanos; ?? funciona com objetos"
+    correct: 2
+  - question: "O que é curto-circuito em operadores lógicos?"
+    options:
+      - "Quando o operador causa um erro de execução"
+      - "Quando dois operadores são usados na mesma expressão"
+      - "Uma otimização que arredonda números para evitar erros de ponto flutuante"
+      - "Em a && b, se a for falsy, b não é avaliado. Em a || b, se a for truthy, b não é avaliado — o segundo operando só é executado quando necessário"
+    correct: 3
+  - question: "O que o operador % (módulo) retorna?"
+    options:
+      - "O resultado da divisão com casas decimais"
+      - "O resto da divisão inteira"
+      - "O valor percentual de dois números"
+      - "A diferença entre dois números"
+    correct: 1
+  - question: "Quando usar o operador ternário em vez de if/else?"
+    options:
+      - "Quando você precisa de um valor baseado em uma condição em uma expressão — atribuições, template literals, argumentos de função. Não aninhar ternários"
+      - "Sempre — o ternário é mais eficiente"
+      - "Nunca — if/else é mais legível"
+      - "Apenas quando a condição envolve null ou undefined"
+    correct: 0
 ---
+
+Operadores transformam valores. Você já conhece os básicos de matemática (`+`, `-`, `*`, `/`). JavaScript tem operadores para comparação, lógica, atribuição composta e uma série de atalhos que aparecem o tempo todo em código real.
+
+## Operadores aritméticos
+
+Os operadores básicos funcionam como esperado: `+` soma, `-` subtrai, `*` multiplica, `/` divide. O `%` (*módulo*) retorna o **resto** da divisão inteira — muito útil para verificar se um número é par ou ímpar, para limitar índices que devem circular, para criar padrões alternados.
+
+`**` é a exponenciação: `2 ** 10` é 1024.
+
+`++` e `--` existem mas prefira `+= 1` e `-= 1` — são mais explícitos sobre o que fazem e não têm a ambiguidade de `i++` vs `++i` (a posição do operador muda quando a atribuição ocorre).
+
+```js title="Operadores aritméticos — calculando tempo de leitura do artigo."
+const palavras = 1240;
+const palavrasPorMinuto = 200;
+
+// Math.ceil arredonda para cima — 6.2 minutos → 7 minutos
+const tempoLeitura = Math.ceil(palavras / palavrasPorMinuto);
+console.log(`Leitura em ${tempoLeitura} minutos`); // → "Leitura em 7 minutos"
+
+// módulo: verificar se o índice é par para linha zebrada
+for (let i = 0; i < artigos.length; i++) {
+  const classeZebra = i % 2 === 0 ? "par" : "impar";
+  // 0, 2, 4 → "par"
+  // 1, 3, 5 → "impar"
+}
+
+// potenciação
+const pixelsPorEm = 16 ** 1; // 16
+const bytes = 2 ** 20;       // 1048576 (1 MB)
+```
+
+## Operadores de comparação
+
+`===` é a **comparação estrita** — compara valor e tipo. É o que você deve usar. `!==` é a versão negada.
+
+`<`, `>`, `<=`, `>=` comparam ordem. Para strings, a comparação é lexicográfica (ordem do dicionário): `"b" > "a"` é `true`, `"banana" > "bala"` também — a comparação acontece caractere por caractere.
+
+```js title="Comparações — verificando se um artigo é recente."
+const agora = new Date();
+const publicadoEm = new Date("2025-03-15");
+
+// diferença em milissegundos
+const diferencaMs = agora - publicadoEm;
+
+// converter para dias
+const diasPassados = diferencaMs / (1000 * 60 * 60 * 24);
+
+// artigo é "recente" se publicado nos últimos 7 dias
+const eRecente = diasPassados <= 7;
+
+// comparação de strings — para ordenar títulos
+"HTML" < "JavaScript" // → true (H vem antes de J)
+"css" > "CSS"         // → true (minúsculas têm código maior que maiúsculas)
+```
+
+## Operadores lógicos
+
+`&&` (AND) retorna o primeiro operando **falsy** ou o último operando se todos forem truthy. Isso é o **curto-circuito**: se o primeiro operando for falsy, o segundo nem é avaliado. Muito usado para renderização condicional e guards.
+
+`||` (OR) retorna o primeiro operando **truthy** ou o último operando se todos forem falsy. Também tem curto-circuito: o segundo não é avaliado se o primeiro já for truthy.
+
+`!` inverte o boolean do valor. `!!valor` é um idioma para converter qualquer valor em boolean explicitamente.
+
+```js title="Operadores lógicos com curto-circuito — guards e valores padrão."
+// && como guard: executa apenas se a condição for verdadeira
+const botaoCurtir = document.getElementById("botao-curtir");
+botaoCurtir && botaoCurtir.addEventListener("click", curtir);
+// se botaoCurtir for null, o addEventListener não é chamado
+
+// || como fallback: usa o segundo valor se o primeiro for falsy
+const nomeSalvo = localStorage.getItem("nome");
+const nome = nomeSalvo || "Visitante";
+// se nomeSalvo for null ou "" (falsy), usa "Visitante"
+
+// cuidado: 0 e "" são falsy — podem ser valores válidos que || descarta
+const contagem = 0;
+const contagemExibida = contagem || "nenhuma"; // → "nenhuma" (não é o que queremos!)
+```
+
+**`??`** (*nullish coalescing*) resolve o problema acima. Ele retorna o operando direito apenas se o esquerdo for `null` ou `undefined` — não para outros valores falsy como `0`, `""` ou `false`:
+
+```js title="Nullish coalescing ?? — fallback apenas para null e undefined."
+// ?? vs ||: a diferença importa com 0 e strings vazias
+const contagem = 0;
+contagem || "nenhuma"  // → "nenhuma" (0 é falsy — resultado errado)
+contagem ?? "nenhuma"  // → 0 (0 não é null nem undefined — correto)
+
+// caso de uso real: ler do localStorage com fallback
+const tema = localStorage.getItem("tema") ?? "claro";
+// se localStorage retornar null (não existe), usa "claro"
+// se retornar "" (string vazia), usa "" (mantém)
+
+const curtidas = JSON.parse(localStorage.getItem("curtidas")) ?? [];
+// null → [] (array vazio como padrão)
+```
+
+## Operador ternário
+
+O ternário é uma expressão condicional compacta: `condição ? valorSeVerdadeiro : valorSeFalso`. Diferente do `if/else` (que é uma declaração), o ternário é uma **expressão** — retorna um valor e pode ser usado dentro de outras expressões.
+
+É ideal para atribuições simples e para interpolação dentro de template literals. Não aninha ternários — se a lógica precisar de mais de uma condição, use `if/else` por clareza.
+
+```js title="Ternário — valores baseados em condições em expressões."
+// ícone do botão de curtir baseado no estado
+const curtido = curtidos.includes(artigoId);
+const icone = curtido ? "❤️" : "🤍";
+const rotulo = curtido ? "Descurtir" : "Curtir";
+
+// dentro de template literal
+const mensagem = `${curtidas} ${curtidas === 1 ? "curtida" : "curtidas"}`;
+
+// classe CSS baseada em condição
+const classe = eRecente ? "artigo artigo-recente" : "artigo";
+
+// ❌ não aninhar — difícil de ler
+const resultado = a > b ? "maior" : a === b ? "igual" : "menor"; // evitar
+
+// ✅ se precisar de mais casos, use if/else
+let resultado;
+if (a > b) resultado = "maior";
+else if (a === b) resultado = "igual";
+else resultado = "menor";
+```
+
+## Atribuição composta
+
+Atribuição composta combina uma operação com a atribuição. `x += 1` é o mesmo que `x = x + 1`. Mais conciso, menos repetição.
+
+```js title="Atribuição composta — incrementar e acumular."
+// incrementar o contador de curtidas
+let curtidas = parseInt(localStorage.getItem("curtidas")) || 0;
+curtidas += 1; // mesmo que: curtidas = curtidas + 1
+
+// acumular texto
+let relatorio = "Artigos processados:\n";
+relatorio += "- Meu primeiro projeto web\n";
+relatorio += "- CSS em geral\n";
+
+// ??= — atribuir apenas se o valor atual é null ou undefined
+// útil para inicializar apenas uma vez
+let config = null;
+config ??= { tema: "claro", idioma: "pt-BR" }; // atribui porque config é null
+
+let configuracaoExistente = { tema: "escuro" };
+configuracaoExistente ??= { tema: "claro" }; // não atribui — já tem valor
+
+// ||= — atribuir apenas se o valor atual é falsy
+let nome = "";
+nome ||= "Visitante"; // → "Visitante" (string vazia é falsy)
+```
+
+## Resumo
+
+- `%` (módulo) retorna o **resto** da divisão — útil para par/ímpar e índices circulares. `**` é potenciação. Prefira `+= 1` a `++`.
+- Use sempre `===` e `!==` para comparações — sem coerção, sem surpresas.
+- `&&` retorna o primeiro falsy ou o último operando. `||` retorna o primeiro truthy ou o último. Ambos têm **curto-circuito** — o segundo operando nem é avaliado quando o resultado já está determinado.
+- `??` (nullish coalescing) usa o operando direito apenas para `null` e `undefined` — diferente de `||` que usa para qualquer valor falsy. Use `??` quando `0`, `""` e `false` são valores válidos.
+- O **ternário** `condição ? a : b` é uma expressão — ideal para atribuições simples e template literals. Não aninhe.
+- `+=`, `-=`, `??=`, `||=` são atribuições compostas — combinam operação e atribuição.

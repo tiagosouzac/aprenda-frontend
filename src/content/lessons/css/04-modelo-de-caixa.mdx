@@ -1,6 +1,203 @@
 ---
 title: "Modelo de caixa"
-description: "Conteúdo, padding, border, margin. box-sizing: border-box e por que praticamente todo projeto adota como padrão. Margens colapsando."
-comingSoon: true
+description: "Todo elemento HTML é uma caixa com quatro camadas: content, padding, border e margin. Como box-sizing muda o cálculo de tamanho e o que é margin collapsing."
 order: 4
+hero:
+  titleBefore: "Modelo de caixa:"
+  titleAccent: "quatro camadas"
+  titleAfter: "de dentro para fora."
+quiz:
+  - question: "Com box-sizing: content-box, um elemento com width: 200px, padding: 20px e border: 2px tem qual largura total?"
+    options:
+      - "244px"
+      - "200px"
+      - "240px"
+      - "242px"
+    correct: 0
+  - question: "Com box-sizing: border-box, um elemento com width: 200px, padding: 20px e border: 2px tem qual largura total?"
+    options:
+      - "240px"
+      - "244px"
+      - "200px"
+      - "156px"
+    correct: 2
+  - question: "O que acontece com as margens de dois parágrafos adjacentes, cada um com margin: 16px?"
+    options:
+      - "O espaço entre eles é 32px — soma das duas margens"
+      - "O espaço entre eles é 8px — a média das duas"
+      - "Depende do navegador"
+      - "O espaço entre eles é 16px — a maior das duas margens vence (margin collapsing)"
+    correct: 3
+  - question: "Qual é a diferença entre padding e margin?"
+    options:
+      - "Padding é externo, margin é interno"
+      - "Padding cria espaço interno entre conteúdo e borda; margin cria espaço externo entre a borda e outros elementos"
+      - "Padding afeta o fundo do elemento; margin não"
+      - "Não há diferença prática, apenas de nome"
+    correct: 1
 ---
+
+Antes de entrar em Flexbox e Grid, há um conceito que fundamenta todo o layout em CSS: o modelo de caixa. Cada elemento HTML — um parágrafo, um `<div>`, um botão, um link — é representado no navegador como um retângulo. Esse retângulo tem quatro camadas concêntricas, e entender como cada uma funciona é pré-requisito para qualquer trabalho de layout.
+
+## Todo elemento é uma caixa
+
+As quatro camadas do modelo de caixa, de dentro para fora:
+
+**Content** é o espaço onde o conteúdo do elemento reside — o texto de um parágrafo, a imagem, os filhos de um `<div>`. É controlado pelas propriedades `width` e `height`.
+
+**Padding** é o espaço interno entre o conteúdo e a borda. Ele empurra o conteúdo para dentro, criando respiro. O fundo do elemento (definido por `background-color` ou `background-image`) cobre o padding.
+
+**Border** é a linha que circunda o padding. Tem três atributos: largura (`border-width`), estilo (`border-style`: solid, dashed, dotted) e cor (`border-color`). O shorthand `border: 1px solid #e5e7eb` define os três de uma vez.
+
+**Margin** é o espaço externo — o espaço entre a borda do elemento e os elementos ao redor. Diferente do padding, a margem é transparente (o fundo não a cobre). Ela empurra outros elementos para longe.
+
+```css title="Modelo de caixa no artigo — visualizando as quatro camadas."
+/* card de artigo relacionado com as quatro camadas explícitas */
+.card-artigo {
+  /* content: definido pelo conteúdo interno */
+  width: 300px;
+
+  /* padding: espaço interno */
+  padding: 24px;
+
+  /* border: a linha ao redor */
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+
+  /* margin: espaço externo entre cards */
+  margin-bottom: 16px;
+
+  /* background cobre content + padding */
+  background-color: #ffffff;
+}
+```
+
+Para inspecionar o modelo de caixa de qualquer elemento, abra o DevTools do navegador (F12), vá na aba "Elements" e clique em um elemento. Na aba "Computed" ou no painel inferior, você verá um diagrama com as quatro camadas e os valores exatos de cada uma.
+
+## `box-sizing`
+
+Aqui mora uma das fontes de confusão mais clássicas em CSS: por padrão, `width` e `height` definem apenas o tamanho do **content** — o padding e a border são somados por fora. Isso é o comportamento `box-sizing: content-box`, o padrão histórico do navegador.
+
+O resultado prático: se você declara `width: 300px`, `padding: 20px` e `border: 2px solid`, o elemento ocupa `300 + 20 + 20 + 2 + 2 = 344px` de espaço — muito diferente dos 300px que você declarou.
+
+`box-sizing: border-box` muda esse comportamento. Com ele, `width` passa a definir o tamanho total — conteúdo + padding + border. O navegador ajusta o espaço do conteúdo para acomodar o padding e a border dentro do tamanho declarado. Se você declara `width: 300px` com `border-box`, o elemento ocupa exatamente 300px, e o conteúdo terá o espaço que sobrar depois do padding e da border.
+
+```css title="A diferença entre content-box e border-box — mesmo width, tamanho total diferente."
+/* content-box: padrão do navegador */
+.caixa-content {
+  box-sizing: content-box;
+  width: 300px;
+  padding: 20px;
+  border: 2px solid #0a0a0b;
+  /* tamanho total: 300 + 20 + 20 + 2 + 2 = 344px */
+}
+
+/* border-box: mais intuitivo */
+.caixa-border {
+  box-sizing: border-box;
+  width: 300px;
+  padding: 20px;
+  border: 2px solid #0a0a0b;
+  /* tamanho total: 300px — content fica com 256px */
+}
+```
+
+É por isso que o reset universal que você adicionou na lição 1 é quase universal em projetos modernos:
+
+```css title="Reset de box-sizing — aplicado em todos os elementos e pseudo-elementos."
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+```
+
+O `*::before, *::after` garante que os pseudo-elementos também respeitem `border-box` — sem ele, pseudo-elementos criados com `::before` e `::after` ainda usariam `content-box`.
+
+## Margin collapsing
+
+Margin collapsing é um comportamento específico das margens verticais que surpreende quem não conhece. Quando dois elementos em fluxo normal têm margens verticais que se tocam, as margens não se somam — a maior delas prevalece.
+
+O caso mais comum: dois parágrafos, o primeiro com `margin-bottom: 24px` e o segundo com `margin-top: 16px`. Você esperaria um espaço de 40px entre eles. Na verdade, o espaço é 24px — a maior das duas margens.
+
+```css title="Margin collapsing entre parágrafos — a maior margem vence."
+p {
+  margin-bottom: 24px;
+  margin-top: 16px;
+}
+
+/* entre dois <p> adjacentes:
+   p1.margin-bottom: 24px
+   p2.margin-top:    16px
+   espaço resultante: 24px (a maior) — não 40px */
+```
+
+O collapsing também acontece entre pai e filho, quando o pai não tem padding ou border separando-o do filho. Se um `<div>` pai não tem `padding-top` nem `border-top` e o primeiro filho tem `margin-top: 32px`, essa margem "vaza" para fora do pai — o div começa sem margem, e o espaço de 32px aparece acima do div, não dentro dele.
+
+Quando você não quer o collapsing, há formas de interrompê-lo:
+
+```css title="Como evitar margin collapsing — padding, border ou Flexbox no pai."
+/* adicionar padding no pai impede o colapso com o filho */
+.secao {
+  padding-top: 1px; /* suficiente para criar separação */
+}
+
+/* ou usar overflow: hidden no pai */
+.secao {
+  overflow: hidden;
+}
+
+/* ou usar flexbox/grid — margin collapsing não acontece em flex/grid */
+.secao {
+  display: flex;
+  flex-direction: column;
+}
+```
+
+Flexbox e Grid são os modos de layout que mais frequentemente eliminam o problema, porque margin collapsing é específico do fluxo normal de bloco. Quando o pai é um flex container, as margens dos filhos não colapsam.
+
+## Margens e padding na prática
+
+Tanto `margin` quanto `padding` aceitam de um a quatro valores em shorthand, seguindo a ordem horária: topo, direita, baixo, esquerda.
+
+```css title="Shorthands de margin e padding — um a quatro valores."
+/* um valor: mesmo valor em todos os lados */
+padding: 16px;
+
+/* dois valores: vertical | horizontal */
+padding: 16px 24px; /* 16px topo/baixo, 24px direita/esquerda */
+
+/* três valores: topo | horizontal | baixo */
+padding: 8px 16px 24px;
+
+/* quatro valores: topo | direita | baixo | esquerda (horário) */
+padding: 8px 16px 24px 8px;
+
+/* propriedades individuais */
+margin-top: 32px;
+margin-right: auto;
+margin-bottom: 32px;
+margin-left: auto;
+```
+
+O padrão `margin: 32px auto` merece atenção especial. O valor `auto` em margens laterais significa "dividir o espaço disponível igualmente". Em um elemento com `width` definido dentro de um pai mais largo, `margin: 0 auto` centraliza o elemento horizontalmente — é como se cria colunas centradas de conteúdo.
+
+```css title="Centralizando o artigo com margin auto — um padrão clássico de layout."
+/* o artigo tem largura definida e é centralizado por margin auto */
+.artigo {
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 24px; /* padding interno para não colar nas bordas */
+}
+```
+
+A regra de quando usar margin versus padding é simples: padding cria espaço **dentro** do elemento (entre o conteúdo e a borda); margin cria espaço **fora** (entre a borda e os vizinhos). Se você quer que o fundo do elemento cubra o espaço, use padding. Se você quer separar o elemento de seus vizinhos, use margin.
+
+## Resumo
+
+- Todo elemento HTML é uma caixa com quatro camadas: **content** (o conteúdo), **padding** (espaço interno), **border** (a linha ao redor), **margin** (espaço externo).
+- `box-sizing: content-box` (padrão) soma padding e border ao `width` declarado; `box-sizing: border-box` faz o `width` incluir tudo — é muito mais intuitivo. Use o reset `*, *::before, *::after { box-sizing: border-box }` em todo projeto.
+- **Margin collapsing**: margens verticais adjacentes se mesclam — a maior vence. Não acontece com Flexbox ou Grid.
+- O shorthand de `margin` e `padding` segue a ordem horária (topo, direita, baixo, esquerda). `margin: 0 auto` centraliza horizontalmente elementos com `width` definido.
+- Use `padding` para espaço interno (coberto pelo fundo); use `margin` para separação entre elementos.

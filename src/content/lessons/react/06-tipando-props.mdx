@@ -1,6 +1,248 @@
 ---
 title: "Tipando props com TypeScript"
 description: "Interface de props, props opcionais, ReactNode, tipos de eventos e refs. Padrões comuns."
-comingSoon: true
 order: 6
+hero:
+  titleBefore: "Tipando"
+  titleAccent: "props"
+  titleAfter: "com TypeScript."
+quiz:
+  - question: "Por que extends React.ButtonHTMLAttributes<HTMLButtonElement> é útil?"
+    options:
+      - "Para que o componente aceite todos os atributos HTML nativos do botão (disabled, type, form, aria-*) sem precisar redeclará-los um a um na interface de props"
+      - "Para herdar o comportamento do botão"
+      - "Para compatibilidade com versões antigas do React"
+      - "Para que onClick funcione corretamente"
+    correct: 0
+  - question: "Qual é a diferença entre ReactNode e ReactElement?"
+    options:
+      - "São sinônimos — use qualquer um"
+      - "ReactElement aceita null; ReactNode não"
+      - "ReactNode é mais amplo — aceita JSX, strings, números, null, undefined e arrays. ReactElement é apenas o resultado de createElement/JSX. Para children, prefira ReactNode"
+      - "ReactNode é para componentes de classe; ReactElement é para componentes de função"
+    correct: 2
+  - question: "Qual é o tipo correto para o handler do evento onChange de um input?"
+    options:
+      - "Event"
+      - "HTMLInputElement"
+      - "InputEvent"
+      - "React.ChangeEvent<HTMLInputElement> — o evento sintético do React tipado para o elemento específico"
+    correct: 3
+  - question: "O que React.ComponentProps<'button'> retorna?"
+    options:
+      - "O tipo do componente button"
+      - "O tipo de todas as props que o elemento <button> HTML nativo aceita — equivalente a React.ButtonHTMLAttributes<HTMLButtonElement> com sintaxe mais curta"
+      - "O tipo de retorno da função button"
+      - "Um objeto com os métodos do button"
+    correct: 1
 ---
+
+TypeScript e React se complementam bem: as interfaces de props descrevem exatamente o contrato de cada componente, e o compilador verifica que os valores passados são compatíveis. Esta lição vai além da tipagem básica — cobre padrões recorrentes que aparecem em qualquer projeto React real.
+
+## Interface de props
+
+O padrão: uma interface por componente, no mesmo arquivo, nomeada `NomeDoComponenteProps`:
+
+```tsx title="Padrão de interface de props — nome e localização."
+// LikeButton.tsx
+interface LikeButtonProps {
+  artigoId: number;
+  curtido: boolean;
+  curtidas: number;
+  onCurtir: (id: number) => void;
+}
+
+export function LikeButton({ artigoId, curtido, curtidas, onCurtir }: LikeButtonProps) {
+  return (
+    <button
+      className="botao-curtir"
+      aria-pressed={curtido}
+      onClick={() => onCurtir(artigoId)}
+    >
+      {curtido ? "❤️" : "🤍"} {curtidas} curtidas
+    </button>
+  );
+}
+```
+
+Se a interface for usada em múltiplos arquivos, mova para `src/types/index.ts` e exporte:
+
+```ts title="src/types/index.ts — tipos compartilhados entre componentes."
+export interface Artigo {
+  id: number;
+  titulo: string;
+  descricao: string;
+  autor: Autor;
+  tags: string[];
+  curtidas: number;
+  publicado: boolean;
+  publicadoEm: string | null;
+  slug: string;
+}
+
+export interface Autor {
+  id: number;
+  nome: string;
+  avatar: string | null;
+}
+```
+
+## Herdar atributos HTML nativos
+
+Quando você cria um wrapper sobre um elemento HTML (um `<Button>` customizado sobre `<button>`, ou um `<Input>` sobre `<input>`), você provavelmente quer que o wrapper aceite todos os atributos nativos do elemento:
+
+```tsx title="Estender atributos HTML nativos — sem redeclarar um por um."
+import { type ButtonHTMLAttributes } from "react";
+
+// estende todos os atributos HTML nativos do <button>
+// disabled, type, form, aria-*, data-*, name, value — tudo funciona
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "primary" | "secondary" | "ghost";
+}
+
+export function Button({ variant = "primary", children, className, ...rest }: ButtonProps) {
+  return (
+    <button
+      className={`btn btn-${variant} ${className ?? ""}`}
+      {...rest}  // repassa todos os atributos HTML — disabled, onClick, type, etc.
+    >
+      {children}
+    </button>
+  );
+}
+
+// uso — todos os atributos nativos funcionam
+<Button disabled>Carregando…</Button>
+<Button type="submit" variant="primary">Enviar</Button>
+<Button onClick={handleClick} aria-label="Fechar modal">×</Button>
+```
+
+O `...rest` (rest props) coleta todas as props que não foram desestruturadas e as repassa para o elemento DOM. O spread `{...rest}` aplica todas elas ao `<button>`.
+
+A alternativa com `React.ComponentProps<"button">` é equivalente e mais curta:
+
+```tsx title="ComponentProps — alternativa mais curta para herdar atributos."
+import { type ComponentProps } from "react";
+
+interface ButtonProps extends ComponentProps<"button"> {
+  variant?: "primary" | "secondary";
+}
+```
+
+## Tipos de eventos
+
+React usa **eventos sintéticos** — wrappers sobre os eventos nativos do DOM, com a mesma API mas tipados de forma mais específica. O tipo genérico é `React.SyntheticEvent<T>`, mas na prática você usa os tipos específicos por evento e elemento:
+
+```tsx title="Tipos de eventos — formulário de contato do blog."
+// click em botão
+function handleClick(event: React.MouseEvent<HTMLButtonElement>): void {
+  event.preventDefault();
+  // event.currentTarget é HTMLButtonElement
+}
+
+// mudança de valor em input
+function handleChange(event: React.ChangeEvent<HTMLInputElement>): void {
+  const valor = event.target.value; // string
+  setEmail(valor);
+}
+
+// submit de formulário
+function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
+  event.preventDefault();
+  const form = event.currentTarget;
+  // acessar campos via form.elements ou via estado controlado
+}
+
+// keydown para atalhos de teclado
+function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>): void {
+  if (event.key === "Escape") fecharModal();
+  if (event.key === "Enter" && event.ctrlKey) enviarFormulario();
+}
+
+// scroll na janela
+function handleScroll(event: React.UIEvent<HTMLElement>): void {
+  const scrollY = window.scrollY;
+  // ...
+}
+```
+
+O padrão do tipo é `React.EventoEvent<TipoDoElementoHTML>`. Para a maioria dos casos do blog:
+- `onClick` em botão: `React.MouseEvent<HTMLButtonElement>`
+- `onChange` em input: `React.ChangeEvent<HTMLInputElement>`
+- `onSubmit` em form: `React.FormEvent<HTMLFormElement>`
+
+## `ReactNode`, `ReactElement`, `JSX.Element`
+
+Três tipos para descrever o que um componente pode receber ou retornar:
+
+```tsx title="ReactNode vs ReactElement — quando usar cada um."
+import { type ReactNode } from "react";
+
+// ReactNode: tudo que pode ser renderizado — o mais amplo
+// JSX, strings, números, null, undefined, arrays
+// Use para children — aceita qualquer conteúdo
+interface CardProps {
+  children: ReactNode;  // ✅ mais flexível para children
+}
+
+// ReactElement: apenas o resultado de createElement/JSX
+// Mais restrito — não aceita string, número, null
+interface ModalProps {
+  trigger: React.ReactElement;  // o trigger deve ser um elemento JSX
+}
+
+// JSX.Element: equivalente a ReactElement na prática
+// Convenção mais antiga — prefira ReactElement ou ReactNode
+function MeuComponente(): JSX.Element {
+  return <div>...</div>;
+}
+```
+
+A regra prática: use `ReactNode` para `children` e para props que aceitem conteúdo flexível. Use `ReactElement` quando você precisa de um elemento JSX específico (e não uma string ou null).
+
+## Props de ref
+
+`useRef` permite referenciar um elemento DOM diretamente. Quando você precisa que um componente wrapper exponha uma ref para o elemento DOM interno, use `forwardRef`:
+
+```tsx title="forwardRef — expor a ref do elemento DOM interno."
+import { forwardRef } from "react";
+
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  error?: string;
+}
+
+// forwardRef tipa a ref e as props
+const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ label, error, ...rest }, ref) => {
+    return (
+      <div className="campo-formulario">
+        <label>{label}</label>
+        <input ref={ref} {...rest} />
+        {error && <span className="erro-campo">{error}</span>}
+      </div>
+    );
+  }
+);
+
+Input.displayName = "Input"; // para o React DevTools mostrar o nome correto
+
+// uso com ref
+const emailRef = useRef<HTMLInputElement>(null);
+<Input ref={emailRef} label="Email" type="email" />
+
+// acessar programaticamente
+emailRef.current?.focus();
+```
+
+`forwardRef` é necessário somente quando um componente pai precisa de acesso direto ao elemento DOM do filho — para foco programático, animações, ou integração com bibliotecas DOM. Na maioria dos casos de formulário, o padrão controlado com `useState` é suficiente.
+
+## Resumo
+
+- **Interface por componente**: `NomeDoComponenteProps`, no mesmo arquivo. Se compartilhada, em `src/types/`.
+- **`extends ButtonHTMLAttributes<HTMLButtonElement>`** (ou `ComponentProps<"button">`): herdar todos os atributos HTML nativos do elemento base. Repasse com `{...rest}`.
+- **Tipos de eventos**: `React.MouseEvent<HTMLButtonElement>` para click, `React.ChangeEvent<HTMLInputElement>` para change, `React.FormEvent<HTMLFormElement>` para submit.
+- **`ReactNode`** para `children` — aceita qualquer conteúdo renderizável. **`ReactElement`** quando você precisa especificamente de JSX.
+- **`forwardRef<ElementoDOM, Props>`** para expor refs de elementos internos — necessário quando o pai precisa de acesso direto ao DOM do filho.
+
+A próxima aula adiciona `useState` — o hook que transforma um componente estático em interface interativa, fazendo o React re-renderizar sempre que um valor muda.

@@ -1,6 +1,274 @@
 ---
 title: "Interfaces e type aliases"
 description: "Diferenças práticas, quando preferir interface e quando type. Extensão e composição."
-comingSoon: true
 order: 6
+hero:
+  titleBefore: "Interfaces"
+  titleAccent: "e tipos"
+  titleAfter: "— modelar dados."
+quiz:
+  - question: "Qual é a principal diferença prática entre interface e type para descrever objetos?"
+    options:
+      - "interface é mais rápida em compilação"
+      - "type só pode ser usado para primitivos"
+      - "Não há diferença — são completamente intercambiáveis"
+      - "interface pode ser estendida com extends e permite declaração merging (aberta); type é mais flexível para unions, intersections e mapped types, mas não pode ser reaberta"
+    correct: 3
+  - question: "O que é declaração merging em interfaces?"
+    options:
+      - "Combinar dois arquivos TypeScript em um"
+      - "Declarar a mesma interface em dois lugares diferentes e TypeScript automaticamente combina as propriedades de ambas — útil para estender tipos de bibliotecas"
+      - "Exportar uma interface de dois módulos diferentes"
+      - "Criar uma interface que herda de outra"
+    correct: 1
+  - question: "Quando usar type em vez de interface?"
+    options:
+      - "Para unions (A | B), intersections (A & B), mapped types, aliases de primitivos, e quando você quer garantir que o tipo não pode ser reaberto acidentalmente"
+      - "Sempre — type é superior"
+      - "Apenas para tipos primitivos"
+      - "Apenas em arquivos .d.ts"
+    correct: 0
+  - question: "Como readonly difere de const para propriedades de objetos?"
+    options:
+      - "readonly e const são equivalentes para objetos"
+      - "readonly é para arrays; const é para objetos"
+      - "const impede reatribuir a variável; readonly impede reatribuir a propriedade de um objeto — você pode ter const artigo com propriedade readonly id"
+      - "readonly funciona apenas em classes"
+    correct: 2
 ---
+
+Interfaces e type aliases são as duas formas de dar um nome a um tipo em TypeScript. Ambas descrevem a forma de um objeto — e em muitos casos são intercambiáveis. Mas há diferenças práticas que guiam quando usar cada uma. Para o blog, criar `interface Artigo`, `interface Autor` e types para status e temas é o primeiro passo para tornar os módulos tipados.
+
+## `interface` para descrever objetos
+
+Uma `interface` declara a forma que um objeto deve ter — quais propriedades existem e seus tipos. É o principal mecanismo para descrever objetos de domínio:
+
+```ts title="interfaces do blog — Artigo, Autor e Tag."
+interface Autor {
+  id: number;
+  nome: string;
+  avatar: string | null;
+  bio?: string; // opcional — pode não ter bio
+}
+
+interface Tag {
+  slug: string;
+  label: string;
+}
+
+interface Artigo {
+  id: number;
+  titulo: string;
+  descricao: string;
+  autor: Autor;         // composição — Artigo contém Autor
+  tags: Tag[];          // array de Tag
+  curtidas: number;
+  publicado: boolean;
+  publicadoEm: string | null; // null quando é rascunho
+  readonly slug: string;      // não pode ser alterado após criação
+}
+```
+
+**Propriedades opcionais** (`?`): a propriedade pode estar ausente. TypeScript trata o tipo como `TipoOriginal | undefined`. Antes de usar, você precisa verificar:
+
+```ts title="Propriedade opcional — verificar antes de usar."
+const artigo: Artigo = {
+  id: 1,
+  titulo: "CSS em geral",
+  // autor.bio não é passado — é opcional
+  autor: { id: 1, nome: "Dev Aprendiz", avatar: null },
+  // ...demais campos
+};
+
+// TypeScript obriga a verificar o campo opcional antes de usar
+if (artigo.autor.bio) {
+  console.log(artigo.autor.bio.toUpperCase()); // ok — bio é string aqui
+}
+// sem a verificação: TS erro — bio pode ser undefined
+```
+
+**Propriedades readonly**: a propriedade pode ser lida mas não reatribuída depois da criação do objeto. É diferente de `const` — `const` impede reatribuição da variável; `readonly` impede reatribuição da propriedade:
+
+```ts title="readonly — imutabilidade em nível de propriedade."
+const artigo: Artigo = {
+  id: 1,
+  slug: "css-em-geral",
+  // ...
+};
+
+artigo.slug = "outro-slug"; // TS erro: Cannot assign to 'slug' because it is a read-only property
+artigo.curtidas = 50;       // ok — curtidas não é readonly
+```
+
+## `type` aliases
+
+`type` cria um nome para qualquer tipo — não apenas para objetos. É mais flexível que `interface`:
+
+```ts title="type aliases — unions, intersections e aliases simples."
+// alias para um tipo primitivo com semântica
+type Slug = string;
+type ID = number;
+
+// union de literais — conjunto fechado de valores
+type Tema = "claro" | "escuro";
+type StatusArtigo = "rascunho" | "publicado" | "arquivado";
+
+// objeto — equivalente a interface para formas simples
+type ReadingTime = {
+  minutos: number;
+  palavras: number;
+};
+
+// union de objetos — não é possível com interface
+type ResultadoBusca =
+  | { encontrado: true; artigo: Artigo }
+  | { encontrado: false; mensagem: string };
+
+// intersection — combinar dois tipos
+type ArtigoComMetadados = Artigo & {
+  metadados: {
+    visualizacoes: number;
+    compartilhamentos: number;
+  };
+};
+```
+
+Types são essenciais para **unions** (`A | B`) e **intersections** (`A & B`) — interfaces não suportam essas composições diretamente.
+
+## Diferenças práticas
+
+A questão "interface ou type?" tem uma resposta simples para a maioria dos casos:
+
+**Use `interface` para**:
+- Formas de objetos de domínio (`Artigo`, `Autor`, `Tag`)
+- Contratos públicos de módulos — o que o módulo exporta e aceita
+- Quando você quer que a forma possa ser estendida com `extends`
+
+**Use `type` para**:
+- Unions (`Tema = "claro" | "escuro"`)
+- Intersections (`Artigo & { destacado: boolean }`)
+- Aliases de tipos primitivos com semântica (`Slug`, `ID`)
+- Mapped types e conditional types (lição 10)
+- Quando você quer garantir que o tipo não pode ser reaberto acidentalmente
+
+A razão técnica: interfaces são "abertas" — você pode declarar a mesma interface em dois lugares e TypeScript combina as propriedades (**declaração merging**). Isso é útil para estender tipos de bibliotecas, mas pode causar confusão em código de aplicação. Types são sempre "fechados" — uma segunda declaração com o mesmo nome é erro.
+
+```ts title="Declaração merging — interface aberta vs. type fechado."
+// interface: pode ser declarada em dois lugares — TypeScript faz o merge
+interface Artigo {
+  id: number;
+  titulo: string;
+}
+
+interface Artigo {
+  descricao: string; // adicionado — TypeScript combina com a declaração anterior
+}
+
+// Artigo agora tem: id, titulo, descricao
+
+// type: segunda declaração é erro
+type Artigo = { id: number; titulo: string };
+type Artigo = { descricao: string }; // TS erro: Duplicate identifier 'Artigo'
+```
+
+## Extensão e composição
+
+Interfaces se estendem com `extends`. Isso cria uma nova interface com todas as propriedades da base mais as novas:
+
+```ts title="Extensão de interfaces — composição por herança."
+interface ConteudoBase {
+  id: number;
+  titulo: string;
+  slug: string;
+  publicadoEm: string | null;
+}
+
+// Artigo estende ConteudoBase — tem todas as propriedades de base + as suas
+interface Artigo extends ConteudoBase {
+  descricao: string;
+  autor: Autor;
+  tags: Tag[];
+  curtidas: number;
+  publicado: boolean;
+}
+
+// Pagina também usa ConteudoBase — reutilização da forma base
+interface Pagina extends ConteudoBase {
+  conteudo: string;
+  layout: "padrao" | "largo" | "minimalista";
+}
+
+// múltipla extensão
+interface ArtigoDestacado extends Artigo, ConteudoBase {
+  posicaoDestaque: number;
+  imageDestaque: string;
+}
+```
+
+Com `type`, a composição usa intersection (`&`):
+
+```ts title="Composição com type — equivalente ao extends."
+type ArtigoDestacado = Artigo & {
+  posicaoDestaque: number;
+  imageDestaque: string;
+};
+```
+
+A diferença entre `extends` e `&`: `extends` verifica que a extensão é compatível com a base (um método com o mesmo nome precisa ter tipo compatível). `&` simplesmente combina os tipos — conflitos resultam em `never`.
+
+## Aplicando ao blog
+
+Com as interfaces definidas, os módulos do blog ficam tipados de ponta a ponta:
+
+```ts title="Tipos do blog em um arquivo compartilhado — types.ts."
+// types.ts — exportado e importado por todos os módulos
+
+export interface Autor {
+  id: number;
+  nome: string;
+  avatar: string | null;
+  bio?: string;
+}
+
+export interface Tag {
+  slug: string;
+  label: string;
+}
+
+export interface Artigo {
+  id: number;
+  titulo: string;
+  descricao: string;
+  autor: Autor;
+  tags: Tag[];
+  curtidas: number;
+  publicado: boolean;
+  publicadoEm: string | null;
+  readonly slug: string;
+}
+
+export type Tema = "claro" | "escuro";
+export type StatusArtigo = "rascunho" | "publicado" | "arquivado";
+```
+
+```ts title="utils.ts — funções com os tipos do blog."
+import type { Artigo, Autor } from "./types.ts";
+
+export function formatarData(dateString: string): string {
+  return new Intl.DateTimeFormat("pt-BR").format(new Date(dateString));
+}
+
+export function calcularTempoLeitura(palavras: number): number {
+  return Math.ceil(palavras / 238);
+}
+```
+
+O `import type` é uma sintaxe especial: importa apenas os tipos, sem importar o valor em runtime. Como interfaces e types são apagados na compilação, usar `import type` é mais explícito — e alguns bundlers otimizam esses imports.
+
+## Resumo
+
+- **`interface`** descreve a forma de objetos de domínio. Suporta `extends`, propriedades opcionais (`?`) e `readonly`. É "aberta" — pode ser reaberta com declaração merging.
+- **`type`** é mais flexível — unions, intersections, aliases de primitivos. É "fechado" — uma segunda declaração com o mesmo nome é erro.
+- **Heurística**: `interface` para objetos de domínio e contratos públicos; `type` para unions, intersections e transformações.
+- **Propriedade opcional** (`bio?: string`): tipo é `string | undefined` — verificar antes de usar. **`readonly`**: a propriedade pode ser lida mas não reatribuída.
+- Organize os tipos do blog em um `types.ts` exportado e importado pelos outros módulos com `import type`.

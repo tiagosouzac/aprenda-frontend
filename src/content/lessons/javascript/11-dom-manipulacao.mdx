@@ -1,6 +1,212 @@
 ---
 title: "DOM — manipulando elementos"
-description: "Mudar texto e atributos, alternar classes (classList), criar e inserir nós, remover nós. Diferença entre innerHTML e textContent."
-comingSoon: true
+description: "Ler e alterar textContent e innerHTML. Atributos e dataset. classList para gerenciar classes. Criar, inserir e remover elementos."
 order: 11
+hero:
+  titleBefore: "DOM:"
+  titleAccent: "modificar"
+  titleAfter: "a página dinamicamente."
+quiz:
+  - question: "Por que prefere-se textContent a innerHTML para exibir dados do usuário?"
+    options:
+      - "textContent é mais rápido que innerHTML"
+      - "innerHTML não funciona com strings"
+      - "innerHTML interpreta HTML — um dado malicioso pode injetar scripts (XSS). textContent trata tudo como texto puro, sem interpretar HTML"
+      - "textContent aceita mais tipos de dados"
+    correct: 2
+  - question: "O que classList.toggle('dark') faz?"
+    options:
+      - "Adiciona a classe 'dark' sempre"
+      - "Remove a classe 'dark' sempre"
+      - "Alterna entre 'dark' e 'light'"
+      - "Adiciona a classe se não existir; remove se existir"
+    correct: 3
+  - question: "Como você lê o valor de data-artigo-id='5' pelo JavaScript?"
+    options:
+      - "elemento.getAttribute('artigo-id')"
+      - "elemento.dataset.artigoId"
+      - "elemento.data['artigo-id']"
+      - "elemento['data-artigo-id']"
+    correct: 1
+  - question: "Qual é a diferença entre appendChild e prepend?"
+    options:
+      - "appendChild insere no final do elemento pai; prepend insere no início"
+      - "Não há diferença — são sinônimos"
+      - "appendChild cria o elemento antes de inserir; prepend usa um elemento já existente"
+      - "prepend é mais moderno e substitui appendChild completamente"
+    correct: 0
 ---
+
+Selecionar um elemento é apenas o começo. A parte que produz comportamento visível é modificar esses elementos: atualizar textos, mudar classes, criar novos nós e removê-los. Esta lição cobre as operações de manipulação do DOM que aparecem em praticamente todo projeto JavaScript.
+
+## Ler e alterar conteúdo
+
+**`.textContent`** lê ou define o conteúdo de texto de um elemento — incluindo o texto de todos os descendentes, mas ignorando tags HTML. Quando você *define* `textContent`, qualquer HTML que estiver no elemento é substituído por texto puro. É seguro para dados do usuário porque o navegador não interpreta HTML — tags como `<script>` aparecem literalmente como texto.
+
+**`.innerHTML`** lê ou define o conteúdo HTML de um elemento. Quando você *define* `innerHTML`, o navegador parseia o valor como HTML e renderiza os elementos. Isso é poderoso para inserir estruturas complexas de uma vez, mas perigoso se o valor vier de dados não confiáveis — uma string maliciosa pode injetar código JavaScript executável (Cross-Site Scripting, XSS).
+
+A regra é direta: use `textContent` para dados que vêm do usuário ou de fontes externas. Use `innerHTML` para HTML que você constrói internamente, com dados que você controla.
+
+```js title="textContent para dados do usuário, innerHTML para templates internos."
+const contadorCurtidas = document.getElementById("contagem-curtidas");
+const listaArtigos = document.getElementById("lista-artigos");
+
+// textContent — seguro para dados externos
+contadorCurtidas.textContent = curtidas; // "42"
+// mesmo que curtidas fosse "<script>alert('xss')</script>", seria exibido como texto
+
+// innerHTML — para HTML que você constrói internamente
+// os dados (titulo, autor) devem ser confiáveis ou escapados
+listaArtigos.innerHTML = artigos.map(a => `
+  <article class="card-artigo">
+    <h2 class="card-titulo">${a.titulo}</h2>
+    <p class="card-meta">Por ${a.autor} · ${a.curtidas} curtidas</p>
+  </article>
+`).join("");
+
+// .value — para inputs, selects e textareas
+const campoEmail = document.getElementById("email");
+const emailDigitado = campoEmail.value; // ler o que o usuário digitou
+campoEmail.value = "";                  // limpar o campo
+```
+
+## Atributos
+
+**`.getAttribute(nome)`** lê o valor de um atributo. **`.setAttribute(nome, valor)`** define ou atualiza. **`.removeAttribute(nome)`** remove. **`.hasAttribute(nome)`** verifica se existe.
+
+Para atributos comuns, propriedades diretas são mais convenientes: `el.href`, `el.src`, `el.disabled`, `el.checked`.
+
+**`data-*` via `.dataset`**: atributos `data-*` no HTML são acessíveis via a propriedade `dataset`. O nome do atributo é convertido para camelCase automaticamente: `data-artigo-id` → `dataset.artigoId`, `data-publicado-em` → `dataset.publicadoEm`.
+
+```js title="Atributos e dataset — ler o id do artigo para salvar curtida."
+// HTML: <button class="botao-curtir" data-artigo-id="3" aria-pressed="false">
+
+const botaoCurtir = document.querySelector(".botao-curtir");
+
+// lendo atributos
+botaoCurtir.getAttribute("data-artigo-id"); // → "3"
+botaoCurtir.dataset.artigoId;               // → "3" (mais conveniente)
+
+// definindo atributos
+botaoCurtir.setAttribute("aria-pressed", "true");
+botaoCurtir.setAttribute("disabled", "");
+botaoCurtir.removeAttribute("disabled");
+
+// verificar
+botaoCurtir.hasAttribute("disabled"); // → false (foi removido)
+
+// propriedade direta — equivalente para atributos comuns
+const link = document.querySelector("a");
+link.href;           // ler (retorna URL absoluta)
+link.href = "/css";  // definir
+```
+
+## Classes
+
+`.classList` é a API mais limpa para gerenciar classes CSS em elementos:
+
+**`.add("nome")`** adiciona uma classe. **`.remove("nome")`** remove. **`.toggle("nome")`** adiciona se não existe, remove se existe — perfeito para toggles. **`.contains("nome")`** retorna `true` ou `false`. **`.replace("antiga", "nova")`** substitui uma classe por outra.
+
+```js title="classList — implementando o toggle de tema claro/escuro."
+const html = document.documentElement; // o elemento <html>
+const botaoTema = document.getElementById("botao-tema");
+
+function alternarTema() {
+  html.classList.toggle("dark");
+
+  // atualizar o aria-label do botão para acessibilidade
+  const temaDark = html.classList.contains("dark");
+  botaoTema.setAttribute("aria-label", temaDark ? "Ativar tema claro" : "Ativar tema escuro");
+
+  // persistir a preferência
+  localStorage.setItem("tema", temaDark ? "dark" : "claro");
+}
+
+botaoTema.addEventListener("click", alternarTema);
+
+// restaurar o tema salvo ao carregar a página
+const temaSalvo = localStorage.getItem("tema");
+if (temaSalvo === "dark") {
+  html.classList.add("dark");
+}
+
+// outros usos de classList
+const card = document.querySelector(".card-artigo");
+card.classList.add("card-destacado", "card-recente"); // múltiplas classes de uma vez
+card.classList.remove("card-destacado");
+card.classList.replace("card-recente", "card-antigo");
+```
+
+## Criar e inserir elementos
+
+**`document.createElement("tag")`** cria um novo elemento em memória — ele ainda não está no DOM. Você o configura (texto, classes, atributos) e então o insere.
+
+**`.appendChild(filho)`** insere no final. **`.prepend(filho)`** insere no início. **`.append(filho)`** é similar ao `appendChild` mas aceita strings (texto) e múltiplos argumentos. **`.insertAdjacentElement(posição, elemento)`** oferece controle preciso da posição: `"beforebegin"` (antes do elemento), `"afterbegin"` (como primeiro filho), `"beforeend"` (como último filho), `"afterend"` (depois do elemento).
+
+Para estruturas maiores, `innerHTML` como atalho pode ser mais prático do que criar e configurar múltiplos elementos:
+
+```js title="Criar e inserir elementos — card de artigo criado dinamicamente."
+// criar via createElement — controle total, mais verboso
+function criarCardArtigo(artigo) {
+  const card = document.createElement("article");
+  card.className = "card-artigo";
+  card.dataset.id = artigo.id;
+
+  const titulo = document.createElement("h2");
+  titulo.className = "card-titulo";
+  titulo.textContent = artigo.titulo; // textContent — dados externos
+
+  const meta = document.createElement("p");
+  meta.className = "card-meta";
+  meta.textContent = `Por ${artigo.autor}`;
+
+  card.appendChild(titulo);
+  card.appendChild(meta);
+
+  return card;
+}
+
+const lista = document.getElementById("lista-artigos");
+artigos.forEach(artigo => {
+  lista.appendChild(criarCardArtigo(artigo));
+});
+
+// criar via innerHTML — mais rápido para estruturas HTML conhecidas
+function inserirCardsViaInnerHTML(artigos) {
+  const lista = document.getElementById("lista-artigos");
+  lista.innerHTML = artigos.map(a => `
+    <article class="card-artigo" data-id="${a.id}">
+      <h2 class="card-titulo">${a.titulo}</h2>
+      <p class="card-meta">Por ${a.autor}</p>
+    </article>
+  `).join("");
+}
+```
+
+## Remover elementos
+
+**`el.remove()`** remove o elemento do DOM. É a forma moderna — simples e direta.
+
+```js title="Remover elementos — limpar a lista antes de reinserir."
+// remover um elemento específico
+const notificacao = document.getElementById("notificacao");
+if (notificacao) notificacao.remove();
+
+// limpar todos os filhos de um container antes de reinserir
+const lista = document.getElementById("lista-artigos");
+lista.innerHTML = ""; // limpar — mais rápido que remover item por item
+
+// ou remover todos os filhos com loop
+while (lista.firstChild) {
+  lista.removeChild(lista.firstChild);
+}
+```
+
+## Resumo
+
+- **`textContent`** para dados externos/do usuário — sem risco de XSS. **`innerHTML`** para HTML construído internamente — nunca com strings não confiáveis.
+- **`.value`** lê e define o conteúdo de inputs, selects e textareas.
+- **Atributos**: `getAttribute`/`setAttribute`/`removeAttribute` para atributos genéricos. Propriedades diretas (`el.href`, `el.src`) para os comuns. **`dataset.nomeCamelCase`** para `data-nome-camel-case`.
+- **`classList`**: `add`, `remove`, `toggle`, `contains`, `replace` — a API para gerenciar classes. `toggle` é o padrão para comportamentos on/off.
+- **`createElement`** + **`appendChild`/`prepend`** para inserir elementos criados programaticamente. `innerHTML` como atalho para estruturas maiores com dados confiáveis.
+- **`el.remove()`** remove o elemento. `container.innerHTML = ""` limpa todos os filhos.

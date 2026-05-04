@@ -1,6 +1,183 @@
 ---
-title: "Display e fluxo"
-description: "block, inline, inline-block. Como elementos se posicionam por padrão antes de qualquer layout especial."
-comingSoon: true
+title: "Display e fluxo normal"
+description: "Como o navegador posiciona elementos por padrão. Block, inline, inline-block e none — e a diferença entre display: none e visibility: hidden."
 order: 5
+hero:
+  titleBefore: "Display e"
+  titleAccent: "fluxo normal:"
+  titleAfter: "como elementos se organizam."
+quiz:
+  - question: "O que significa dizer que um elemento é display: block?"
+    options:
+      - "Ele ocupa toda a largura disponível e começa em nova linha"
+      - "Ele ocupa apenas o espaço do seu conteúdo e flui com o texto"
+      - "Ele é removido do layout completamente"
+      - "Ele é posicionado em relação à viewport"
+    correct: 0
+  - question: "Por que margin-top e margin-bottom não funcionam em elementos inline?"
+    options:
+      - "É um bug do navegador — deveriam funcionar"
+      - "Porque elementos inline não têm modelo de caixa"
+      - "Porque margens verticais em inline não deslocam vizinhos — o elemento flui com o texto e não pode criar espaço vertical"
+      - "Porque margin apenas funciona em elementos com position: absolute"
+    correct: 2
+  - question: "Qual é a diferença entre display: none e visibility: hidden?"
+    options:
+      - "display: none e visibility: hidden têm o mesmo efeito"
+      - "display: none é mais acessível que visibility: hidden"
+      - "visibility: hidden remove o elemento; display: none apenas o esconde"
+      - "display: none remove o elemento do layout e leitores de tela; visibility: hidden o esconde visualmente mas mantém o espaço e é lido por leitores de tela"
+    correct: 3
+  - question: "Qual elemento HTML é naturalmente display: inline?"
+    options:
+      - "div"
+      - "span"
+      - "p"
+      - "section"
+    correct: 1
 ---
+
+Antes de entrar em Flexbox e Grid, vale entender como o navegador posiciona elementos sem esses sistemas de layout. Esse comportamento padrão se chama **fluxo normal**, e ele é governado principalmente pela propriedade `display`. Entender o fluxo normal é o que torna Flexbox e Grid compreensíveis — porque eles são sistemas que modificam ou substituem esse fluxo.
+
+## O fluxo normal
+
+Quando você escreve HTML sem nenhum CSS de layout especial, o navegador aplica o fluxo normal: cada elemento tem um valor padrão de `display` definido pela especificação CSS, e esse valor determina como o elemento ocupa espaço e interage com os vizinhos.
+
+Há dois grandes grupos no fluxo normal: **elementos de bloco** e **elementos inline**. Um elemento de bloco começa em nova linha e ocupa toda a largura disponível. Um elemento inline flui com o texto ao redor, ocupando apenas o espaço do seu conteúdo.
+
+A especificação define o `display` padrão de cada elemento. Você não precisa declará-lo — ele já vem assim. O CSS permite mudar esse padrão: você pode fazer um `<span>` (inline por padrão) se comportar como bloco, ou um `<div>` (bloco por padrão) se comportar como inline-block.
+
+## `display: block`
+
+Um elemento com `display: block` ocupa toda a largura do seu elemento pai, começa em uma nova linha e força o próximo elemento a também começar em nova linha. É como se ele dissesse "eu ocupo essa linha inteira, o próximo vai para baixo".
+
+Elementos de bloco aceitam `width`, `height`, `margin` em todos os quatro lados e `padding` em todos os quatro lados. Eles são os blocos de construção principais do layout em fluxo normal.
+
+Exemplos de elementos que são `display: block` por padrão: `<div>`, `<p>`, `<h1>` a `<h6>`, `<section>`, `<article>`, `<header>`, `<footer>`, `<main>`, `<nav>`, `<ul>`, `<ol>`, `<li>`, `<blockquote>`, `<pre>`, `<form>`.
+
+```css title="Convertendo elementos — span e a como bloco."
+/* <span> é inline por padrão — aqui vira bloco */
+.etiqueta-destaque {
+  display: block;
+  background-color: #dbeafe;
+  padding: 8px 16px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+/* <a> é inline por padrão — link que ocupa linha inteira */
+.link-menu {
+  display: block;
+  padding: 12px 16px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.link-menu:hover {
+  background-color: #f4f2ed;
+}
+```
+
+## `display: inline`
+
+Um elemento inline flui com o texto ao redor. Ele ocupa apenas o espaço do seu conteúdo, não quebra a linha e permite que outros elementos fiquem na mesma linha.
+
+Elementos inline têm comportamento de caixa limitado: `width` e `height` não têm efeito (o tamanho é determinado pelo conteúdo). `margin-top` e `margin-bottom` declarados em elementos inline não deslocam os vizinhos — eles existem, mas não empurram o texto acima ou abaixo. `padding` vertical funciona visualmente (cria espaço ao redor do conteúdo), mas também não desloca vizinhos — pode sobrepor o texto das linhas adjacentes.
+
+Exemplos de `display: inline` por padrão: `<a>`, `<span>`, `<strong>`, `<em>`, `<code>`, `<kbd>`, `<abbr>`, `<time>`, `<img>` (tecnicamente inline-block, mas se comporta como inline no fluxo).
+
+```html title="Elementos inline dentro de um parágrafo — fluxo contínuo com o texto."
+<!-- todos estes elementos fluem com o texto do parágrafo -->
+<p>
+  O artigo usa
+  <strong>HTML semântico</strong>,
+  <em>CSS moderno</em> e
+  <code>JavaScript</code> puro.
+  Leia mais em
+  <a href="/sobre">sobre o projeto</a>.
+</p>
+```
+
+```css title="CSS inline — o que funciona e o que não desloca vizinhos."
+/* funciona: background, color, padding horizontal, border */
+code {
+  background-color: #f4f2ed;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.875em;
+}
+
+/* funciona visualmente mas não desloca vizinhos */
+strong {
+  padding-top: 4px;    /* cria espaço visual mas pode sobrepor linha acima */
+  padding-bottom: 4px;
+}
+
+/* não tem efeito */
+span {
+  width: 200px;  /* ignorado */
+  height: 50px;  /* ignorado */
+}
+```
+
+## `display: inline-block`
+
+`inline-block` é o híbrido dos dois mundos. Como inline, o elemento flui com o texto e não quebra a linha. Como bloco, ele aceita `width`, `height`, `margin` e `padding` em todos os quatro lados — incluindo vertical.
+
+É o valor ideal para elementos que precisam ter tamanho definido mas devem aparecer em linha com outros elementos. Chips de categorias, badges de status, botões que ficam lado a lado no meio de um texto.
+
+```css title="Tags de categoria do artigo como inline-block — tamanho definido, sem quebra de linha."
+/* as tags "Frontend", "HTML", "CSS" ficam em linha mas têm tamanho próprio */
+.tag-artigo {
+  display: inline-block;
+  padding: 4px 12px;
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px; /* pílula */
+  margin-right: 6px;
+  margin-bottom: 6px; /* margem vertical funciona — deslocaria vizinhos */
+}
+```
+
+Vale mencionar que com a chegada de Flexbox e Grid, `inline-block` é menos necessário para layout de componentes. Mas continua sendo útil para casos simples onde você não precisa da complexidade de um flex container.
+
+## `display: none`
+
+`display: none` remove o elemento completamente do layout. O elemento não ocupa espaço, não é visível e — importante para acessibilidade — não é anunciado por leitores de tela. É como se o elemento não existisse na página.
+
+Isso o torna útil para menus que aparecem e somem, modais, tabs — qualquer conteúdo que deve ser alternado entre existente e não-existente. Com JavaScript, você alterna entre `display: none` e o valor original.
+
+O contraste importante é com `visibility: hidden`. Este esconde o elemento visualmente mas **mantém o espaço** que ele ocupa no layout. O elemento invisível ainda empurra os vizinhos como se estivesse lá. E diferente de `display: none`, um elemento com `visibility: hidden` ainda está acessível à árvore de acessibilidade — leitores de tela podem anunciá-lo.
+
+```css title="display: none vs visibility: hidden — a diferença no layout e na acessibilidade."
+/* remove completamente — sem espaço, sem anúncio por leitor de tela */
+.modal[aria-hidden="true"] {
+  display: none;
+}
+
+/* esconde visualmente mas mantém espaço — leitor de tela ainda lê */
+.indicador-carregamento {
+  visibility: hidden; /* espaço preservado — sem salto de layout */
+}
+
+/* padrão comum: ocultar com display:none, mostrar com display:block via JS */
+.menu-dropdown {
+  display: none;
+}
+
+.menu-dropdown.aberto {
+  display: block;
+}
+```
+
+Existe também `opacity: 0`, que torna o elemento completamente transparente mas mantém o espaço e a interatividade — cliques ainda funcionam. É útil para transições de aparecer/desaparecer quando você quer animar a opacidade de 0 para 1.
+
+## Resumo
+
+- O **fluxo normal** é o comportamento padrão do navegador — cada elemento tem um `display` padrão definido pela especificação. Mudar `display` com CSS altera como o elemento interage com o fluxo.
+- **`display: block`**: ocupa toda a largura disponível, começa em nova linha, aceita `width`/`height`/`margin`/`padding` em todos os lados. Exemplos: `div`, `p`, `h1`–`h6`.
+- **`display: inline`**: flui com o texto, ocupa apenas o espaço do conteúdo, não aceita `width`/`height` e margens verticais não deslocam vizinhos. Exemplos: `span`, `a`, `strong`, `em`.
+- **`display: inline-block`**: flui como inline mas aceita dimensões e margens completas — ideal para chips, badges e botões em linha.
+- **`display: none`** remove o elemento do layout e da acessibilidade. **`visibility: hidden`** esconde visualmente mas mantém o espaço e permanece na árvore de acessibilidade.

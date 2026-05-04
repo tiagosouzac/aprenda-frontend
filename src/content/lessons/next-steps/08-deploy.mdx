@@ -1,6 +1,203 @@
 ---
 title: "CI/CD e deploy"
 description: "Vercel, Netlify, Cloudflare Pages, GitHub Actions. Pipeline básico: lint, type-check, test, build, deploy."
-comingSoon: true
 order: 8
+hero:
+  titleBefore: "Deploy"
+  titleAccent: "e CI/CD"
+  titleAfter: "— do código ao ar."
+quiz:
+  - question: "O que é CI (Continuous Integration) e qual o seu benefício principal?"
+    options:
+      - "A prática de rodar lint, type-check, testes e build automaticamente a cada push — garantindo que código que quebra a suite não chegue à branch principal. O feedback chega em minutos, não em horas de code review"
+      - "Um serviço de hospedagem de código como o GitHub"
+      - "Um sistema de versionamento de código"
+      - "A automação do processo de deploy em produção"
+    correct: 0
+  - question: "Por que o blog React (SPA) precisa de configuração especial de rotas no Vercel/Netlify?"
+    options:
+      - "Porque o React não funciona sem servidor"
+      - "Porque o Vite gera arquivos separados para cada rota"
+      - "Uma SPA tem apenas um index.html — todas as rotas como /artigos/css-grid são gerenciadas pelo JavaScript no browser. Sem configuração, o servidor retorna 404 para essas URLs porque não existe um arquivo css-grid.html no disco"
+      - "Porque o Netlify não suporta React"
+    correct: 2
+  - question: "O que são preview deployments e por que são úteis?"
+    options:
+      - "Versões de produção mais rápidas de carregar"
+      - "Versões do site com dados fictícios para testes"
+      - "Deploys que rodam apenas em ambiente de staging"
+      - "Deploys automáticos criados para cada pull request — uma URL única que permite revisar as mudanças ao vivo antes de mesclar na branch principal. Elimina o 'funciona na minha máquina' durante revisões de código"
+    correct: 3
+  - question: "Por que variáveis de ambiente com segredos não devem ser commitadas no repositório?"
+    options:
+      - "Porque o Git não suporta arquivos .env"
+      - "Porque o repositório pode ser público agora ou no futuro, e segredos expostos (chaves de API, senhas de banco) permitem que qualquer pessoa acesse sistemas privados. Segredos vivem em variáveis de ambiente configuradas no painel do serviço de hosting"
+      - "Porque variáveis de ambiente não funcionam em produção"
+      - "Apenas por convenção — não há risco técnico"
+    correct: 1
 ---
+
+O blog funciona na sua máquina. Para que qualquer pessoa com internet possa acessar, precisa de um servidor, um domínio, e um processo que publique automaticamente cada mudança. CI/CD (Continuous Integration / Continuous Deployment) é o conjunto de práticas e ferramentas que tornam esse ciclo automático, seguro e rápido.
+
+## Build para produção
+
+Antes de qualquer deploy, gere o build de produção:
+
+```bash title="Gerar o build de produção."
+npm run build    # compila TypeScript, bundla, minifica → dist/
+npm run preview  # visualizar o build localmente antes de subir
+```
+
+O que está em `dist/` depois do build:
+
+```
+dist/
+  index.html           ← HTML mínimo com referência ao JS e CSS
+  assets/
+    index-abc123.js    ← bundle JavaScript minificado (~150KB)
+    index-def456.css   ← CSS extraído e minificado
+```
+
+Esses são os únicos arquivos que precisam ir para o servidor.
+
+## Vercel — deploy em dois minutos
+
+Vercel é o serviço de hosting mais popular para frontends modernos. Tem suporte de primeira classe para Next.js (é da mesma empresa), mas funciona perfeitamente com qualquer projeto Vite/React.
+
+**Primeira opção — via CLI:**
+
+```bash title="Deploy via CLI da Vercel."
+npm install -g vercel
+vercel login            # autenticar com GitHub/GitLab/Bitbucket
+vercel                  # conectar o projeto e fazer primeiro deploy
+vercel --prod           # deploy para produção
+```
+
+**Segunda opção — via GitHub (recomendada):**
+
+1. Criar um repositório no GitHub com o código do blog
+2. Acessar `vercel.com` → "New Project" → conectar o repositório
+3. Vercel detecta que é Vite e configura automaticamente
+
+A partir daí, **cada push para a branch `main` faz deploy em produção**. Cada pull request recebe uma **preview URL** — uma versão isolada do site para revisar antes de mesclar.
+
+**Configuração de rotas para SPA:**
+
+O blog React tem uma única página `index.html`. Quando o usuário acessa `/artigos/css-grid`, o servidor precisa retornar `index.html` — o JavaScript no browser vai renderizar a rota correta. Sem configuração, o servidor retorna 404:
+
+```json title="vercel.json — redirecionar todas as rotas para index.html."
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
+
+## Netlify e Cloudflare Pages
+
+**Netlify:** arrastar a pasta `dist/` no painel faz um deploy imediato. Para deploys automáticos via Git, o processo é o mesmo do Vercel — conectar o repositório. Para SPA routing:
+
+```toml title="netlify.toml — configuração de redirects."
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+```
+
+**Cloudflare Pages:** CDN global com edge computing integrado, analytics básico gratuito e Workers para lógica de servidor na borda. Setup similar ao Vercel e Netlify — conectar repositório, definir comando de build e pasta de saída.
+
+Para o blog estático, os três serviços são equivalentes. As diferenças aparecem em funcionalidades avançadas: edge functions, analytics, integrações com banco de dados.
+
+## GitHub Actions — CI/CD customizado
+
+Vercel e Netlify já fazem CI/CD básico (build + deploy a cada push). Para pipelines mais completos — rodar testes antes de fazer deploy, verificar lint e tipos em cada PR — use GitHub Actions:
+
+```yaml title=".github/workflows/ci.yml — pipeline completo de CI."
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+
+    steps:
+      # clonar o repositório
+      - uses: actions/checkout@v4
+
+      # configurar Node.js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      # instalar dependências
+      - run: npm ci
+
+      # verificações de qualidade
+      - name: Lint
+        run: npx eslint src/
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Testes
+        run: npm test -- --run
+
+      # gerar o build — falha se houver erro de compilação
+      - name: Build
+        run: npm run build
+```
+
+Este workflow roda em cada pull request — antes de qualquer merge. Se lint falha, typecheck falha, ou testes quebram, o PR não pode ser mesclado sem corrigir o problema.
+
+## Variáveis de ambiente
+
+O blog pode precisar de variáveis de ambiente — a URL da API em produção versus em desenvolvimento, por exemplo:
+
+```bash title=".env.local — variáveis locais (não commitar)."
+VITE_API_URL=http://localhost:3000/api
+```
+
+```bash title=".env.production — variáveis para build de produção."
+VITE_API_URL=https://api.meublog.com
+```
+
+No código, acessar com o prefixo `VITE_`:
+
+```ts title="Acessar variável de ambiente no código Vite."
+const apiUrl = import.meta.env.VITE_API_URL;
+fetch(`${apiUrl}/artigos`);
+```
+
+**Regras importantes:**
+- Nunca commitar `.env.local` — adicionar ao `.gitignore`
+- Segredos (chaves de API, senhas) ficam apenas no painel do serviço de hosting (Vercel, Netlify, GitHub Actions secrets)
+- No Vite, apenas variáveis com prefixo `VITE_` são incluídas no bundle — proteção contra expor segredos acidentalmente
+
+## Domínio personalizado
+
+Todos os serviços oferecem um domínio padrão gratuito: `meublog.vercel.app`, `meublog.netlify.app`. Para um domínio próprio (`meublog.com`):
+
+1. Comprar o domínio em um registrador (Porkbun, Namecheap, Registro.br para `.com.br`)
+2. No painel do serviço, adicionar o domínio personalizado
+3. Seguir as instruções para apontar um registro DNS `CNAME` do domínio para o serviço
+4. HTTPS é configurado automaticamente via Let's Encrypt — sem custo adicional
+
+## Resumo
+
+- **Build**: `npm run build` gera `dist/` — o que vai para o servidor.
+- **Vercel**: conectar GitHub, deploy automático a cada push, preview URLs para PRs. `vercel.json` para SPA routing.
+- **Netlify**: alternativa equivalente. `netlify.toml` para configuração. `_redirects` para SPA routing.
+- **Cloudflare Pages**: CDN global, edge computing, analytics gratuito.
+- **GitHub Actions**: CI customizado — lint, typecheck, testes, build em cada PR antes de mesclar.
+- **Variáveis de ambiente**: prefixo `VITE_` para expor ao browser. Segredos apenas no painel do serviço, nunca no repositório.
+- **Domínio**: comprar em registrador, apontar CNAME para o serviço. HTTPS automático.

@@ -1,6 +1,221 @@
 ---
 title: "Assíncrono — async/await"
-description: "Sintaxe moderna para promises. Tratamento de erros com try/catch. Quando uma função é async e o que isso significa."
-comingSoon: true
+description: "A sintaxe moderna para consumir Promises. async function, await, try/catch/finally. Paralelo vs. sequencial e o erro clássico de await dentro de loop."
 order: 14
+hero:
+  titleBefore: "async/await:"
+  titleAccent: "Promises"
+  titleAfter: "com sintaxe síncrona."
+quiz:
+  - question: "O que uma função async sempre retorna?"
+    options:
+      - "Um valor síncrono"
+      - "undefined"
+      - "Uma Promise — mesmo que o return seja um valor não-Promise"
+      - "Um callback"
+    correct: 2
+  - question: "O que acontece quando await é usado em uma Promise que rejeita?"
+    options:
+      - "O erro é ignorado silenciosamente"
+      - "A execução continua normalmente com valor undefined"
+      - "A função async retorna null"
+      - "O erro é lançado como uma exceção síncrona — pode ser capturado com try/catch"
+    correct: 3
+  - question: "Qual é o problema de usar await dentro de um loop for...of com múltiplas operações independentes?"
+    options:
+      - "await não funciona dentro de for...of"
+      - "O loop se torna sequencial — cada operação espera a anterior terminar antes de iniciar a próxima, mesmo que fossem independentes"
+      - "O loop nunca termina"
+      - "Não há problema — é o padrão recomendado"
+    correct: 1
+  - question: "Qual é a vantagem de async/await sobre .then().catch()?"
+    options:
+      - "async/await permite código mais legível — parece síncrono, sem encadeamento. try/catch trata erros de forma consistente com o resto do JavaScript"
+      - "async/await é mais rápido"
+      - "async/await não precisa de try/catch"
+      - "async/await funciona em mais navegadores"
+    correct: 0
 ---
+
+A lição anterior apresentou Promises com `.then()` e `.catch()`. Funciona, mas o encadeamento pode ficar verboso quando há muitos passos. `async/await` é uma sintaxe alternativa que transforma código assíncrono em algo que parece síncrono — mais fácil de ler, mais fácil de depurar.
+
+## A sintaxe `async`/`await`
+
+`async` antes de uma função transforma ela em uma **função assíncrona**. Funções assíncronas sempre retornam uma Promise — mesmo que o `return` seja um valor primitivo, ele é empacotado em uma Promise cumprida.
+
+`await` pausa a execução da função assíncrona até a Promise à direita se estabelecer, e então retorna o valor. Fora de uma função `async`, `await` não funciona — exceto no nível mais alto de um módulo ES (top-level await, disponível com `type="module"`).
+
+```js title="Convertendo .then() para async/await — mesma lógica, mais legível."
+// com .then() — encadeamento
+function buscarArtigosThen() {
+  return fetch("/artigos.json")
+    .then(response => {
+      if (!response.ok) throw new Error(`Erro ${response.status}`);
+      return response.json();
+    })
+    .then(artigos => artigos.filter(a => a.publicado))
+    .catch(erro => {
+      console.error(erro);
+      return [];
+    });
+}
+
+// com async/await — parece síncrono
+async function buscarArtigos() {
+  const response = await fetch("/artigos.json");
+
+  if (!response.ok) throw new Error(`Erro ${response.status}`);
+
+  const artigos = await response.json();
+  return artigos.filter(a => a.publicado);
+}
+```
+
+Dois `await`s no `fetch`: o primeiro aguarda a resposta HTTP (os headers chegarem). O segundo aguarda o body ser lido e parseado como JSON. Essa é a estrutura padrão de qualquer chamada fetch.
+
+## Tratamento de erros com `try`/`catch`
+
+Com async/await, erros em Promises rejeitadas se comportam como exceções síncronas — capturáveis com `try/catch`:
+
+```js title="try/catch/finally em função assíncrona — loading, sucesso, erro."
+async function carregarArtigos() {
+  mostrarSpinner();
+
+  try {
+    const response = await fetch("/artigos.json");
+
+    if (!response.ok) {
+      throw new Error(`Servidor retornou ${response.status}`);
+    }
+
+    const artigos = await response.json();
+    exibirArtigos(artigos);
+  } catch (erro) {
+    // captura erros de rede E erros lançados manualmente
+    console.error("Erro ao carregar artigos:", erro.message);
+    exibirMensagemErro("Não foi possível carregar os artigos. Tente novamente.");
+  } finally {
+    // sempre executa — esconde o spinner independente do resultado
+    esconderSpinner();
+  }
+}
+```
+
+`finally` é o equivalente de `.finally()` nas Promises — código de limpeza que deve sempre rodar: esconder spinners, liberar locks, fechar conexões. Sem `finally`, você precisaria repetir `esconderSpinner()` no bloco `try` (sucesso) e no bloco `catch` (erro).
+
+## Paralelo vs. sequencial
+
+Este é o erro mais comum com async/await. Quando você escreve `await a(); await b()`, as operações são **sequenciais**: `b` só começa depois que `a` termina. Se elas são independentes, você está desperdiçando tempo:
+
+```js title="Sequencial vs. paralelo — a diferença de tempo importa."
+// ❌ sequencial — total: tempo de A + tempo de B
+async function carregarDadosSequencial() {
+  const tags = await buscarTags();        // espera terminar
+  const autor = await buscarAutor();      // só começa depois
+  const config = await buscarConfig();    // só começa depois
+
+  return { tags, autor, config };
+  // se cada um leva 300ms: total = 900ms
+}
+
+// ✅ paralelo — total: tempo do mais lento
+async function carregarDadosParalelo() {
+  const [tags, autor, config] = await Promise.all([
+    buscarTags(),
+    buscarAutor(),
+    buscarConfig(),
+  ]);
+
+  return { tags, autor, config };
+  // se cada um leva 300ms: total = ~300ms
+}
+```
+
+O critério é simples: as operações são **independentes** (o resultado de uma não afeta o input da outra)? Use `Promise.all`. São **dependentes** (você precisa do resultado de A para chamar B)? Use `await` sequencial.
+
+## O erro clássico: `await` dentro de `for`
+
+Um erro frequente é usar `await` dentro de um `for...of` para processar uma lista — sem perceber que o loop fica sequencial:
+
+```js title="await dentro de for — sequencial sem querer."
+// ❌ sequencial — cada artigo espera o anterior
+async function processarArtigosSequencial(artigos) {
+  for (const artigo of artigos) {
+    await salvarCurtida(artigo.id); // um por vez — 100 artigos = 100× o tempo de uma operação
+  }
+}
+
+// ✅ paralelo — todos começam ao mesmo tempo
+async function processarArtigosParalelo(artigos) {
+  await Promise.all(artigos.map(artigo => salvarCurtida(artigo.id)));
+  // todos os salvamentos começam em paralelo
+}
+```
+
+Se você precisa que os itens sejam processados na ordem e em paralelo (com concorrência limitada), existem padrões específicos para isso — mas para a maioria dos casos do blog, `Promise.all(array.map(...))` é a resposta.
+
+## Funções async no contexto do blog
+
+Com async/await, o `script.js` do blog fica muito mais legível. As funções que interagem com a rede têm `async`, e o código que as chama usa `await`:
+
+```js title="Funções assíncronas do blog — carregarArtigos e enviarFormulario."
+async function carregarArtigos() {
+  const lista = document.getElementById("lista-artigos");
+
+  try {
+    lista.innerHTML = '<p class="carregando">Carregando artigos…</p>';
+
+    const response = await fetch("/artigos.json");
+    if (!response.ok) throw new Error(`Erro ${response.status}`);
+
+    const artigos = await response.json();
+    const publicados = artigos.filter(a => a.publicado);
+
+    lista.innerHTML = publicados.map(a => `
+      <article class="card-artigo" data-id="${a.id}">
+        <h2>${a.titulo}</h2>
+        <p>Por ${a.autor}</p>
+        <button class="botao-curtir" aria-pressed="false">🤍 Curtir</button>
+      </article>
+    `).join("");
+
+  } catch (erro) {
+    lista.innerHTML = `<p class="erro">Falha ao carregar: ${erro.message}</p>`;
+  }
+}
+
+async function enviarFormulario(dados) {
+  const botaoEnviar = document.getElementById("botao-enviar");
+  botaoEnviar.disabled = true;
+  botaoEnviar.textContent = "Enviando…";
+
+  try {
+    const response = await fetch("/contato", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dados),
+    });
+
+    if (!response.ok) throw new Error(`Erro ${response.status}`);
+
+    exibirNotificacao("sucesso", "Mensagem enviada com sucesso!");
+  } catch (erro) {
+    exibirNotificacao("erro", "Falha ao enviar. Tente novamente.");
+  } finally {
+    botaoEnviar.disabled = false;
+    botaoEnviar.textContent = "Enviar mensagem";
+  }
+}
+
+// inicializar ao carregar a página
+carregarArtigos();
+```
+
+## Resumo
+
+- **`async function`** sempre retorna uma Promise. **`await expressão`** pausa a execução e retorna o valor da Promise quando ela se resolve.
+- `await` dentro de `try/catch` trata rejeições de Promise como exceções síncronas — o padrão de tratamento de erros é consistente com o resto do JavaScript.
+- `finally` executa sempre — use para limpeza (esconder spinners, reabilitar botões).
+- **Sequencial** (`await a(); await b()`): operações rodam uma após a outra. Use quando dependem umas das outras.
+- **Paralelo** (`await Promise.all([a(), b()])`): operações iniciam simultaneamente. Use quando são independentes.
+- O erro clássico: `await` dentro de `for...of` cria loop sequencial. Use `Promise.all(array.map(...))` para processar em paralelo.

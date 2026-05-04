@@ -1,6 +1,177 @@
 ---
 title: "Performance"
 description: "Core Web Vitals (LCP, INP, CLS), lazy loading, code splitting, otimização de imagens, Lighthouse."
-comingSoon: true
 order: 9
+hero:
+  titleBefore: "Performance"
+  titleAccent: "web"
+  titleAfter: "— rápido para quem importa."
+quiz:
+  - question: "O que o LCP (Largest Contentful Paint) mede?"
+    options:
+      - "O tempo até o maior elemento visível na viewport (geralmente a imagem de capa ou o título principal) ter carregado. É a métrica mais próxima de 'quando a página parece pronta' para o usuário"
+      - "O tempo até o primeiro pixel ser pintado no browser"
+      - "O tempo total até todos os recursos da página carregarem"
+      - "O número de elementos no DOM"
+    correct: 0
+  - question: "O que é CLS (Cumulative Layout Shift) e como evitá-lo?"
+    options:
+      - "O tempo de processamento do CSS pelo browser"
+      - "O número de classes CSS aplicadas a um elemento"
+      - "A soma de todos os deslocamentos de layout inesperados durante a vida da página — elementos que pulam quando imagens carregam ou fonts renderizam. Evitar reservando espaço com width/height em imagens e usando font-display: swap com cuidado"
+      - "O tempo até o JavaScript terminar de executar"
+    correct: 2
+  - question: "O que é code splitting e por que ajuda na performance?"
+    options:
+      - "Uma técnica para dividir o código TypeScript em múltiplos arquivos"
+      - "Minificar o código JavaScript para reduzir o tamanho"
+      - "Separar o código de bibliotecas do código da aplicação"
+      - "Dividir o bundle JavaScript em chunks menores carregados sob demanda — o usuário baixa apenas o código necessário para a página atual, não o bundle inteiro da aplicação. Reduz o JavaScript inicial e acelera o first load"
+    correct: 3
+  - question: "Por que servir imagens em WebP ou AVIF em vez de JPEG?"
+    options:
+      - "Porque JPEG não suporta transparência"
+      - "WebP oferece compressão 25-35% melhor que JPEG com qualidade visual equivalente. AVIF é ainda mais eficiente (~50% menor que JPEG). Menos bytes para baixar = carregamento mais rápido, especialmente em conexões lentas"
+      - "Porque browsers antigos não suportam JPEG"
+      - "Por questões de copyright — JPEG tem patentes"
+    correct: 1
 ---
+
+Performance não é sobre código elegante — é sobre o usuário. Uma página que demora 4 segundos para mostrar o conteúdo principal tem taxa de abandono significativamente maior que uma que mostra em 1 segundo. E performance piora à medida que projetos crescem — bibliotecas adicionadas, imagens não otimizadas, JavaScript que bloqueia o render. Esta lição cobre o que medir, o que otimizar, e como.
+
+## Core Web Vitals — as métricas que importam
+
+Google define três métricas principais de experiência do usuário — os Core Web Vitals. São usadas como fator de ranking na busca e como benchmarks de qualidade:
+
+**LCP — Largest Contentful Paint.** Quanto tempo até o maior elemento visível na viewport ter carregado — geralmente a imagem de capa do artigo ou o `<h1>` principal. Meta: abaixo de 2,5 segundos. O LCP é a métrica mais próxima de "quando a página parece útil" para o usuário.
+
+**INP — Interaction to Next Paint.** Quanto tempo entre uma interação do usuário (clicar, digitar, pressionar tecla) e a resposta visual. Meta: abaixo de 200ms. Mede se a página responde de forma ágil às interações.
+
+**CLS — Cumulative Layout Shift.** Soma de todos os deslocamentos de layout inesperados — elementos que pulam quando imagens carregam ou fontes mudam. Meta: abaixo de 0,1. Um CLS alto faz o usuário clicar no botão errado quando o layout muda de repente.
+
+## Medir com Lighthouse
+
+Lighthouse é a ferramenta de auditoria integrada ao Chrome DevTools. Abre qualquer página no Chrome, abre DevTools (F12), vai na aba Lighthouse, e clica em "Analyze page load":
+
+O relatório mostra pontuação de 0 a 100 em Performance, Acessibilidade, Boas Práticas e SEO, com diagnósticos específicos do que está causando problemas. Cada item tem um link para a documentação explicando o que fazer.
+
+**Para o blog, os problemas mais comuns:**
+- Imagens sem `width` e `height` — causa CLS
+- Imagens em formato JPEG/PNG em vez de WebP — aumenta LCP
+- Bundle JavaScript grande — atrasa o LCP
+- Fonts sem `font-display: swap` — bloqueia o render
+
+## Imagens — o maior impacto de performance
+
+Imagens são frequentemente a maior parte do peso de uma página web. Três otimizações que têm impacto imediato:
+
+**Formato correto.** WebP oferece compressão 25–35% melhor que JPEG com qualidade visual equivalente. AVIF é ainda melhor (~50% menor). Use WebP como padrão, com AVIF quando o suporte ao browser não for uma restrição:
+
+```html title="picture com fallback — WebP com JPEG para browsers antigos."
+<picture>
+  <source srcset="capa.avif" type="image/avif" />
+  <source srcset="capa.webp" type="image/webp" />
+  <img src="capa.jpg" alt="Ilustração do artigo CSS Grid" width="800" height="450" />
+</picture>
+```
+
+**Tamanho correto.** Não servir uma imagem de 2000px para um container de 400px. Use o atributo `srcset` para servir tamanhos diferentes em viewports diferentes:
+
+```html title="srcset — imagem responsiva com tamanhos corretos."
+<img
+  src="capa-800.webp"
+  srcset="capa-400.webp 400w, capa-800.webp 800w, capa-1600.webp 1600w"
+  sizes="(max-width: 640px) 400px, (max-width: 1280px) 800px, 1600px"
+  alt="Ilustração do artigo CSS Grid"
+  width="800"
+  height="450"
+/>
+```
+
+**Lazy loading.** Imagens abaixo da viewport não precisam carregar imediatamente:
+
+```html title="loading='lazy' — adiar imagens fora da viewport."
+<!-- imagem no topo da página — não usar lazy -->
+<img src="capa.webp" alt="..." width="800" height="450" />
+
+<!-- imagens em ArticleCards na lista — usar lazy -->
+<img src="thumb.webp" alt="..." loading="lazy" width="400" height="225" />
+```
+
+`loading="lazy"` é suportado por todos os browsers modernos e é a otimização mais fácil de implementar.
+
+## Code splitting — carregar só o necessário
+
+O bundle do blog React contém todo o JavaScript da aplicação. Se `ArticlePage` é um componente grande que 90% dos usuários não vão abrir na mesma sessão, faz sentido carregá-lo apenas quando necessário:
+
+```tsx title="React.lazy + Suspense — code splitting automático."
+import { lazy, Suspense } from "react";
+
+// ArticlePage é carregado apenas quando o usuário navega para o artigo
+const ArticlePage = lazy(() => import("./pages/ArticlePage"));
+const HomePage = lazy(() => import("./pages/HomePage"));
+
+function App() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      {/* roteamento simplificado — use React Router na prática */}
+      {location.pathname === "/" ? <HomePage /> : <ArticlePage />}
+    </Suspense>
+  );
+}
+```
+
+Vite gera chunks separados para cada `lazy()` — o browser só baixa o JavaScript de `ArticlePage` quando o usuário navegar para um artigo.
+
+## Otimização do JavaScript
+
+**Bundle analyzer.** Antes de otimizar, saiba o que está grande:
+
+```bash title="Analisar o bundle gerado."
+npx vite-bundle-visualizer
+# ou
+npx source-map-explorer dist/assets/*.js
+```
+
+O resultado é um mapa visual dos módulos no bundle — fácil de identificar bibliotecas que pesam mais do que deveriam.
+
+**Problemas comuns:**
+- `import * as icons from "lucide-react"` — importa todos os ícones (centenas). Use `import { ChevronDown } from "lucide-react"` — apenas o que precisa
+- `import _ from "lodash"` — importa a biblioteca inteira. Use `import debounce from "lodash/debounce"` ou uma alternativa menor
+- Bibliotecas duplicadas — versões diferentes de uma mesma biblioteca no bundle
+
+## Fonts — evitar flash de texto sem estilo
+
+Fonts carregadas do Google Fonts bloqueiam a renderização por padrão. Duas estratégias:
+
+```html title="Preconnect + swap — fonts do Google sem bloquear o render."
+<!-- preconnect — estabelecer a conexão antecipadamente -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+<!-- display=swap — renderizar com font de fallback enquanto carrega -->
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+  rel="stylesheet"
+/>
+```
+
+`display=swap` instrui o browser a usar a font de sistema enquanto a custom font carrega — sem texto invisível, mas pode haver um pequeno flash quando a font troca.
+
+## O que priorizar
+
+Performance tem rendimentos decrescentes — as primeiras otimizações têm impacto enorme, as últimas são micro-ajustes. Ordem de prioridade para o blog:
+
+1. **Imagens em WebP com `loading="lazy"` e dimensões corretas** — maior impacto, mais fácil
+2. **`font-display: swap`** — elimina blocking de render por fonts
+3. **Code splitting com `React.lazy`** — carrega só o necessário
+4. **Bundle analyzer + remover dependências pesadas** — quando o bundle ultrapassa ~200KB gzip
+
+## Resumo
+
+- **Core Web Vitals**: LCP (maior elemento visível < 2.5s), INP (resposta a interações < 200ms), CLS (deslocamentos de layout < 0.1).
+- **Lighthouse**: audita LCP, INP, CLS e dá diagnósticos com ações concretas.
+- **Imagens**: WebP/AVIF para formato, `srcset` para tamanho certo por viewport, `loading="lazy"` para imagens fora da fold. Sempre definir `width` e `height`.
+- **Code splitting**: `React.lazy()` + `Suspense` carrega componentes sob demanda — Vite gera chunks automáticos.
+- **Bundle**: analisar com `vite-bundle-visualizer`. Importações granulares em vez de importar a biblioteca inteira.
+- **Fonts**: `preconnect` + `display=swap` elimina o blocking de render de fontes externas.

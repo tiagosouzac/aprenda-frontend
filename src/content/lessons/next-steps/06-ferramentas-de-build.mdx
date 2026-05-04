@@ -1,6 +1,184 @@
 ---
 title: "Ferramentas de build"
 description: "Vite, esbuild, webpack, Turbopack. O que cada uma faz, quando se aprofundar e como debugar problemas de build."
-comingSoon: true
 order: 6
+hero:
+  titleBefore: "Ferramentas"
+  titleAccent: "de build"
+  titleAfter: "— o que acontece antes do browser."
+quiz:
+  - question: "O que uma ferramenta de build faz com o código TypeScript e JSX antes de entregar ao browser?"
+    options:
+      - "Transpila TypeScript para JavaScript, JSX para chamadas de função, resolve módulos ES (imports), agrupa tudo em um ou poucos arquivos, e minifica o resultado — eliminando espaços, comentários e encurtando nomes de variáveis"
+      - "Executa o código e salva o resultado em cache"
+      - "Apenas verifica tipos com TypeScript"
+      - "Comprime os arquivos sem modificar o código"
+    correct: 0
+  - question: "Por que o Vite é mais rápido no desenvolvimento que ferramentas baseadas em bundle??"
+    options:
+      - "Porque Vite usa um compilador mais eficiente"
+      - "Porque Vite escreve o bundle em memória RAM"
+      - "Em desenvolvimento, Vite usa ESM nativo do browser — serve cada módulo individualmente sem fazer bundle. O browser importa apenas o que precisa. Ferramentas como webpack fazem bundle de tudo antes de servir, o que fica lento em projetos grandes"
+      - "Porque Vite usa múltiplas threads de CPU"
+    correct: 2
+  - question: "O que é tree-shaking?"
+    options:
+      - "Uma técnica para otimizar imagens"
+      - "Uma técnica para dividir o bundle em chunks menores"
+      - "O processo de minificar CSS"
+      - "Eliminação de código morto no bundle — código importado mas não usado é removido. Se você importa { formatarData } de utils.ts mas não usa calcularTempoLeitura, esta não vai no bundle final"
+    correct: 3
+  - question: "Quando você precisa se aprofundar em configuração de build?"
+    options:
+      - "Sempre — todo projeto precisa de configuração personalizada"
+      - "Quando o projeto tem requisitos específicos: proxy para API em desenvolvimento, aliases de caminho (@/ para src/), variáveis de ambiente diferentes por ambiente, otimizações de bundle para produção, ou integração com ferramentas que não têm plugin oficial"
+      - "Apenas em projetos com mais de 100 arquivos"
+      - "Apenas quando usando webpack"
+    correct: 1
 ---
+
+Você usou Vite em todo o curso sem precisar configurar quase nada. Mas o que Vite faz exatamente? Por que o `npm run dev` é tão rápido? O que acontece no `npm run build` que transforma `/src/utils.ts` em `/dist/assets/index-abc123.js`? Esta lição abre a caixa preta das ferramentas de build — o suficiente para entender o que está acontecendo e debugar quando algo dá errado.
+
+## O problema que ferramentas de build resolvem
+
+O browser entende HTML, CSS e JavaScript. Não entende TypeScript, JSX, módulos com `import`/`export` (em todos os ambientes), ou 50 arquivos separados (cada um exigindo uma requisição HTTP).
+
+Uma ferramenta de build preenche essa lacuna:
+
+```
+src/
+  App.tsx         → TypeScript + JSX
+  utils.ts        → TypeScript com imports
+  components/
+    ArticleCard.tsx
+
+        ↓  ferramentas de build
+
+dist/
+  index.html
+  assets/
+    index-abc123.js   ← tudo junto, minificado, JavaScript puro
+    index-def456.css  ← CSS extraído e minificado
+```
+
+O processo envolve: **transpilação** (TypeScript → JavaScript, JSX → `React.createElement`), **resolução de módulos** (seguir os `import`s e encontrar os arquivos), **bundling** (juntar tudo em poucos arquivos), **tree-shaking** (remover código não usado), e **minificação** (encurtar nomes, remover espaços, comprimir).
+
+## Vite — rápido no dev, Rollup no build
+
+Vite tem dois modos distintos:
+
+**Em desenvolvimento**, Vite não faz bundle. Ele usa ESM nativo do browser — o próprio browser faz `import` dos módulos conforme precisa. Vite serve os arquivos individualmente, transpilando apenas o que o browser pede no momento. Isso torna o start do servidor instantâneo mesmo em projetos grandes.
+
+**Em produção**, Vite usa Rollup para gerar um bundle otimizado: chunks separados (vendor, app), tree-shaking, code splitting automático, minificação com esbuild.
+
+```ts title="vite.config.ts — configurações mais úteis no dia a dia."
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "node:path";
+
+export default defineConfig({
+  plugins: [react()],
+
+  resolve: {
+    // alias — import { formatarData } from "@/utils" em vez de "../../utils"
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+
+  server: {
+    // proxy — redirecionar /api para o servidor backend local
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+    },
+  },
+
+  build: {
+    // separar vendors em chunk separado — melhor cache no browser
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom"],
+        },
+      },
+    },
+  },
+});
+```
+
+## esbuild — o mais rápido
+
+esbuild é escrito em Go e é ordens de magnitude mais rápido que ferramentas JavaScript puras. Vite usa esbuild internamente para:
+- Transpilação de TypeScript e JSX (tanto em dev quanto em build)
+- Minificação em produção (substituindo Terser, que é JavaScript)
+- Pre-bundling de dependências em desenvolvimento (transformar `node_modules` de CommonJS para ESM)
+
+Você raramente usa esbuild diretamente em projetos que já usam Vite — ele está trabalhando em segundo plano.
+
+## Rollup — para bibliotecas
+
+Rollup tem tree-shaking especialmente agressivo e formatos de output flexíveis (ESM, CommonJS, UMD). É o bundler certo quando você está construindo uma **biblioteca** (não uma aplicação):
+
+- `import { formatarData } from "minha-lib"` — o bundler do usuário da biblioteca consegue fazer tree-shaking e importar apenas `formatarData`, não a biblioteca inteira
+- Aplicações usam Vite (que usa Rollup internamente); bibliotecas muitas vezes configuram Rollup diretamente
+
+## Turbopack — o sucessor do webpack
+
+Turbopack é um bundler novo escrito em Rust, criado pela Vercel (a mesma empresa por trás do Next.js). É o bundler padrão do Next.js 15 em modo dev. Ainda em evolução.
+
+## Webpack — legado onipresente
+
+webpack dominou o mundo do bundling durante uma década — e ainda é extremamente comum em projetos corporativos grandes, especialmente os que usam Create React App (já descontinuado) ou configurações complexas e personalizadas.
+
+Você não vai criar projetos novos com webpack hoje. Mas vai encontrá-lo:
+
+```js title="webpack.config.js — estrutura básica para reconhecer."
+const path = require("path");
+
+module.exports = {
+  entry: "./src/index.tsx",                    // ponto de entrada
+  output: {
+    path: path.resolve(__dirname, "dist"),     // pasta de saída
+    filename: "bundle.js",
+  },
+  resolve: {
+    extensions: [".tsx", ".ts", ".js"],
+  },
+  module: {
+    rules: [
+      {
+        test: /\.(ts|tsx)$/,
+        use: "ts-loader",                      // loader para TypeScript
+        exclude: /node_modules/,
+      },
+      {
+        test: /\.css$/,
+        use: ["style-loader", "css-loader"],  // loaders para CSS
+      },
+    ],
+  },
+};
+```
+
+O modelo mental do webpack: tudo é um módulo (JS, CSS, imagens, fontes). Loaders transformam cada tipo de módulo. Plugins realizam operações no bundle inteiro.
+
+## Como debugar problemas de build
+
+**O build passa em dev mas falha em produção:** frequentemente é TypeScript em modo estrito — Vite dev pode ser mais permissivo. Rode `tsc --noEmit` para ver os erros de tipo. Também pode ser import dinâmico não suportado, variável de ambiente não definida, ou diferença entre ESM e CommonJS em alguma dependência.
+
+**Bundle muito grande:** rode `npx vite build --reportCompressedSize` e inspecione com `npx vite-bundle-visualizer`. Identifique as dependências maiores — geralmente date libraries, ícone packs importados inteiros, ou lodash sem tree-shaking.
+
+**HMR (Hot Module Replacement) não funcionando:** verifique se o plugin correto está no `vite.config.ts`. Para React, é `@vitejs/plugin-react` ou `@vitejs/plugin-react-swc`.
+
+## Resumo
+
+- **Ferramentas de build** transpilam (TS→JS, JSX→JS), resolvem módulos, fazem bundle, tree-shaking e minificação.
+- **Vite em dev**: ESM nativo, sem bundle, start instantâneo. **Vite em prod**: Rollup para bundle otimizado.
+- **esbuild**: Go, extremamente rápido. Vite usa internamente para transpilação e minificação.
+- **Rollup**: ideal para bibliotecas com tree-shaking agressivo.
+- **Turbopack**: bundler Rust do Next.js, em evolução.
+- **webpack**: legado, onipresente em projetos corporativos. Loaders + plugins para qualquer tipo de módulo.
+- Para debugar: `tsc --noEmit` para erros de tipo, `vite-bundle-visualizer` para bundle pesado.

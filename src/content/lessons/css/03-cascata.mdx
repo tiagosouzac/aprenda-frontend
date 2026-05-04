@@ -1,6 +1,212 @@
 ---
 title: "Especificidade e cascata"
-description: "Como o navegador decide qual regra ganha. Cálculo da especificidade, ordem das fontes, herança e por que !important quase sempre é sintoma de problema."
-comingSoon: true
+description: "Como o navegador decide qual regra CSS ganha quando há conflito. Cálculo de especificidade, herança e por que !important quase sempre é sintoma de problema."
 order: 3
+hero:
+  titleBefore: "Especificidade"
+  titleAccent: "e cascata:"
+  titleAfter: "quem ganha o conflito."
+quiz:
+  - question: "Qual é a ordem de prioridade na cascata CSS, da menor para a maior?"
+    options:
+      - "Navegador → autor → inline"
+      - "Inline → autor → navegador"
+      - "Autor → navegador → inline"
+      - "Inline → navegador → autor"
+    correct: 0
+  - question: "Qual seletor tem maior especificidade?"
+    options:
+      - ".artigo p"
+      - "article.artigo p.texto"
+      - "#conteudo"
+      - "h1.titulo"
+    correct: 2
+  - question: "Qual propriedade CSS é herdada pelos filhos por padrão?"
+    options:
+      - "margin"
+      - "border"
+      - "width"
+      - "color"
+    correct: 3
+  - question: "O que o valor 'unset' faz em uma propriedade CSS?"
+    options:
+      - "Remove a declaração como se nunca tivesse sido escrita"
+      - "Herda o valor se a propriedade é herdável; usa o valor inicial da especificação se não for"
+      - "Reseta para zero em qualquer caso"
+      - "É equivalente a 'initial' em todas as propriedades"
+    correct: 1
 ---
+
+Você já sabe que múltiplas regras CSS podem se aplicar ao mesmo elemento ao mesmo tempo. Um `<p>` dentro de um `<article>` é selecionado tanto por `p { }` quanto por `article p { }` — e ambas as regras podem declarar `color` com valores diferentes. O navegador precisa decidir qual prevalece. Essa decisão é chamada de **cascata**.
+
+A cascata não é arbitrária. Ela segue uma hierarquia precisa, e entender essa hierarquia é o que separa quem depura CSS adivinhandode quem depura com propósito.
+
+## O que é a cascata
+
+A cascata funciona em três níveis, avaliados nesta ordem:
+
+**Origem** é a fonte da regra. Estilos do navegador (o chamado *user agent stylesheet*) têm o peso mais baixo — são os valores padrão que o navegador aplica antes de você escrever uma linha de CSS. Seus estilos em `estilos.css` têm peso maior e sobrescrevem os do navegador. Estilos inline (`style=""` diretamente no elemento) têm o peso mais alto de todos.
+
+Quando duas regras têm a mesma origem, entra o segundo nível: **especificidade**. A regra com o seletor mais específico ganha. `#id` é mais específico que `.classe`, que é mais específico que `tag`.
+
+Quando duas regras têm exatamente a mesma especificidade, o terceiro nível decide: **ordem de declaração**. A que aparece por último no código vence.
+
+```css title="Os três níveis da cascata — origem, especificidade e ordem."
+/* 1. estilos do navegador (peso mais baixo — implícito, não escrito) */
+/* p { display: block; margin: 1em 0; } */
+
+/* 2. seus estilos (peso médio) */
+p {
+  color: #0a0a0b;
+  line-height: 1.72;
+}
+
+/* 3. ordem de declaração — esta vence a anterior por vir depois */
+p {
+  color: #3a3a3f; /* ganha porque aparece por último */
+}
+
+/* 4. inline — peso máximo (no HTML: <p style="color: red">) */
+```
+
+## Calculando especificidade
+
+A especificidade é calculada em três colunas: **[IDs] [classes + atributos + pseudo-classes] [tags + pseudo-elementos]**. Cada parte do seletor incrementa a coluna correspondente.
+
+- `p` → `[0, 0, 1]` — uma tag
+- `.artigo` → `[0, 1, 0]` — uma classe
+- `#conteudo` → `[1, 0, 0]` — um id
+- `article p` → `[0, 0, 2]` — duas tags
+- `.artigo p` → `[0, 1, 1]` — uma classe + uma tag
+- `#conteudo .artigo p` → `[1, 1, 1]` — id + classe + tag
+- `a:hover` → `[0, 1, 1]` — pseudo-classe conta como classe; tag conta como tag
+- `li::marker` → `[0, 0, 2]` — pseudo-elemento conta como tag
+
+Para comparar dois seletores, compare coluna a coluna da esquerda para a direita. A primeira diferença decide. `[1, 0, 0]` sempre ganha de `[0, 999, 999]` — um único id supera qualquer número de classes e tags.
+
+```css title="Comparando especificidades — prever qual regra vence em cada conflito."
+/* [0, 0, 1] — tag */
+p {
+  color: gray;
+}
+
+/* [0, 1, 1] — classe + tag — vence o anterior */
+article p {
+  color: #0a0a0b;
+}
+
+/* [0, 2, 1] — duas classes + tag — vence o anterior */
+.conteudo .texto p {
+  color: #3a3a3f;
+}
+
+/* [1, 0, 0] — id — vence todos acima */
+#artigo-principal p {
+  color: black;
+}
+
+/* inline no HTML — ganha de qualquer regra em estilos.css */
+/* <p style="color: red"> */
+```
+
+O cálculo tem uma implicação prática importante: evitar ids em CSS mantém a especificidade baixa e previsível. Quando você usa apenas classes e tags, é muito mais fácil sobrescrever regras onde necessário. Um id em um lugar obriga a usar outro id para sobrescrever — e a cascata rapidamente fica difícil de controlar.
+
+## Herança
+
+Herança é um mecanismo separado da cascata, mas complementar. Algumas propriedades CSS se propagam automaticamente dos pais para os filhos — sem que o filho precise declarar nada.
+
+As propriedades mais importantes que **herdam**: `color`, `font-family`, `font-size`, `font-weight`, `font-style`, `line-height`, `letter-spacing`, `text-align`. Por isso, definir `font-family` no `body` é suficiente para afetar todos os elementos de texto da página — os filhos herdam.
+
+As propriedades que **não herdam** por padrão incluem: `margin`, `padding`, `border`, `background`, `width`, `height`, `display`, `position`. Faz sentido: se `margin` herdasse, definir margem num pai afetaria cada filho aninhado — o que seria imprevisível.
+
+```css title="Herança no artigo — color e font-family definidos no body afetam todos os filhos."
+/* definir no body é suficiente — todos os filhos herdam */
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #0a0a0b;
+  line-height: 1.6;
+}
+
+/* h1, p, a, li — todos herdam font-family e color do body */
+/* não é necessário redeclarar em cada elemento */
+
+/* margin não herda — precisa ser declarada onde necessário */
+p {
+  margin-bottom: 1rem;
+}
+```
+
+Você pode controlar o comportamento de herança explicitamente com três palavras-chave especiais. `inherit` força um elemento a herdar o valor de seu pai, mesmo para propriedades que não herdam por padrão. `initial` redefine a propriedade para o valor inicial da especificação CSS, ignorando qualquer herança. `unset` é o mais inteligente dos três: herda o valor do pai se a propriedade for herdável, e usa o valor `initial` se não for.
+
+```css title="Controlando herança com inherit, initial e unset."
+/* forçar herança de color em bordas — a borda terá a mesma cor do texto */
+.card {
+  border: 1px solid currentColor; /* currentColor herda a cor do texto */
+}
+
+/* ou explicitamente */
+.card-borda {
+  border-color: inherit;
+}
+
+/* remover a margem padrão de parágrafos dentro de cards */
+.card p {
+  margin: initial; /* volta ao valor inicial — que para margin é 0 */
+}
+
+/* unset é útil em resets modernos */
+.reset * {
+  margin: unset;   /* herda se herdável, initial se não */
+  padding: unset;
+  border: unset;
+}
+```
+
+## Por que `!important` é sintoma de problema
+
+`!important` é uma declaração especial que sobrescreve qualquer especificidade — incluindo estilos inline. Você pode colocá-la em qualquer declaração:
+
+```css title="!important — o que faz e por que escala mal."
+/* força esta cor em qualquer contexto */
+.botao {
+  color: white !important;
+}
+
+/* para sobrescrever o !important acima, você precisa de outro !important */
+#formulario .botao {
+  color: black !important; /* agora a especificidade E !important competem */
+}
+```
+
+O problema é de escalabilidade. Quando você usa `!important` em um lugar para forçar um estilo, e depois precisa sobrescrever aquele estilo em outro contexto, você precisa de outro `!important`. Que por sua vez precisa ser sobrescrito por outro `!important` com especificidade ainda maior. A cascata que deveria resolver conflitos automaticamente passa a ser um campo de batalha de exceções.
+
+Na maioria dos casos, a necessidade de `!important` sinaliza que a estrutura dos seletores está errada — especificidade alta demais em um lugar, ou regras conflitantes que deveriam ser separadas.
+
+Existem usos legítimos: classes utilitárias de acessibilidade como `.visually-hidden` que precisam garantir que o elemento seja ocultado em qualquer contexto, ou quando você está sobrescrevendo CSS de uma biblioteca de terceiros que usa especificidade alta e você não pode modificar. Mas mesmo nesses casos, a regra deve ser documentada com um comentário explicando por quê.
+
+A solução na maioria das situações é ajustar a especificidade dos seletores. Se uma regra está sendo ignorada porque outra é mais específica, adicione contexto ao seletor mais fraco em vez de usar `!important`:
+
+```css title="Refatorando um uso desnecessário de !important — ajustando a especificidade."
+/* ❌ evitar — força com !important, difícil de sobrescrever */
+.botao {
+  background-color: #2563eb !important;
+}
+
+/* ✅ preferir — aumenta especificidade com contexto semântico */
+.formulario-contato .botao {
+  background-color: #2563eb;
+}
+
+/* ou usar :where() para especificidade zero e deixar o contexto decidir */
+:where(.botao) {
+  background-color: #2563eb;
+}
+```
+
+## Resumo
+
+- A cascata resolve conflitos em três níveis: **origem** (navegador < autor < inline), **especificidade** (id > classe > tag), **ordem de declaração** (último ganha quando especificidade é igual).
+- Especificidade é calculada em três colunas `[IDs, classes/atributos/pseudo-classes, tags/pseudo-elementos]` — compare da esquerda para a direita; a primeira diferença decide o vencedor.
+- **Herança** propaga propriedades tipográficas (`color`, `font-family`, `line-height`) para filhos automaticamente; propriedades de layout (`margin`, `padding`, `border`) não herdam.
+- `inherit` força herança; `initial` volta ao valor inicial da especificação; `unset` combina os dois de forma inteligente.
+- `!important` é quase sempre um sintoma de estrutura de seletores ruim — a solução é ajustar a especificidade, não forçar com `!important`.

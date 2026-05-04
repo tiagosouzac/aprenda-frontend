@@ -1,6 +1,381 @@
 ---
-title: "Construindo um componente prático"
-description: "Junta props, estado, efeitos e eventos em um componente completo (ex.: lista de tarefas com filtro)."
-comingSoon: true
+title: "O blog React completo"
+description: "HomePage com busca e filtro por tag, ArticlePage com leitura completa e botão de curtir. Props, estado, efeitos e Context integrados num projeto real."
 order: 14
+hero:
+  titleBefore: "O blog"
+  titleAccent: "completo"
+  titleAfter: "— tudo junto."
+quiz:
+  - question: "Por que o filtro de artigos por query e tag não usa useEffect?"
+    options:
+      - "Porque o filtro é uma transformação de dados que pode ser calculada durante o render — dado que artigos, query e tagAtiva já são valores disponíveis, o resultado filtrado é apenas uma derivação deles. useEffect seria um render a mais desnecessário"
+      - "Porque useEffect é muito lento para filtros"
+      - "Porque arrays não funcionam com useEffect"
+      - "useEffect é necessário para filtros — esse exemplo está incorreto"
+    correct: 0
+  - question: "Por que o estado de curtidas vive no Context e não dentro de cada ArticleCard?"
+    options:
+      - "Por limitação técnica do React"
+      - "Context é mais performático que useState local"
+      - "Porque o mesmo conjunto de artigos curtidos precisa ser compartilhado entre a HomePage (que exibe cards) e uma eventual ArticlePage (que exibe o botão de curtir do artigo completo). Estado local em cada card ficaria dessincronizado entre páginas"
+      - "Porque ArticleCard não pode usar useState"
+    correct: 2
+  - question: "O que é necessário para que a barra de progresso de leitura funcione com scroll?"
+    options:
+      - "Um timer com setInterval"
+      - "Uma biblioteca externa de animação"
+      - "O CSS scroll-timeline resolve sem JavaScript"
+      - "Um useEffect que adiciona um listener de evento 'scroll' no window, calcula a porcentagem lida com base em scrollY e a altura total do documento, e atualiza o estado. O cleanup remove o listener ao desmontar o componente"
+    correct: 3
+  - question: "Qual é o motivo de separar a lógica de fetchArtigo em um custom hook useArtigo?"
+    options:
+      - "Porque useEffect não pode ser usado diretamente em componentes de página"
+      - "Para separar o que o componente renderiza do como os dados chegam — o componente foca na UI, o hook foca no fetch. Também permite reutilizar a lógica de carregando/erro/dados em outros contextos e facilita testes"
+      - "Custom hooks são obrigatórios para fetch em páginas"
+      - "Para que TypeScript consiga inferir o tipo dos dados"
+    correct: 1
 ---
+
+As lições anteriores construíram cada peça separadamente: JSX, componentes, props, estado, efeitos, eventos, Context. Agora essas peças se juntam num projeto completo — o blog React com TypeScript. A `HomePage` lista artigos com filtro por texto e por tag. A `ArticlePage` exibe o artigo completo com barra de progresso e curtida persistida. Ambas reutilizam os mesmos componentes e hooks.
+
+## A árvore de componentes
+
+Antes de escrever código, vale ter clareza de onde cada coisa vive:
+
+```
+App
+├── TemaProvider           ← tema global (Context)
+├── CurtidasProvider       ← curtidas globais (Context)
+│   ├── HomePage
+│   │   ├── Header
+│   │   │   └── ThemeToggle
+│   │   ├── SearchInput    ← query (estado local de HomePage)
+│   │   ├── TagFilter      ← tagAtiva (estado local de HomePage)
+│   │   └── ArticleList
+│   │       └── ArticleCard × N
+│   │           └── LikeButton
+│   └── ArticlePage
+│       ├── Header
+│       │   └── ThemeToggle
+│       ├── ProgressBar    ← progresso (estado local de ArticlePage)
+│       ├── ArticleBody
+│       └── LikeButton
+```
+
+O mapa do estado:
+
+- **`tema`** → `TemaProvider` (Context) — lido por `Header` e aplicado no `document`
+- **`curtidos`** → `CurtidasProvider` (Context) — lido e alterado por qualquer `LikeButton`
+- **`query`** → `HomePage` (estado local) — só `HomePage` usa para filtrar
+- **`tagAtiva`** → `HomePage` (estado local) — idem
+- **`artigos`** → `HomePage` (estado local, carregado via `useArtigos`)
+- **`progresso`** → `ArticlePage` (estado local) — só a barra de progresso usa
+
+## `HomePage` — lista com filtro
+
+A `HomePage` gerencia dois estados locais (`query` e `tagAtiva`) e usa o hook `useArtigos` para carregar os dados. O filtro é calculado **durante o render** — sem `useEffect`:
+
+```tsx title="HomePage.tsx — busca e filtro por tag."
+import { useState } from "react";
+import { useArtigos } from "../hooks/useArtigos";
+import { Header } from "../components/Header";
+import { ArticleList } from "../components/ArticleList";
+
+export function HomePage() {
+  const { artigos, carregando, erro } = useArtigos();
+  const [query, setQuery] = useState("");
+  const [tagAtiva, setTagAtiva] = useState<string | null>(null);
+
+  // filtro calculado no render — sem useEffect, sem estado derivado
+  const artigosFiltrados = artigos.filter(artigo => {
+    const matchQuery =
+      artigo.titulo.toLowerCase().includes(query.toLowerCase()) ||
+      artigo.descricao.toLowerCase().includes(query.toLowerCase());
+    const matchTag = tagAtiva ? artigo.tags.includes(tagAtiva) : true;
+    return matchQuery && matchTag;
+  });
+
+  // todas as tags únicas para o filtro
+  const todasTags = [...new Set(artigos.flatMap(a => a.tags))].sort();
+
+  return (
+    <main>
+      <Header />
+
+      <div className="controles-busca">
+        <input
+          type="search"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="Buscar artigos..."
+          aria-label="Buscar artigos"
+        />
+
+        <div className="filtro-tags" role="group" aria-label="Filtrar por tag">
+          <button
+            className={tagAtiva === null ? "tag ativa" : "tag"}
+            onClick={() => setTagAtiva(null)}
+          >
+            Todos
+          </button>
+          {todasTags.map(tag => (
+            <button
+              key={tag}
+              className={tagAtiva === tag ? "tag ativa" : "tag"}
+              onClick={() => setTagAtiva(prev => prev === tag ? null : tag)}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {carregando && <div className="skeleton-lista" aria-label="Carregando artigos..." />}
+      {erro && <p className="mensagem-erro">Erro ao carregar artigos: {erro}</p>}
+      {!carregando && !erro && (
+        <ArticleList artigos={artigosFiltrados} />
+      )}
+    </main>
+  );
+}
+```
+
+O `ArticleList` recebe apenas os artigos já filtrados — não sabe que há busca e filtro de tag. Esse isolamento é intencional: `ArticleList` é responsável apenas por renderizar uma lista de artigos que recebe. A lógica de filtro fica em quem gerencia o estado.
+
+## `ArticleCard` com curtida
+
+O `ArticleCard` consome o `CurtidasContext` via `useCurtidas` — sabe se o artigo está curtido e pode alternar sem receber o estado como prop:
+
+```tsx title="ArticleCard.tsx — card com curtida via Context."
+import { useCurtidas } from "../context/CurtidasContext";
+import { LikeButton } from "./LikeButton";
+import type { Artigo } from "../types";
+
+interface ArticleCardProps {
+  artigo: Artigo;
+}
+
+export function ArticleCard({ artigo }: ArticleCardProps) {
+  const { curtidos, toggleCurtida } = useCurtidas();
+  const curtido = curtidos.has(artigo.id);
+
+  const dataFormatada = artigo.publicadoEm
+    ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(
+        new Date(artigo.publicadoEm)
+      )
+    : null;
+
+  return (
+    <article className={`card-artigo ${curtido ? "card-curtido" : ""}`}>
+      <div className="card-tags">
+        {artigo.tags.map(tag => (
+          <span key={tag} className="tag">{tag}</span>
+        ))}
+      </div>
+
+      <h2 className="card-titulo">{artigo.titulo}</h2>
+      <p className="card-descricao">{artigo.descricao}</p>
+
+      <div className="card-rodape">
+        <div className="card-meta">
+          <span>{artigo.autor.nome}</span>
+          {dataFormatada && (
+            <time dateTime={artigo.publicadoEm ?? ""}>{dataFormatada}</time>
+          )}
+        </div>
+
+        <LikeButton
+          curtido={curtido}
+          contagem={artigo.curtidas + (curtido ? 1 : 0)}
+          onCurtir={() => toggleCurtida(artigo.id)}
+        />
+      </div>
+    </article>
+  );
+}
+```
+
+## `ArticlePage` — leitura completa
+
+A `ArticlePage` tem três responsabilidades: carregar o artigo, rastrear o progresso de leitura e exibir o botão de curtir. Cada uma vai para o lugar certo:
+
+```tsx title="useArtigo.ts — hook para um artigo específico."
+import { useState, useEffect } from "react";
+import type { Artigo } from "../types";
+
+export function useArtigo(slug: string) {
+  const [artigo, setArtigo] = useState<Artigo | null>(null);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch(`/api/artigos/${slug}`, { signal: controller.signal })
+      .then(res => {
+        if (!res.ok) throw new Error(`Artigo não encontrado`);
+        return res.json() as Promise<Artigo>;
+      })
+      .then(dados => {
+        setArtigo(dados);
+        setCarregando(false);
+      })
+      .catch(err => {
+        if (err.name !== "AbortError") {
+          setErro(err.message);
+          setCarregando(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, [slug]);
+
+  return { artigo, carregando, erro };
+}
+```
+
+```tsx title="ArticlePage.tsx — página completa com progresso e curtida."
+import { useState, useEffect } from "react";
+import { useArtigo } from "../hooks/useArtigo";
+import { useCurtidas } from "../context/CurtidasContext";
+import { Header } from "../components/Header";
+import { ProgressBar } from "../components/ProgressBar";
+import { LikeButton } from "../components/LikeButton";
+
+interface ArticlePageProps {
+  slug: string;
+}
+
+export function ArticlePage({ slug }: ArticlePageProps) {
+  const { artigo, carregando, erro } = useArtigo(slug);
+  const { curtidos, toggleCurtida } = useCurtidas();
+  const [progresso, setProgresso] = useState(0);
+
+  // barra de progresso — listener de scroll
+  useEffect(() => {
+    function calcularProgresso() {
+      const scrollAtual = window.scrollY;
+      const alturaTotal = document.documentElement.scrollHeight - window.innerHeight;
+      const percentual = alturaTotal > 0 ? (scrollAtual / alturaTotal) * 100 : 0;
+      setProgresso(Math.round(percentual));
+    }
+
+    window.addEventListener("scroll", calcularProgresso, { passive: true });
+    return () => window.removeEventListener("scroll", calcularProgresso);
+  }, []); // [] — o listener roda por toda a vida da página
+
+  if (carregando) return <div className="skeleton-artigo" aria-label="Carregando..." />;
+  if (erro) return <p className="mensagem-erro">{erro}</p>;
+  if (!artigo) return null;
+
+  const curtido = curtidos.has(artigo.id);
+
+  return (
+    <main>
+      <Header />
+      <ProgressBar valor={progresso} />
+
+      <article className="artigo-completo">
+        <header className="artigo-header">
+          <div className="artigo-tags">
+            {artigo.tags.map(tag => <span key={tag} className="tag">{tag}</span>)}
+          </div>
+          <h1 className="artigo-titulo">{artigo.titulo}</h1>
+          <p className="artigo-descricao">{artigo.descricao}</p>
+          <div className="artigo-meta">
+            <span>{artigo.autor.nome}</span>
+            {artigo.publicadoEm && (
+              <time dateTime={artigo.publicadoEm}>
+                {new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" }).format(
+                  new Date(artigo.publicadoEm)
+                )}
+              </time>
+            )}
+          </div>
+        </header>
+
+        <div
+          className="artigo-corpo"
+          dangerouslySetInnerHTML={{ __html: artigo.conteudo }}
+        />
+
+        <footer className="artigo-rodape">
+          <LikeButton
+            curtido={curtido}
+            contagem={artigo.curtidas + (curtido ? 1 : 0)}
+            onCurtir={() => toggleCurtida(artigo.id)}
+          />
+        </footer>
+      </article>
+    </main>
+  );
+}
+```
+
+## `ProgressBar` e `LikeButton`
+
+Componentes pequenos que recebem tudo via props — sem estado próprio, sem lógica de negócio:
+
+```tsx title="ProgressBar.tsx — barra de progresso de leitura."
+interface ProgressBarProps {
+  valor: number; // 0–100
+}
+
+export function ProgressBar({ valor }: ProgressBarProps) {
+  return (
+    <div
+      className="barra-progresso"
+      role="progressbar"
+      aria-valuenow={valor}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label="Progresso de leitura"
+    >
+      <div
+        className="barra-progresso-preenchimento"
+        style={{ width: `${valor}%` }}
+      />
+    </div>
+  );
+}
+```
+
+```tsx title="LikeButton.tsx — botão de curtir controlado pelo pai."
+interface LikeButtonProps {
+  curtido: boolean;
+  contagem: number;
+  onCurtir: () => void;
+}
+
+export function LikeButton({ curtido, contagem, onCurtir }: LikeButtonProps) {
+  return (
+    <button
+      className={`botao-curtir ${curtido ? "curtido" : ""}`}
+      aria-pressed={curtido}
+      onClick={onCurtir}
+    >
+      {curtido ? "❤️" : "🤍"} {contagem} {contagem === 1 ? "curtida" : "curtidas"}
+    </button>
+  );
+}
+```
+
+## O que esse projeto demonstra
+
+Olhando a aplicação completa, os padrões aprendidos aparecem no lugar certo:
+
+- **`useState` local**: `query`, `tagAtiva` e `progresso` são estados que só importam para um componente. Ficam no componente que os usa.
+- **Lifting state up**: `curtidos` e `tema` precisam ser compartilhados por toda a aplicação — ficam em Providers de Context.
+- **Custom hooks**: `useArtigos` e `useArtigo` isolam a lógica de fetch dos componentes. Componentes focam em renderizar; hooks focam em buscar dados.
+- **Componentes controlados**: `LikeButton` e `ProgressBar` não têm estado — são controlados por quem os usa. Mais simples de testar e reutilizar.
+- **Renderização condicional**: `if (carregando)`, `if (erro)`, `if (!artigo)` protegem o render principal e afunilam o TypeScript.
+- **Derivação no render**: `artigosFiltrados` e `todasTags` são calculados a cada render com base no estado atual — sem `useEffect`, sem estado extra.
+
+## Resumo
+
+- A `HomePage` gerencia estado local de `query` e `tagAtiva`, filtra os artigos **no render** (não em efeito), e delega a renderização para `ArticleList`.
+- A `ArticlePage` usa um custom hook para o fetch, um `useEffect` para o scroll, e lê curtidas via Context.
+- `LikeButton` e `ProgressBar` são componentes controlados — recebem tudo via props, sem estado próprio.
+- Estado no lugar certo: local para o que é local, Context para o que é global.
+- Componentes pequenos com uma responsabilidade cada — o resultado é uma árvore que você consegue raciocinar parte por parte.

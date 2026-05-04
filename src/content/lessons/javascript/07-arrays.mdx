@@ -1,6 +1,204 @@
 ---
 title: "Arrays"
-description: "Criação, acesso, iteração. Métodos imutáveis (map, filter, reduce, find, some, every) e métodos mutáveis (push, pop, splice)."
-comingSoon: true
+description: "Criação, acesso e iteração. Métodos imutáveis (map, filter, reduce, find) e métodos mutáveis (push, pop, splice). Spread e desestruturação."
 order: 7
+hero:
+  titleBefore: "Arrays:"
+  titleAccent: "coleções"
+  titleAfter: "de valores."
+quiz:
+  - question: "Qual é a diferença entre map() e filter()?"
+    options:
+      - "map() modifica o array original; filter() cria um novo"
+      - "map() é para números; filter() é para strings"
+      - "map() transforma cada item e retorna um array de mesmo tamanho; filter() mantém apenas os itens que passam no teste e pode retornar um array menor"
+      - "Não há diferença — são sinônimos com nomes diferentes"
+    correct: 2
+  - question: "Por que preferir [...array, novoItem] a array.push(novoItem)?"
+    options:
+      - "O spread é mais rápido que push"
+      - "push() não funciona em arrays modernos"
+      - "O spread é necessário para uso com React"
+      - "O spread cria um novo array (imutável); push() modifica o array original. Imutabilidade facilita rastrear mudanças de estado"
+    correct: 3
+  - question: "O que reduce() faz?"
+    options:
+      - "Reduz o tamanho do array removendo itens duplicados"
+      - "Acumula todos os itens em um único valor — passando o resultado de cada iteração para a próxima"
+      - "Remove itens do array que são falsy"
+      - "Retorna o menor valor do array"
+    correct: 1
+  - question: "Qual é a diferença entre find() e filter()?"
+    options:
+      - "find() retorna o primeiro item que passa no teste (ou undefined); filter() retorna um array com todos os itens que passam"
+      - "Não há diferença prática"
+      - "find() é mais rápido que filter()"
+      - "filter() retorna apenas um item; find() retorna todos"
+    correct: 0
 ---
+
+Arrays são listas ordenadas de valores. São a estrutura de dados mais usada em JavaScript — a lista de artigos do blog, as tags de um artigo, os ids dos artigos curtidos, o histórico de ações do usuário. Saber manipular arrays com eficiência é uma das habilidades mais práticas que você pode desenvolver.
+
+## Criar e acessar
+
+Um array é criado com colchetes `[]`, com os itens separados por vírgulas. Os itens podem ser de qualquer tipo — números, strings, objetos, outros arrays.
+
+O acesso é por índice, começando do zero. `array[0]` é o primeiro item, `array[array.length - 1]` é o último. Tentar acessar um índice que não existe retorna `undefined` — não um erro.
+
+```js title="Criando e acessando o array de artigos do blog."
+// array de objetos — cada artigo é um objeto
+const artigos = [
+  { id: 1, titulo: "CSS em geral", tags: ["css", "frontend"], curtidas: 42 },
+  { id: 2, titulo: "Flexbox", tags: ["css", "layout"], curtidas: 87 },
+  { id: 3, titulo: "JavaScript básico", tags: ["js", "frontend"], curtidas: 63 },
+];
+
+// acesso por índice — zero-indexed
+artigos[0]           // → { id: 1, titulo: "CSS em geral", ... }
+artigos[0].titulo    // → "CSS em geral"
+artigos[0].tags[1]   // → "frontend"
+
+// número de itens
+artigos.length       // → 3
+
+// índice fora do range — undefined, não erro
+artigos[10]          // → undefined
+```
+
+## Métodos imutáveis — não alteram o original
+
+O conjunto de métodos mais importante para trabalhar com arrays é o de métodos **imutáveis**: eles não modificam o array original, mas retornam um novo array (ou um valor derivado). Isso torna o código mais previsível — você sabe que ao chamar `artigos.filter(...)`, o array `artigos` permanece intacto.
+
+**`map(fn)`** transforma cada item usando a função `fn` e retorna um novo array de mesmo tamanho. É a operação mais comum para converter dados de um formato para outro.
+
+**`filter(fn)`** mantém apenas os itens para os quais `fn` retorna truthy. O novo array tem o mesmo tamanho ou menor.
+
+**`find(fn)`** retorna o **primeiro** item para o qual `fn` retorna truthy. Retorna `undefined` se nenhum item passar. Use quando você quer um item, não uma lista.
+
+**`findIndex(fn)`** como `find`, mas retorna o índice do item em vez do item em si.
+
+**`some(fn)`** retorna `true` se ao menos um item passar no teste. **`every(fn)`** retorna `true` se todos passarem.
+
+**`reduce(fn, valorInicial)`** acumula todos os itens em um único valor. A função recebe o acumulador e o item atual; o valor retornado se torna o novo acumulador.
+
+**`includes(valor)`** retorna `true` se o valor existe no array — comparação com `===`.
+
+**`slice(início, fim)`** retorna uma cópia de uma parte do array. O índice de início é inclusivo, o de fim é exclusivo.
+
+```js title="Métodos imutáveis — transformar, filtrar e acumular artigos."
+// map: extrair apenas os títulos
+const titulos = artigos.map(a => a.titulo);
+// → ["CSS em geral", "Flexbox", "JavaScript básico"]
+
+// filter: apenas artigos com mais de 60 curtidas
+const populares = artigos.filter(a => a.curtidas > 60);
+// → [{ id: 2, ... }, { id: 3, ... }]
+
+// encadear filter e map — artigos de CSS, retornar títulos
+const titulosCss = artigos
+  .filter(a => a.tags.includes("css"))
+  .map(a => a.titulo);
+// → ["CSS em geral", "Flexbox"]
+
+// find: buscar um artigo específico pelo id
+const artigoBuscado = artigos.find(a => a.id === 2);
+// → { id: 2, titulo: "Flexbox", ... }
+
+// some: verificar se algum artigo tem mais de 100 curtidas
+const algumViralou = artigos.some(a => a.curtidas > 100);
+// → false
+
+// every: verificar se todos os artigos têm pelo menos uma tag
+const todosTemTag = artigos.every(a => a.tags.length > 0);
+// → true
+
+// reduce: somar todas as curtidas
+const totalCurtidas = artigos.reduce((soma, a) => soma + a.curtidas, 0);
+// → 192
+
+// includes: verificar se um id está na lista de curtidos
+const curtidos = [1, 3];
+curtidos.includes(2); // → false
+curtidos.includes(3); // → true
+```
+
+## Métodos mutáveis — alteram o original
+
+Alguns métodos modificam o array em que são chamados. Use-os com consciência — mutações inesperadas são uma fonte comum de bugs.
+
+**`push(item)`** adiciona um item ao final do array e retorna o novo `length`.
+**`pop()`** remove e retorna o último item.
+**`unshift(item)`** adiciona ao início; **`shift()`** remove do início.
+**`splice(índice, quantidade, ...novos)`** remove e/ou insere items em uma posição específica.
+**`sort(fn)`** ordena o array *in place* — sem uma função de comparação, a ordem padrão é lexicográfica (strings), o que produz resultados errados para números.
+
+```js title="Métodos mutáveis — manter lista de artigos curtidos."
+const curtidos = [1, 3];
+
+// curtir um artigo — adicionar ao final
+curtidos.push(2);
+// curtidos → [1, 3, 2]
+
+// descurtir — remover pelo índice
+const indicePara2 = curtidos.indexOf(2);
+if (indicePara2 !== -1) {
+  curtidos.splice(indicePara2, 1);
+}
+// curtidos → [1, 3]
+
+// ordenar artigos por curtidas (numérico — precisa da função de comparação)
+artigos.sort((a, b) => b.curtidas - a.curtidas);
+// artigos agora está ordenado do mais curtido para o menos
+// b - a = ordem decrescente; a - b = crescente
+```
+
+## Spread e desestruturação
+
+Para adicionar e remover itens **sem mutar o array original**, use o operador spread `...`:
+
+```js title="Spread — adicionar e remover sem mutação."
+const curtidos = [1, 3];
+
+// adicionar sem mutar — cria novo array
+const comNovo = [...curtidos, 2];
+// curtidos → [1, 3] (intacto)
+// comNovo  → [1, 3, 2]
+
+// remover sem mutar — filter cria novo array
+const semUm = curtidos.filter(id => id !== 1);
+// curtidos → [1, 3] (intacto)
+// semUm    → [3]
+
+// combinar dois arrays
+const tagsRecentes = ["css", "html"];
+const tagsAntigos = ["javascript", "frontend"];
+const todasTags = [...tagsRecentes, ...tagsAntigos];
+// → ["css", "html", "javascript", "frontend"]
+```
+
+**Desestruturação** extrai posições do array em variáveis nomeadas:
+
+```js title="Desestruturação de array — extrair posições em variáveis."
+const [primeiro, segundo, ...resto] = artigos;
+// primeiro → artigos[0]
+// segundo  → artigos[1]
+// resto    → artigos[2...]
+
+// ignorar posições com vírgula
+const [, segundoArtigo] = artigos;
+// → artigos[1]
+
+// trocar valores sem variável temporária
+let a = 1;
+let b = 2;
+[a, b] = [b, a];
+// a → 2, b → 1
+```
+
+## Resumo
+
+- Arrays são listas ordenadas. Acesso por índice zero-based. Índice fora do range retorna `undefined`.
+- **Métodos imutáveis** retornam novo array ou valor sem modificar o original: `map()` transforma, `filter()` seleciona, `find()` busca o primeiro, `reduce()` acumula, `includes()` verifica existência.
+- **Métodos mutáveis** modificam o array: `push()`/`pop()` nas pontas, `splice()` em posição específica, `sort()` para ordenar (sempre passe a função de comparação para números).
+- **Spread** `[...array, item]` adiciona sem mutar. `array.filter()` remove sem mutar. Prefira imutabilidade para rastrear mudanças de estado com clareza.
+- **Desestruturação** `const [a, b, ...resto] = array` extrai posições em variáveis nomeadas.

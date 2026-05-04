@@ -1,6 +1,258 @@
 ---
 title: "Estado com useState"
 description: "O que é estado e por que ele dispara re-renderizações. Sintaxe do hook, atualizações baseadas no estado anterior, regras dos hooks."
-comingSoon: true
 order: 7
+hero:
+  titleBefore: "Estado"
+  titleAccent: "com useState"
+  titleAfter: "— re-renderização declarativa."
+quiz:
+  - question: "Por que uma variável comum não funciona para atualizar a UI em React?"
+    options:
+      - "Porque mudar uma variável comum não notifica React — o componente não re-renderiza e o DOM fica desatualizado"
+      - "Porque variáveis não existem dentro de componentes React"
+      - "Porque variáveis comuns são somente leitura em componentes"
+      - "Porque React apaga variáveis comuns entre renders"
+    correct: 0
+  - question: "Por que usar setContagem(prev => prev + 1) em vez de setContagem(contagem + 1)?"
+    options:
+      - "A forma funcional é mais rápida"
+      - "A forma direta não funciona com TypeScript"
+      - "React pode agrupar múltiplas atualizações de estado — se você chama setContagem várias vezes no mesmo ciclo, a forma funcional garante que cada chamada usa o valor mais recente, não o valor capturado no closure"
+      - "Não há diferença — são equivalentes"
+    correct: 2
+  - question: "O que significa a regra 'nunca chame hooks dentro de condicionais'?"
+    options:
+      - "Hooks não podem ser usados em componentes com if/else"
+      - "Hooks não podem acessar variáveis condicionais"
+      - "É apenas uma convenção de estilo"
+      - "A ordem em que os hooks são chamados deve ser a mesma em todo render — React identifica cada hook pela posição na chamada, não pelo nome. Um hook dentro de if pode ser chamado em um render e pulado em outro, corrompendo o mapeamento"
+    correct: 3
+  - question: "Ao atualizar um objeto no estado, por que você deve criar um novo objeto em vez de mutar o existente?"
+    options:
+      - "TypeScript impede a mutação de objetos em estado"
+      - "React compara o estado anterior com o novo por referência — se você mutar o objeto e passar a mesma referência, React não detecta mudança e não re-renderiza"
+      - "Objetos mutados causam erros de runtime no React"
+      - "É apenas uma convenção sem impacto técnico"
+    correct: 1
 ---
+
+Estado é um valor que, quando muda, faz o componente re-renderizar. É o mecanismo fundamental que transforma componentes estáticos em interfaces interativas. `useState` é o hook que cria e gerencia estado em componentes de função.
+
+## Por que estado existe
+
+Uma variável JavaScript comum não dispara re-renderização — o componente não sabe que o valor mudou:
+
+```tsx title="Variável comum vs. useState — o que faz a UI atualizar."
+// ❌ variável comum — não funciona
+function ContadorErrado() {
+  let contagem = 0; // variável comum — React não monitora
+
+  function incrementar() {
+    contagem += 1;           // muda o valor
+    console.log(contagem);   // o log mostra o valor atualizado
+    // mas React não re-renderiza — o DOM ainda mostra 0
+  }
+
+  return (
+    <div>
+      <span>{contagem}</span>
+      <button onClick={incrementar}>+1</button>
+    </div>
+  );
+}
+
+// ✅ useState — funciona
+function Contador() {
+  const [contagem, setContagem] = useState(0); // estado monitorado pelo React
+
+  function incrementar() {
+    setContagem(contagem + 1); // notifica React — dispara re-renderização
+  }
+
+  return (
+    <div>
+      <span>{contagem}</span>
+      <button onClick={incrementar}>+1</button>
+    </div>
+  );
+}
+```
+
+Quando você chama `setContagem`, React agenda uma re-renderização do componente. Na próxima renderização, `useState(0)` retorna o valor atualizado — não o valor inicial `0`. React monta o JSX com o novo valor e atualiza o DOM.
+
+## Sintaxe do `useState`
+
+```tsx title="useState — sintaxe e tipagem."
+import { useState } from "react";
+
+// useState retorna um par: [valorAtual, funcaoQueAtualiza]
+const [curtido, setCurtido] = useState(false);       // boolean — inferido
+const [curtidas, setCurtidas] = useState(0);          // number — inferido
+const [email, setEmail] = useState("");               // string — inferido
+const [artigos, setArtigos] = useState<Artigo[]>([]); // genérico — necessário para array vazio
+
+// o tipo é inferido do valor inicial quando possível
+// para arrays e unions vazios, passe o tipo explicitamente
+const [erro, setErro] = useState<string | null>(null);
+```
+
+O valor inicial é usado **apenas na primeira renderização** — em renders subsequentes, `useState` retorna o valor atual, ignorando o valor inicial.
+
+## O `LikeButton` com estado
+
+Com `useState`, o botão de curtir do blog funciona de forma autossuficiente:
+
+```tsx title="LikeButton.tsx — estado local de curtida."
+import { useState } from "react";
+
+interface LikeButtonProps {
+  curtidas: number;
+  initialCurtido?: boolean;
+}
+
+export function LikeButton({ curtidas, initialCurtido = false }: LikeButtonProps) {
+  const [curtido, setCurtido] = useState(initialCurtido);
+  const [contagemLocal, setContagemLocal] = useState(curtidas);
+
+  function handleCurtir() {
+    if (curtido) {
+      setCurtido(false);
+      setContagemLocal(prev => prev - 1);
+    } else {
+      setCurtido(true);
+      setContagemLocal(prev => prev + 1);
+    }
+  }
+
+  return (
+    <button
+      className="botao-curtir"
+      aria-pressed={curtido}
+      onClick={handleCurtir}
+    >
+      {curtido ? "❤️" : "🤍"} {contagemLocal} curtidas
+    </button>
+  );
+}
+```
+
+## Atualização baseada no estado anterior
+
+Quando o próximo estado depende do estado atual, use a **forma funcional** do setter:
+
+```tsx title="Forma funcional — garante o valor mais recente."
+// ❌ forma direta — pode usar valor desatualizado
+setContagem(contagem + 1);
+setContagem(contagem + 1); // ambas usam o mesmo valor de 'contagem' — resultado: +1, não +2
+
+// ✅ forma funcional — cada chamada usa o valor mais recente
+setContagem(prev => prev + 1);
+setContagem(prev => prev + 1); // resultado: +2 — cada chamada recebe o valor atualizado
+
+// no toggle de curtida — a forma funcional é mais segura
+function handleCurtir() {
+  setCurtido(prev => !prev);
+  setContagemLocal(prev => curtido ? prev - 1 : prev + 1);
+  // problema: 'curtido' captura o valor do render atual
+  // mais correto: derivar do prev
+  setContagemLocal(prev => !curtido ? prev + 1 : prev - 1);
+}
+```
+
+A forma funcional (`prev => prev + 1`) é especialmente importante quando o setter pode ser chamado múltiplas vezes no mesmo ciclo de evento, ou quando o estado é atualizado de dentro de um callback assíncrono.
+
+## Estado com objetos e arrays
+
+**Nunca mute o estado diretamente** — React compara o estado anterior com o novo por referência. Se você mutar o objeto e passar a mesma referência, React não detecta mudança e não re-renderiza:
+
+```tsx title="Atualizar objeto e array de forma imutável."
+// ❌ mutação direta — React não detecta a mudança
+function handleCurtir() {
+  artigo.curtidas += 1; // muta o objeto existente
+  setArtigo(artigo);    // mesma referência — React não re-renderiza
+}
+
+// ✅ criar novo objeto com spread
+function handleCurtir() {
+  setArtigo(prev => ({ ...prev, curtidas: prev.curtidas + 1 }));
+  // novo objeto — referência diferente — React detecta e re-renderiza
+}
+
+// ✅ adicionar item a array — criar novo array
+function addArtigo(novoArtigo: Artigo) {
+  setArtigos(prev => [...prev, novoArtigo]);
+}
+
+// ✅ remover item — filter cria novo array
+function removeCurtida(id: number) {
+  setCurtidos(prev => prev.filter(curtidoId => curtidoId !== id));
+}
+
+// ✅ atualizar item em array — map cria novo array
+function toggleCurtida(id: number) {
+  setArtigos(prev =>
+    prev.map(artigo =>
+      artigo.id === id
+        ? { ...artigo, curtidas: artigo.curtidas + 1 }
+        : artigo
+    )
+  );
+}
+```
+
+## Regras dos hooks
+
+Os hooks têm duas regras que o React depende para funcionar corretamente:
+
+**Regra 1: Chame hooks apenas no nível mais alto da função.** Nunca dentro de `if`, `for`, `while` ou funções aninhadas.
+
+```tsx title="Regra dos hooks — ordem deve ser consistente."
+// ❌ hook condicional — ordem varia entre renders
+function Componente({ mostrar }: { mostrar: boolean }) {
+  if (mostrar) {
+    const [valor, setValor] = useState(0); // chamado às vezes, não em outros
+    // React não consegue mapear esse hook ao estado correto
+  }
+  // ...
+}
+
+// ✅ correto — hook sempre no nível mais alto
+function Componente({ mostrar }: { mostrar: boolean }) {
+  const [valor, setValor] = useState(0); // sempre chamado, na mesma posição
+  // a condição vai dentro do JSX ou da lógica, não em volta do hook
+  return mostrar ? <span>{valor}</span> : null;
+}
+```
+
+**Regra 2: Chame hooks apenas em componentes React ou custom hooks.** Não em funções utilitárias comuns.
+
+```tsx title="Hooks apenas em componentes e custom hooks."
+// ❌ hook em função utilitária — não funciona
+function calcularTema() {
+  const [tema, setTema] = useState("claro"); // sem React context — erro
+  return tema;
+}
+
+// ✅ hook em componente
+function ThemeToggle() {
+  const [tema, setTema] = useState("claro"); // dentro de componente — funciona
+  return <button onClick={() => setTema(prev => prev === "claro" ? "escuro" : "claro")}>{tema}</button>;
+}
+
+// ✅ hook em custom hook (nome começa com 'use')
+function useTema() {
+  const [tema, setTema] = useState("claro"); // dentro de custom hook — funciona
+  return { tema, setTema };
+}
+```
+
+A razão técnica: React identifica cada hook pela **posição** na sequência de chamadas dentro do componente — não pelo nome. Se a ordem mudar entre renders (porque um hook está dentro de um `if`), React perde o mapeamento entre o hook e o estado que armazena.
+
+## Resumo
+
+- **`useState(valorInicial)`** retorna `[valorAtual, setter]`. Quando o setter é chamado, React re-renderiza o componente com o novo valor.
+- O valor inicial é usado **apenas na primeira renderização**.
+- **Forma funcional** do setter (`prev => prev + 1`): use quando o próximo estado depende do anterior — garante o valor mais recente.
+- **Nunca mute estado diretamente** — crie novo objeto/array. React compara por referência.
+- **Regras dos hooks**: chamados sempre no nível mais alto da função, nunca em condicionais ou loops; apenas em componentes React ou custom hooks (nome começa com `use`).

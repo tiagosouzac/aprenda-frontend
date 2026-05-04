@@ -1,6 +1,195 @@
 ---
 title: "Onde aprender mais"
 description: "MDN, documentação oficial, comunidades em pt-BR e em inglês, livros e canais. Como filtrar conteúdo desatualizado."
-comingSoon: true
 order: 10
+hero:
+  titleBefore: "Onde"
+  titleAccent: "aprender"
+  titleAfter: "mais — e o que ignorar."
+quiz:
+  - question: "Por que a documentação oficial é preferível a tutoriais de terceiros para aprender uma tecnologia?"
+    options:
+      - "Porque a documentação oficial é mantida pelas mesmas pessoas que mantêm a tecnologia — está sempre sincronizada com a versão atual, explica o comportamento esperado, e não tem incentivos para simplificar demais ou promover abordagens que ficaram obsoletas"
+      - "Porque tutoriais sempre têm erros"
+      - "Porque tutoriais são pagos e documentação é gratuita"
+      - "Porque documentação é mais fácil de ler"
+    correct: 0
+  - question: "Qual é um sinal claro de que um tutorial de React está desatualizado?"
+    options:
+      - "Usar TypeScript em vez de JavaScript"
+      - "Usar npm em vez de yarn"
+      - "Usar class Component, componentDidMount, ou qualquer sintaxe de classe — React migrou para function components e hooks em 2019. Tutoriais com essa sintaxe ensinam um padrão que o ecossistema largou"
+      - "Ter menos de 10 mil visualizações"
+    correct: 2
+  - question: "Para que serve o MDN Web Docs especificamente?"
+    options:
+      - "É a documentação oficial do React"
+      - "É um site para publicar tutoriais técnicos"
+      - "É a documentação do Node.js"
+      - "É a referência definitiva para as plataformas web abertas — HTML, CSS, e APIs JavaScript do browser (DOM, Fetch, Web APIs). Mantido pela Mozilla com contribuições da comunidade, é o recurso mais completo e atualizado para tudo que roda nativamente no browser"
+    correct: 3
+  - question: "O que o TypeScript Playground oferece que tutoriais normais não têm?"
+    options:
+      - "Vídeos explicativos sobre TypeScript"
+      - "Um ambiente de execução de TypeScript direto no browser com o compilador real — você vê o JavaScript gerado, os erros de tipo em tempo real, e pode compartilhar o link com qualquer pessoa. Ideal para testar comportamentos de tipagem sem configurar um projeto"
+      - "Exemplos de código TypeScript para copiar"
+      - "Um curso completo de TypeScript gratuito"
+    correct: 1
 ---
+
+Saber onde buscar informação confiável é tão importante quanto saber programar. O ecossistema frontend muda rápido — um tutorial que foi excelente em 2020 pode ensinar padrões abandonados hoje. Esta lição organiza os recursos por tipo, explica para que cada um serve melhor, e dá critérios para separar conteúdo atual de conteúdo desatualizado.
+
+## Documentação oficial — o ponto de partida
+
+Antes de buscar qualquer tutorial, leia a documentação oficial. Ela é escrita e mantida pelas mesmas pessoas que criam a tecnologia, está sempre sincronizada com a versão atual, e não tem incentivos para simplificar demais.
+
+**MDN Web Docs** (`developer.mozilla.org`) é a referência definitiva para tudo que é nativo da plataforma web: HTML, CSS, JavaScript do browser, e Web APIs (Fetch, Web Storage, Intersection Observer, Service Workers). É mantido pela Mozilla com contribuições da comunidade e revisado continuamente.
+
+Como usar o MDN: quando você encontrar uma propriedade CSS, uma API do browser, ou um elemento HTML que não conhece, o MDN é a primeira parada. Cada página explica o que é, como usar, quais são os parâmetros, e mostra compatibilidade com browsers de forma clara e visual.
+
+**react.dev** é a documentação oficial do React. Foi completamente reescrita em 2023 com foco em function components e hooks — a versão anterior (reactjs.org) ensinava class components e está arquivada. A nova documentação tem exemplos interativos, desafios, e um guia completo de cada hook.
+
+Seções essenciais do react.dev:
+- **Learn React** — do começo ao fim, como um curso integrado
+- **API Reference** — referência completa de todos os hooks e APIs
+- **Escape Hatches** — quando e como usar refs, effects externos, e imperatividade
+
+**TypeScript Handbook** (`typescriptlang.org/docs/handbook`) cobre a linguagem do começo ao fim: tipos básicos, interfaces, genéricos, inferência, módulos, e configuração. É longo mas bem organizado — use como referência enquanto trabalha, não tente ler sequencialmente.
+
+O **TypeScript Playground** (`typescriptlang.org/play`) complementa o Handbook: você digita TypeScript, vê o JavaScript gerado e os erros em tempo real. É o lugar certo para testar um comportamento de tipo sem abrir um projeto inteiro. Compartilhar links do Playground é o jeito mais eficiente de perguntar dúvidas sobre tipos.
+
+**Vite** (`vitejs.dev`) e **Vitest** (`vitest.dev`) têm documentações concisas e completas. Quando algo no build não funciona, a configuração de `vite.config.ts` está explicada lá. Quando um matcher do Vitest se comporta diferente do esperado, a referência está lá.
+
+## Comunidades e recursos em pt-BR
+
+Aprender em português acelera o início — você não precisa traduzir mentalmente enquanto aprende conceitos novos.
+
+**Dev.to em pt-BR** (`dev.to/t/portuguese`) tem artigos de desenvolvedores brasileiros sobre as mesmas tecnologias que você está aprendendo. A qualidade varia, mas há bons autores que escrevem regularmente sobre React, TypeScript, e carreira.
+
+**Rocketseat** tem conteúdo gratuito no YouTube e Discord ativo. Os vídeos variam de qualidade — priorize os de 2023 em diante para React e TypeScript.
+
+**Código Fonte TV** e **Filipe Deschamps** no YouTube são canais com vídeos explicando conceitos de forma acessível para iniciantes. Não vão fundo em cada tópico, mas são bons para construir intuição sobre o que existe antes de mergulhar na documentação.
+
+**Frontend Brasil** no Discord é uma das maiores comunidades de frontend em pt-BR. Há canais separados por tecnologia, e é um lugar razoável para fazer perguntas pontuais.
+
+**Tableless** tem artigos históricos sobre frontend em português. Muito conteúdo está desatualizado — verifique as datas antes de seguir qualquer exemplo.
+
+Para perguntas técnicas específicas, **Stack Overflow em português** (`pt.stackoverflow.com`) funciona bem para dúvidas de sintaxe e comportamentos pontuais. Para dúvidas mais abertas sobre arquitetura ou decisão técnica, prefira o Stack Overflow em inglês, que tem muito mais volume de respostas.
+
+## Recursos em inglês — onde está o volume
+
+O ecossistema de conteúdo técnico é predominantly em inglês. Ler e ouvir inglês técnico é uma habilidade que vale desenvolver — não porque o português seja insuficiente, mas porque a maior parte dos recursos, discussões, e documentação estão lá.
+
+**Josh W. Comeau** (`joshwcomeau.com`) escreve artigos profundos sobre CSS e React que são referência no ecossistema. Cada artigo tem exemplos interativos e explica o *porquê* por trás dos comportamentos — não só o *como*. Os artigos sobre CSS Grid, animações, e React rendering são particularmente bons.
+
+**Kent C. Dodds** (`kentcdodds.com`) é o autor do Testing Library e escreveu muito sobre testes, React, e boas práticas. O blog é bem organizado por tópico. Seus artigos sobre "Testing Implementation Details" e "Fix the not wrapped in act(...) warning" são leitura obrigatória antes de escrever testes de React.
+
+**Dan Abramov** (`overreacted.io`) é um dos criadores do React e hooks. Os artigos são densos e conceituais — "A Complete Guide to useEffect" é o recurso mais completo sobre `useEffect` que existe, melhor que qualquer vídeo ou tutorial.
+
+**CSS-Tricks** (`css-tricks.com`) tem referências completas sobre Flexbox e CSS Grid que continuam relevantes. O guia de Flexbox e o guia de Grid são os mais visitados do site, e com razão — são exaustivos e bem ilustrados.
+
+**JavaScript.info** (`javascript.info`) é um livro online gratuito que cobre JavaScript do começo ao fim — variáveis, funções, closures, protótipos, async/await, DOM. É moderno (ES6+) e muito bem escrito. Boa referência para consolidar conceitos do módulo de JavaScript.
+
+**The Odin Project** (`theodinproject.com`) é um currículo gratuito que cobre desenvolvimento web do zero. Se você quiser um caminho estruturado diferente do que esse curso, é uma referência confiável e atualizada.
+
+## Como filtrar conteúdo desatualizado
+
+JavaScript e React evoluem rápido. Uma busca por "como usar state no React" pode retornar tutoriais de 2018 ensinando `this.setState()` em class components, que é como ninguém escreve React desde 2019.
+
+**Verificar a data de publicação é o primeiro filtro.** Para React e JavaScript, conteúdo com mais de três anos merece ceticismo — leia, mas verifique na documentação oficial se o padrão ainda é recomendado. Para HTML e CSS, conteúdo mais antigo ainda pode ser válido — a plataforma muda mais lentamente.
+
+**Sinais de React desatualizado:**
+
+```jsx title="Padrões de React que indicam conteúdo antigo."
+// ❌ class component — padrão pré-2019
+class ArticleCard extends React.Component {
+  state = { curtidas: 0 };
+
+  componentDidMount() {
+    // lógica de efeito — hoje seria useEffect
+  }
+
+  render() {
+    return <div>{this.state.curtidas}</div>;
+  }
+}
+
+// ✅ function component com hooks — padrão atual
+function ArticleCard() {
+  const [curtidas, setCurtidas] = useState(0);
+
+  useEffect(() => {
+    // lógica de efeito
+  }, []);
+
+  return <div>{curtidas}</div>;
+}
+```
+
+**Sinais de JavaScript desatualizado:**
+
+```js title="Padrões de JavaScript que indicam conteúdo antigo."
+// ❌ var — substituído por let e const desde 2015
+var nome = "Artigo";
+
+// ❌ require — padrão CommonJS; ES Modules (import/export) é o padrão atual
+const fs = require("fs");
+
+// ❌ callbacks com função anônima em vez de async/await
+fetch("/api/artigos", function(erro, resposta) {
+  resposta.json(function(dados) {
+    // ...
+  });
+});
+
+// ✅ ES Modules, const, async/await — padrão atual
+import { readFile } from "node:fs/promises";
+
+const dados = await fetch("/api/artigos").then(r => r.json());
+```
+
+**Sinais de TypeScript desatualizado:**
+
+```ts title="Padrões de TypeScript que indicam conteúdo antigo."
+// ❌ namespace — padrão pré-ES Modules
+namespace Artigo {
+  export interface Props { titulo: string }
+}
+
+// ❌ any em todo lugar — anula o ponto do TypeScript
+const artigo: any = buscarArtigo();
+
+// ✅ interfaces, tipos genéricos, inferência — padrão atual
+interface ArtigoProps {
+  titulo: string;
+  descricao: string;
+}
+
+const artigo = await buscarArtigo(); // TypeScript infere o tipo
+```
+
+**O teste da documentação oficial:** se um tutorial ensina algo que não aparece na documentação atual, ou que aparece marcado como deprecated, não use. A documentação oficial sempre mostra o caminho recomendado.
+
+## Quando usar cada tipo de recurso
+
+Não existe um recurso que sirva para tudo. Um critério simples:
+
+**Para entender como algo funciona:** documentação oficial + artigos conceituais (Josh Comeau, Dan Abramov, Kent C. Dodds). Vão fundo no *porquê*, não só no *como*.
+
+**Para aprender um conceito novo pela primeira vez:** vídeos e tutoriais interativos. A documentação oficial do React (react.dev) tem um excelente tutorial interativo para começar.
+
+**Para resolver um erro específico:** Stack Overflow, GitHub Issues do projeto, e a documentação oficial da versão correta. Muitas vezes o erro tem uma seção específica na documentação explicando exatamente o que está acontecendo.
+
+**Para ficar por dentro do ecossistema:** newsletters como o This Week in React (`thisweekinreact.com`), o JavaScript Weekly, e o CSS-Tricks. Uma vez por semana, 15 minutos, você sabe o que está acontecendo sem precisar acompanhar tudo em tempo real.
+
+**Para praticar:** construir projetos. Documentação e tutoriais consolidam conceitos, mas a prática é onde o aprendizado se fixa. O blog deste curso é um ponto de partida — adicionr autenticação, um backend com API, ou testes de ponta a ponta são extensões naturais que vão forçar aprender as ferramentas que faltam.
+
+## Resumo
+
+- **MDN Web Docs**: referência definitiva para HTML, CSS e Web APIs nativas do browser.
+- **react.dev**: documentação oficial do React com exemplos interativos. Foco em function components e hooks.
+- **TypeScript Handbook** + **Playground**: referência completa de tipos e ambiente para testar comportamentos de tipagem.
+- **pt-BR**: Dev.to, Frontend Brasil (Discord), Rocketseat, Código Fonte TV — bom para começar, verificar datas sempre.
+- **en**: Josh Comeau (CSS/React), Kent C. Dodds (testes/React), Dan Abramov (React conceitual), JavaScript.info (JS do começo ao fim).
+- **Filtrar desatualizado**: verificar data, procurar `class Component`, `componentDidMount`, `var`, `require()`. Se aparecer, verificar se o padrão ainda é recomendado na documentação oficial.
+- Prefira documentação a tutoriais. Prefira tutoriais recentes a antigos. Construa projetos para consolidar.

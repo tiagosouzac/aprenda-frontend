@@ -1,6 +1,219 @@
 ---
-title: "Resumo do módulo"
-description: "Checklist final para qualquer página HTML: doctype, charset, viewport, title, semântica, alt em imagens, labels em inputs."
-comingSoon: true
+title: "Resumo do módulo HTML"
+description: "O artigo.html completo revisitado, checklist para qualquer página HTML e o que o módulo de CSS vai construir sobre essa base."
 order: 10
+hero:
+  titleBefore: "Tudo que você"
+  titleAccent: "aprendeu"
+  titleAfter: "sobre HTML."
 ---
+
+Lição por lição, você foi preenchendo `artigo.html` — a página do post "Meu primeiro projeto web". Começou com o esqueleto vazio e foi adicionando estrutura, conteúdo, links, imagens, semântica, um formulário de contato e considerações de acessibilidade. Esta lição revisita o documento completo, consolida os conceitos em um checklist reutilizável e aponta para o que vem a seguir.
+
+## O arquivo `artigo.html` completo
+
+O documento que você construiu ao longo do módulo tem esta estrutura:
+
+```html title="artigo.html — estrutura completa anotada com o que cada parte representa."
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <!-- codificação de caracteres — primeiro elemento do head -->
+    <meta charset="utf-8" />
+    <!-- responsividade em celulares -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- título da aba e resultado de busca -->
+    <title>Meu primeiro projeto web — artigo.dev</title>
+    <!-- resumo para mecanismos de busca -->
+    <meta
+      name="description"
+      content="Um relato de aprendizado: como construí e publiquei meu primeiro site em três semanas."
+    />
+    <link rel="icon" href="/favicon.ico" />
+    <!-- CSS será linkado aqui no próximo módulo -->
+    <!-- <link rel="stylesheet" href="estilos.css" /> -->
+  </head>
+
+  <body>
+
+    <!-- cabeçalho do site: logo e navegação principal -->
+    <header>
+      <a href="/" class="logo">artigo.dev</a>
+      <nav aria-label="Navegação principal">
+        <a href="/">Home</a>
+        <a href="/artigos">Artigos</a>
+        <a href="/sobre">Sobre</a>
+      </nav>
+    </header>
+
+    <!-- conteúdo principal e único desta página -->
+    <main>
+      <article>
+
+        <!-- cabeçalho do artigo: título, data, autor -->
+        <header>
+          <h1>Meu primeiro projeto web</h1>
+          <p>Por <strong>Dev Aprendiz</strong> ·
+             <time datetime="2025-03-15">15 de março de 2025</time>
+          </p>
+        </header>
+
+        <!-- índice interno do artigo -->
+        <nav aria-label="Índice do artigo">
+          <a href="#o-que-construi">O que eu construí</a>
+          <a href="#o-processo">O processo</a>
+          <a href="#aprendizados">O que aprendi</a>
+        </nav>
+
+        <!-- imagem de capa com dimensões e alt descritivo -->
+        <img
+          src="/imagens/projeto-finalizado.png"
+          alt="Página inicial do projeto mostrando header azul, três cards de artigo e rodapé"
+          width="960"
+          height="540"
+          loading="eager"
+        />
+
+        <!-- primeiro parágrafo do artigo -->
+        <p>
+          Depois de três semanas estudando HTML, CSS e um pouco de JavaScript,
+          consegui publicar meu primeiro site.
+        </p>
+
+        <section id="o-que-construi">
+          <h2>O que eu construí</h2>
+          <p>Um site de portfólio simples com três páginas...</p>
+        </section>
+
+        <section id="o-processo">
+          <h2>O processo</h2>
+          <p>Comecei pelo HTML, sem CSS, para garantir a estrutura...</p>
+
+          <!-- bloco de código com pre + code -->
+          <pre><code>function saudar(nome) {
+  console.log("Olá, " + nome + "!");
+}
+
+saudar("mundo");</code></pre>
+
+          <!-- citação de referência -->
+          <blockquote cite="https://eloquentjavascript.net">
+            <p>"Abaixo da superfície do programa, o programa se move."</p>
+            <footer>— Marijn Haverbeke, <cite>Eloquent JavaScript</cite></footer>
+          </blockquote>
+        </section>
+
+        <section id="aprendizados">
+          <h2>O que aprendi</h2>
+          <ul>
+            <li>HTML define estrutura; CSS define aparência</li>
+            <li>Semântica importa para acessibilidade e SEO</li>
+            <li>Deploy é mais simples do que eu imaginava</li>
+          </ul>
+
+          <!-- link externo com segurança -->
+          <p>
+            O código completo está no
+            <a
+              href="https://github.com/devaprendiz/meu-primeiro-projeto"
+              target="_blank"
+              rel="noopener noreferrer"
+            >GitHub do projeto</a>.
+          </p>
+        </section>
+
+      </article>
+    </main>
+
+    <!-- rodapé com formulário de contato -->
+    <footer>
+      <h2>Entre em contato</h2>
+      <form action="/contato" method="POST">
+
+        <div>
+          <label for="nome">Nome completo</label>
+          <input type="text" id="nome" name="nome" required />
+        </div>
+
+        <div>
+          <label for="email">E-mail</label>
+          <input type="email" id="email" name="email" required />
+        </div>
+
+        <div>
+          <label for="assunto">Assunto</label>
+          <select id="assunto" name="assunto" required>
+            <option value="">Selecione</option>
+            <option value="duvida">Dúvida técnica</option>
+            <option value="sugestao">Sugestão de conteúdo</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="mensagem">Mensagem</label>
+          <textarea id="mensagem" name="mensagem" rows="5" required></textarea>
+        </div>
+
+        <button type="submit">Enviar mensagem</button>
+
+      </form>
+
+      <p>© 2025 artigo.dev</p>
+    </footer>
+
+  </body>
+</html>
+```
+
+Abra esse arquivo no navegador sem nenhum CSS. O resultado é feio pelos padrões visuais modernos — texto preto em fundo branco, links azuis sublinhados, listas com bullets padrão do navegador — mas a estrutura é completamente funcional. Você consegue navegar pelo índice, preencher o formulário, clicar nos links. É HTML puro cumprindo seu papel.
+
+## Checklist para qualquer página HTML
+
+Estes são os pontos a verificar em qualquer documento HTML antes de considerar o trabalho feito:
+
+**Estrutura do documento**
+- `<!DOCTYPE html>` na primeira linha
+- `<html lang="pt-BR">` com o idioma correto
+- `<meta charset="utf-8">` como primeiro elemento do `<head>`
+- `<meta name="viewport" content="width=device-width, initial-scale=1">` presente
+- `<title>` específico e descritivo (não genérico como "Página")
+- `<meta name="description">` com resumo do conteúdo
+
+**Hierarquia e semântica**
+- Um único `<h1>` por página
+- Hierarquia de cabeçalhos lógica, sem pular níveis
+- `<main>`, `<header>` e `<footer>` presentes e com conteúdo correto
+- `<nav>` para navegações principais, com `aria-label` quando há mais de uma
+- `<article>` para conteúdo independente, `<section>` para agrupamentos temáticos
+- `<div>` apenas quando nenhum elemento semântico se aplica
+
+**Imagens**
+- Toda imagem informativa tem `alt` descritivo
+- Toda imagem decorativa tem `alt=""`
+- `width` e `height` declarados com valores reais da imagem
+- `loading="lazy"` em imagens abaixo da dobra
+
+**Links**
+- Links externos com `target="_blank"` sempre têm `rel="noopener noreferrer"`
+- Texto de link descreve o destino — sem "clique aqui" ou "saiba mais"
+- Links âncora (`#id`) têm elementos de destino com o `id` correspondente
+
+**Formulários**
+- Todo `<input>`, `<select>` e `<textarea>` tem um `<label>` associado
+- Campos obrigatórios têm `required`
+- `type` correto em cada input (`email`, `password`, `number` etc.)
+- Botão de envio é `<button type="submit">`
+
+**Acessibilidade**
+- Navegação por teclado funcional — Tab percorre todos os elementos interativos em ordem lógica
+- Indicador de foco visível — nenhum `outline: none` sem alternativa
+- `aria-label` em elementos interativos sem texto visível suficiente
+
+## O que vem a seguir
+
+`artigo.html` existe e funciona. A estrutura está correta, o conteúdo está marcado semanticamente, o formulário está no lugar. Mas tudo é preto e branco com tipografia padrão do navegador.
+
+O módulo de **CSS** começa do mesmo ponto: o `artigo.html` que você escreveu. Você vai criar `estilos.css`, linká-lo no `<head>` e começar a transformar o documento. Cores, tipografia, espaçamentos, layout em duas colunas, responsividade em celular.
+
+Tudo que você definiu aqui — os `id`s, as `class`es, a hierarquia semântica, as divisões com `<header>`, `<main>` e `<footer>` — vai ser o ponto de ancoragem dos seletores CSS. A estrutura que você escreveu não foi só para o HTML: foi a base que o próximo módulo vai estilizar.

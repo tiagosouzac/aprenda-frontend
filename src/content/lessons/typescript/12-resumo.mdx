@@ -1,6 +1,171 @@
 ---
-title: "Resumo do módulo"
+title: "Resumo do módulo TypeScript"
 description: "Checklist final: strict: true, evitar any, preferir inferência, modelar dados com tipos antes de escrever lógica."
-comingSoon: true
 order: 12
+hero:
+  titleBefore: "TypeScript:"
+  titleAccent: "tipos"
+  titleAfter: "que acompanham o código."
+quiz:
+  - question: "Por que strict: true é a primeira configuração a ativar em um projeto novo?"
+    options:
+      - "Porque acelera a compilação"
+      - "Porque é obrigatório para usar generics"
+      - "Porque é necessário para usar interfaces"
+      - "Porque habilita strictNullChecks e noImplicitAny — sem elas, null e undefined passam sem verificação e parâmetros sem tipo ficam any silenciosamente. Com strict, o compilador detecta exatamente os erros que TypeScript promete detectar"
+    correct: 3
+  - question: "Qual é a relação entre interface Artigo e as funções que recebem Artigo como parâmetro?"
+    options:
+      - "Funções que recebem Artigo precisam ser declaradas dentro da interface"
+      - "A interface descreve a forma do dado — o compilador verifica que qualquer valor passado para um parâmetro do tipo Artigo satisfaz essa forma. Mudar a interface propaga o erro para todos os chamadores automaticamente"
+      - "Funções e interfaces são independentes — não há relação"
+      - "A interface precisa ser importada na mesma linha da função"
+    correct: 1
+  - question: "Quando você deve usar unknown em vez de any?"
+    options:
+      - "Sempre que você precisar aceitar qualquer valor mas ainda quiser proteção — unknown exige narrowing ou cast antes de usar, enquanto any desabilita toda verificação"
+      - "unknown é uma versão mais lenta de any"
+      - "unknown é apenas para erros no catch"
+      - "any e unknown são equivalentes com strict: true"
+    correct: 0
+  - question: "O que significa 'anote nas bordas, infira no meio'?"
+    options:
+      - "Anotar tipos nas primeiras e últimas linhas de cada arquivo"
+      - "Anotar apenas em interfaces, nunca em funções"
+      - "Anotar nos pontos onde dados entram ou saem de um módulo (parâmetros de funções exportadas, interfaces de domínio) e deixar TypeScript inferir internamente (variáveis temporárias, callbacks, resultados intermediários)"
+      - "Anotar apenas parâmetros, nunca retornos"
+    correct: 2
 ---
+
+O módulo converteu os quatro arquivos JavaScript do blog — `utils.js`, `api.js`, `ui.js` e `main.js` — para TypeScript. O blog não mudou visualmente. O que mudou é que erros de tipo, que antes só apareceriam em runtime (e frequentemente no browser do usuário), agora aparecem no editor durante o desenvolvimento. Esta lição consolida os conceitos percorridos e estabelece o checklist para o próximo módulo.
+
+## O que mudou no blog
+
+A migração de `.js` para `.ts` foi incremental — cada arquivo ganhou tipos sem mudar a lógica. O `types.ts` foi o ponto de partida: as interfaces `Artigo`, `Autor` e `Tag`, e os type aliases `Tema` e `StatusArtigo`. Com esses tipos definidos, os demais módulos os importaram e o compilador passou a verificar toda interação com dados de artigos.
+
+```ts title="Antes e depois — o diff que importa."
+// utils.js — JavaScript original
+function calcularTempoLeitura(palavras) {
+  return Math.ceil(palavras / 238);
+}
+
+// utils.ts — TypeScript
+function calcularTempoLeitura(palavras: number): number {
+  return Math.ceil(palavras / 238);
+}
+
+// a diferença é pequena no código, mas o efeito é grande:
+// chamar calcularTempoLeitura("muito texto") agora é erro de compilação
+// chamar calcularTempoLeitura() sem argumento também é erro
+// o editor mostra o tipo esperado ao digitar a chamada
+
+// api.ts — o mais crítico
+async function buscarArtigos(): Promise<Artigo[]> {
+  const response = await fetch("/artigos.json");
+  if (!response.ok) throw new Error(`Erro ${response.status}`);
+  return response.json() as Promise<Artigo[]>;
+}
+
+// agora qualquer código que usa buscarArtigos() sabe que recebe Artigo[]
+// acessar .descricao em vez de .titulo? erro de compilação
+// passar o resultado para uma função que espera Autor[]? erro de compilação
+```
+
+O compilador se tornou o guardião da consistência entre módulos: se você alterar a `interface Artigo` (adicionar um campo, mudar um tipo), todos os lugares que usam `Artigo` recebem erros de compilação até serem atualizados. Um refactor que antes exigia grep manual agora tem cobertura automática.
+
+## Checklist TypeScript
+
+Estas práticas aparecem ao longo do módulo com razões específicas — cada uma protege contra uma classe de erro concreta:
+
+```ts title="Checklist embutido no código — as decisões que importam."
+// ✅ strict: true no tsconfig.json
+// sem strict, null e undefined passam sem verificação e any aparece silenciosamente
+
+// ✅ interfaces para todos os objetos de domínio — types.ts
+export interface Artigo {
+  id: number;
+  titulo: string;
+  publicadoEm: string | null; // null declarado explicitamente — não é surpresa
+  readonly slug: string;       // readonly — o compilador impede reatribuição acidental
+}
+
+// ✅ anote nas bordas — parâmetros de funções exportadas
+export function formatarData(dateString: string): string { /* ... */ }
+export function renderizarCard(artigo: Artigo, curtido: boolean): string { /* ... */ }
+
+// ✅ infira no interior — variáveis temporárias e callbacks
+const publicados = artigos.filter(a => a.publicado);  // Artigo[] — inferido
+const titulos = publicados.map(a => a.titulo);         // string[] — inferido
+
+// ✅ unknown no catch — com strict, o padrão moderno
+try {
+  await buscarArtigos();
+} catch (erro) {
+  if (erro instanceof Error) {
+    exibirNotificacao(erro.message);
+  }
+}
+
+// ✅ as const para configurações e conjuntos de valores
+const STATUS = { Rascunho: "rascunho", Publicado: "publicado" } as const;
+type Status = typeof STATUS[keyof typeof STATUS]; // "rascunho" | "publicado"
+
+// ✅ discriminated unions para estados
+type EstadoCarregamento =
+  | { status: "carregando" }
+  | { status: "sucesso"; artigos: Artigo[] }
+  | { status: "erro"; mensagem: string };
+
+// ✅ tipos utilitários em vez de duplicar interfaces
+type FormularioEdicao = Partial<Omit<Artigo, "id" | "slug" | "curtidas">>;
+
+// ✅ evitar any — sempre há uma alternativa melhor
+// any → unknown (dados desconhecidos)
+// any → generic <T> (código reutilizável)
+// any → tipo específico (quando você sabe o que é)
+```
+
+## A relação com o módulo de React
+
+O TypeScript aprendido aqui continua no React — os mesmos conceitos, aplicados a um novo contexto. As interfaces viram tipos de props, os generics aparecem em hooks, os discriminated unions descrevem estados de componente:
+
+```ts title="O que o TypeScript do blog vira no React."
+// no blog:
+interface Artigo { id: number; titulo: string; /* ... */ }
+function renderizarCard(artigo: Artigo): string { /* ... */ }
+
+// no React — a mesma lógica, com JSX:
+interface Props {
+  artigo: Artigo;
+  curtido: boolean;
+  onCurtir: (id: number) => void;
+}
+
+function CardArtigo({ artigo, curtido, onCurtir }: Props) {
+  return (
+    <article>
+      <h2>{artigo.titulo}</h2>
+      <button onClick={() => onCurtir(artigo.id)}>
+        {curtido ? "❤️" : "🤍"}
+      </button>
+    </article>
+  );
+}
+
+// o useState é genérico — inferência automática
+const [curtidos, setCurtidos] = useState<number[]>([]);
+// curtidos é number[] — o mesmo tipo que localStorage.getItem no blog
+```
+
+O modelo mental muda de "manipular o DOM diretamente" para "descrever como a UI deve ser dado o estado". O TypeScript acompanha essa mudança sem exigir reaprendizado — você continua usando `interface`, `type`, generics e unions. O que muda é o destino: em vez de `el.textContent = artigo.titulo`, você retorna `<h2>{artigo.titulo}</h2>` de um componente.
+
+## Resumo
+
+- **`strict: true`** é o ponto de partida — habilita `strictNullChecks` e `noImplicitAny`, sem os quais o TypeScript não detecta os erros mais comuns.
+- **Interfaces de domínio** (`Artigo`, `Autor`, `Tag`) são a fonte da verdade — defina-as primeiro, escreva a lógica depois. Quando a interface muda, o compilador aponta todos os chamadores desatualizados.
+- **Anote nas bordas** (parâmetros de funções exportadas, respostas de API), **infira no interior** (variáveis temporárias, callbacks de `map`/`filter`).
+- **`unknown`** em vez de `any` para dados externos — exige narrowing ou cast explícito, mantendo a proteção.
+- **`as const`** para configurações e conjuntos de valores — cria tipos literais e `readonly` com zero custo em runtime.
+- **Discriminated unions** para estados de carregamento — `{ status: "carregando" } | { status: "sucesso"; dados: T } | { status: "erro"; mensagem: string }`.
+- **Tipos utilitários** (`Partial`, `Omit`, `Pick`, `Record`, `ReturnType`) para derivar variações de interfaces sem duplicar.
+- React é o próximo módulo: os mesmos tipos TypeScript, aplicados a props de componentes, hooks tipados e estado declarativo.

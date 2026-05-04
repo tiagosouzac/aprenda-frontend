@@ -1,6 +1,278 @@
 ---
 title: "Buscando dados"
-description: "useEffect + fetch, estados de loading/error/success, race conditions. Visão geral de bibliotecas como TanStack Query."
-comingSoon: true
+description: "useEffect + fetch com estados de loading, erro e dados. Race conditions com AbortController. Custom hook reutilizável. Visão geral de TanStack Query."
 order: 13
+hero:
+  titleBefore: "Buscando"
+  titleAccent: "dados"
+  titleAfter: "— fetch e além."
+quiz:
+  - question: "Por que todo fetch em React precisa dos três estados: carregando, erro e dados?"
+    options:
+      - "Uma requisição de rede tem três desfechos possíveis: está em andamento (carregando), falhou (erro) ou concluiu com sucesso (dados). Sem esses três estados, a UI fica sem saber o que mostrar enquanto espera ou quando algo dá errado"
+      - "É uma exigência técnica do useEffect"
+      - "Para compatibilidade com TypeScript"
+      - "Apenas carregando e dados são necessários — erro é opcional"
+    correct: 0
+  - question: "O que é uma race condition em fetch e como AbortController resolve?"
+    options:
+      - "Um bug que acontece quando dois usuários fazem requests ao mesmo tempo"
+      - "AbortController não resolve race conditions — apenas cancela fetches em andamento"
+      - "Quando múltiplos fetches são disparados (ex: usuário digita rápido), um fetch mais antigo pode completar depois de um mais recente — sobrescrevendo o resultado correto. AbortController cancela o fetch anterior quando a query muda, garantindo que apenas o último importa"
+      - "Race conditions acontecem apenas com useState, não com fetch"
+    correct: 2
+  - question: "Qual é a vantagem de extrair a lógica de fetch para um custom hook?"
+    options:
+      - "Custom hooks são mais rápidos que usar useEffect diretamente"
+      - "Custom hooks evitam re-renderizações"
+      - "É a única forma de usar fetch com TypeScript"
+      - "Reutilizar a lógica de carregando/erro/dados em múltiplos componentes sem duplicar código. O hook encapsula useEffect, fetch e os três estados — o componente só declara o que precisa e renderiza"
+    correct: 3
+  - question: "O que TanStack Query oferece que useEffect + fetch manual não oferece?"
+    options:
+      - "Suporte a TypeScript — useEffect não suporta"
+      - "Cache automático (não refaz o fetch se os dados ainda são válidos), deduplicação (múltiplos componentes pedindo o mesmo dado disparam um único fetch), revalidação em background e estados de loading/erro já gerenciados — eliminando muito do boilerplate manual"
+      - "Suporte a requisições POST"
+      - "Cancelamento automático de requisições"
+    correct: 1
 ---
+
+Buscar dados de uma API é uma das operações mais comuns em aplicações React. O padrão básico combina `useEffect` com `fetch` e três estados que representam os três momentos de uma requisição: **carregando** (a requisição está em andamento), **erro** (algo deu errado) e **dados** (chegaram com sucesso). Entender esse trio é o ponto de partida para qualquer integração com API.
+
+## O padrão básico — os três estados
+
+Uma requisição de rede pode terminar de três formas: em andamento, com erro, ou com dados. Modelar esses três estados no componente garante uma UI que responde a cada situação:
+
+```tsx title="useArtigos.ts — hook com os três estados de fetch."
+import { useState, useEffect } from "react";
+import type { Artigo } from "../types";
+
+interface UseArtigosResult {
+  artigos: Artigo[];
+  carregando: boolean;
+  erro: string | null;
+}
+
+export function useArtigos(): UseArtigosResult {
+  const [artigos, setArtigos] = useState<Artigo[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/artigos.json")
+      .then(res => {
+        if (!res.ok) throw new Error(`Erro ${res.status}: ${res.statusText}`);
+        return res.json() as Promise<Artigo[]>;
+      })
+      .then(dados => {
+        setArtigos(dados);
+        setCarregando(false);
+      })
+      .catch(err => {
+        setErro(err.message);
+        setCarregando(false);
+      });
+  }, []);
+
+  return { artigos, carregando, erro };
+}
+```
+
+```tsx title="ArticleList.tsx — consumindo o hook."
+import { useArtigos } from "../hooks/useArtigos";
+import { ArticleCard } from "./ArticleCard";
+
+export function ArticleList() {
+  const { artigos, carregando, erro } = useArtigos();
+
+  if (carregando) return <div className="skeleton-lista" aria-label="Carregando..." />;
+  if (erro) return <p className="mensagem-erro">Não foi possível carregar os artigos: {erro}</p>;
+  if (artigos.length === 0) return <p>Nenhum artigo encontrado.</p>;
+
+  return (
+    <section className="lista-artigos">
+      {artigos.map(artigo => (
+        <ArticleCard key={artigo.id} artigo={artigo} />
+      ))}
+    </section>
+  );
+}
+```
+
+O componente não precisa saber os detalhes do fetch — ele só recebe os três estados e decide o que renderizar em cada um. Separar essa lógica em um hook é bom desde o início: você terá outros componentes que precisam dos artigos.
+
+## `finally` para limpar o carregando
+
+Uma variação mais robusta usa `finally` para garantir que `carregando` sempre volta a `false`, mesmo em caso de erro:
+
+```tsx title="try/catch/finally — carregando sempre é resetado."
+useEffect(() => {
+  async function carregarArtigos() {
+    try {
+      const res = await fetch("/artigos.json");
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      const dados: Artigo[] = await res.json();
+      setArtigos(dados);
+    } catch (err) {
+      setErro(err instanceof Error ? err.message : "Erro desconhecido");
+    } finally {
+      setCarregando(false); // sempre executa — com ou sem erro
+    }
+  }
+
+  carregarArtigos();
+}, []);
+```
+
+A função assíncrona interna é necessária porque `useEffect` não aceita uma função async diretamente — o retorno de uma função async é uma Promise, e `useEffect` espera `void` ou uma função de cleanup.
+
+## Race conditions
+
+Um problema clássico: o usuário digita "css" na busca, depois imediatamente "html". Dois fetches rodam em paralelo. O fetch de "css" — que foi disparado primeiro — pode completar depois do de "html", sobrescrevendo os resultados corretos:
+
+```tsx title="Race condition — fetch de resultado antigo chega depois."
+// ❌ sem proteção — fetch mais antigo pode sobrescrever o mais recente
+useEffect(() => {
+  fetch(`/api/busca?q=${query}`)
+    .then(res => res.json())
+    .then(dados => setResultados(dados)); // pode ser o fetch de "css" chegando depois do "html"
+}, [query]);
+```
+
+`AbortController` resolve: ao cancelar o fetch anterior antes de disparar o novo, garantimos que apenas o fetch mais recente pode chamar `setResultados`:
+
+```tsx title="Race condition resolvida com AbortController."
+// ✅ AbortController cancela fetch anterior quando query muda
+useEffect(() => {
+  const controller = new AbortController();
+
+  async function buscar() {
+    try {
+      const res = await fetch(`/api/busca?q=${encodeURIComponent(query)}`, {
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      const dados: Artigo[] = await res.json();
+      setResultados(dados);
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return; // cancelado — esperado
+      setErro(err instanceof Error ? err.message : "Erro");
+    }
+  }
+
+  buscar();
+
+  return () => controller.abort(); // cleanup — cancela quando query muda
+}, [query]);
+```
+
+## Custom hook genérico para fetch
+
+Para não repetir a mesma estrutura de loading/erro/dados em cada componente, extraia em um hook genérico:
+
+```tsx title="useFetch.ts — hook genérico reutilizável."
+import { useState, useEffect } from "react";
+
+interface UseFetchResult<T> {
+  dados: T | null;
+  carregando: boolean;
+  erro: string | null;
+}
+
+export function useFetch<T>(url: string): UseFetchResult<T> {
+  const [dados, setDados] = useState<T | null>(null);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setCarregando(true);
+    setErro(null);
+
+    fetch(url, { signal: controller.signal })
+      .then(res => {
+        if (!res.ok) throw new Error(`Erro ${res.status}`);
+        return res.json() as Promise<T>;
+      })
+      .then(resultado => {
+        setDados(resultado);
+        setCarregando(false);
+      })
+      .catch(err => {
+        if (err.name !== "AbortError") {
+          setErro(err.message);
+          setCarregando(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, [url]);
+
+  return { dados, carregando, erro };
+}
+```
+
+```tsx title="Usando useFetch — tipagem via genérico."
+// buscar lista de artigos
+const { dados: artigos, carregando, erro } = useFetch<Artigo[]>("/artigos.json");
+
+// buscar um artigo específico
+const { dados: artigo } = useFetch<Artigo>(`/api/artigos/${slug}`);
+```
+
+O genérico `<T>` deixa o hook reutilizável para qualquer tipo de dado sem perder a tipagem — TypeScript infere corretamente o tipo de `dados` em cada uso.
+
+## Visão geral de TanStack Query
+
+O padrão `useEffect + fetch` funciona, mas tem limitações: não há cache (cada vez que o componente monta, o fetch é refeito), não há deduplicação (dois componentes pedindo o mesmo URL disparam dois fetches), e não há revalidação automática.
+
+TanStack Query (antes chamado React Query) resolve esses problemas:
+
+```tsx title="TanStack Query — equivalente ao useFetch manual."
+import { useQuery } from "@tanstack/react-query";
+import type { Artigo } from "../types";
+
+// equivalente ao useFetch<Artigo[]>, mas com cache, deduplicação e revalidação
+function useArtigos() {
+  return useQuery({
+    queryKey: ["artigos"],   // chave de cache — dois componentes com a mesma chave compartilham o fetch
+    queryFn: async () => {
+      const res = await fetch("/artigos.json");
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      return res.json() as Promise<Artigo[]>;
+    },
+  });
+}
+
+// no componente
+export function ArticleList() {
+  const { data: artigos, isLoading, error } = useArtigos();
+
+  if (isLoading) return <p>Carregando...</p>;
+  if (error) return <p>Erro: {error.message}</p>;
+
+  return (
+    <section>
+      {artigos?.map(artigo => <ArticleCard key={artigo.id} artigo={artigo} />)}
+    </section>
+  );
+}
+```
+
+**O que TanStack Query oferece além do fetch manual:**
+
+- **Cache**: se `["artigos"]` já foi buscado, não refaz o fetch enquanto os dados são considerados frescos
+- **Deduplicação**: dois componentes pedindo `["artigos"]` ao mesmo tempo disparam um único request
+- **Revalidação em background**: os dados são atualizados silenciosamente quando o usuário retorna à aba
+- **Estados automáticos**: `isLoading`, `isFetching`, `isError`, `isSuccess` — sem boilerplate
+- **Retry automático**: tenta novamente em caso de falha de rede
+
+Para aplicações em produção que fazem muitas requisições, TanStack Query elimina uma quantidade significativa de código repetitivo. Para o blog deste curso, o `useFetch` manual é suficiente e transparente — você vê exatamente o que acontece.
+
+## Resumo
+
+- **Três estados**: `carregando`, `erro` e `dados` são o mínimo para qualquer fetch — representam os três desfechos possíveis de uma requisição.
+- **`async/await` com `try/catch/finally`**: `finally` garante que `carregando` volta a `false` em qualquer desfecho.
+- **Race conditions**: quando a query muda enquanto um fetch está pendente, o resultado antigo pode chegar depois do novo. `AbortController` cancela o fetch anterior no cleanup do `useEffect`.
+- **Custom hook `useFetch<T>`**: encapsula o trio de estados e o `AbortController` — reutilizável com qualquer tipo via genérico.
+- **TanStack Query**: solução completa para aplicações reais — cache, deduplicação, revalidação e retry automático. Elimina o boilerplate do fetch manual.

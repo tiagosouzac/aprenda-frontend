@@ -1,6 +1,135 @@
 ---
 title: "Cliente e servidor"
-description: "O que roda no navegador e o que roda no servidor, por que essa divisão existe e o que cada lado é bom em fazer."
-comingSoon: true
+description: "O que roda no navegador e o que roda no servidor. Por que essa divisão existe, como ela aparece em qualquer aplicação web e o que cada lado é bom (e ruim) em fazer."
 order: 5
+hero:
+  titleBefore: "Cliente"
+  titleAccent: "e servidor"
+  titleAfter: "na web."
+quiz:
+  - question: "Qual é a função principal do cliente em uma requisição HTTP?"
+    options:
+      - "Armazenar dados do usuário de forma permanente"
+      - "Validar se o usuário tem permissão de acesso"
+      - "Enviar uma requisição e processar a resposta"
+      - "Criptografar os dados antes do envio"
+    correct: 2
+  - question: "O que é o servidor web?"
+    options:
+      - "Um computador do usuário que armazena sites"
+      - "Uma conexão de internet de alta velocidade"
+      - "Um navegador instalado em um computador remoto"
+      - "Um programa que recebe requisições HTTP e envia respostas"
+    correct: 3
+  - question: "Onde é executado o código JavaScript que manipula o DOM?"
+    options:
+      - "No servidor web, antes de enviar para o cliente"
+      - "No navegador do usuário"
+      - "Em um banco de dados central"
+      - "Em um computador específico da empresa"
+    correct: 1
+  - question: "O que o servidor pode acessar que o cliente não consegue?"
+    options:
+      - "O banco de dados e variáveis de ambiente com segredos"
+      - "O DOM da página"
+      - "Os eventos de clique do usuário"
+      - "O tamanho da janela do navegador"
+    correct: 0
 ---
+
+O HTTP define o formato das mensagens. O DNS resolve os nomes. O TLS protege o tráfego. Mas todas essas peças pressupõem algo mais fundamental: a existência de dois participantes com papéis bem distintos — um que pede e um que responde. Entender o que cada um faz, e por que a divisão é assim, é o que torna o resto do curso legível.
+
+Os termos são **cliente** e **servidor**. Eles aparecem em qualquer conversa sobre desenvolvimento web, e são usados com precisão: cliente é quem inicia a requisição; servidor é quem escuta e responde. A fronteira entre eles não é arbitrária — ela existe por razões técnicas e de segurança que vão aparecer o tempo todo no trabalho de frontend.
+
+## O que é cliente, o que é servidor
+
+O **cliente** é o programa que inicia a conversa. Na web, o cliente quase sempre é um navegador — Chrome, Firefox, Safari. Mas também pode ser um script de linha de comando, um aplicativo móvel ou outro servidor fazendo uma chamada de API. O que define o cliente não é o tipo de programa, mas o papel: ele faz a requisição.
+
+O cliente roda na máquina do usuário — seu computador, seu celular. Ele tem acesso a tudo que é local: a tela, o teclado, o mouse, a câmera (com permissão), a localização (com permissão), o armazenamento local do navegador. O que ele não tem acesso é ao que fica do outro lado da requisição: o banco de dados, o sistema de arquivos do servidor, as credenciais privadas.
+
+O **servidor** é o programa que escuta e responde. Ele roda em uma máquina em algum datacenter, conectada à internet vinte e quatro horas por dia. Um servidor web escuta conexões na porta 80 (para HTTP) ou 443 (para HTTPS) e, ao receber uma requisição, processa e devolve uma resposta. O servidor tem acesso a recursos que o cliente não tem: bancos de dados, sistemas de arquivos, variáveis de ambiente com segredos, e a outros serviços internos que não são expostos diretamente à internet.
+
+A relação é sempre iniciada pelo cliente. O servidor não envia dados espontaneamente — ele espera ser chamado. E quando responde, termina sua participação: não há memória automática da troca anterior, como já vimos com o HTTP stateless.
+
+## O que roda no cliente
+
+Tudo que o navegador executa roda no cliente — na máquina do usuário, com o processador e a memória do usuário. Isso inclui HTML, CSS e JavaScript.
+
+O HTML define a estrutura do documento. Quando o navegador recebe o HTML, ele constrói o DOM em memória — e o DOM fica disponível para o JavaScript que roda no mesmo contexto. O CSS define a apresentação — cores, tamanhos, posicionamentos — e é processado pelo navegador para produzir o que o usuário vê. O JavaScript adiciona comportamento: responde a cliques, valida formulários, busca dados de uma API, atualiza partes da página sem recarregar o documento inteiro.
+
+O JavaScript que roda no navegador tem acesso ao objeto `window` — o objeto global do ambiente do navegador, que dá acesso ao DOM, ao histórico de navegação, ao `localStorage`, ao `fetch` para fazer requisições, às APIs de geolocalização e câmera. Mas ele **não** tem acesso ao sistema de arquivos do computador do usuário (salvo mecanismos específicos e com permissão explícita), e não tem acesso a nenhum dado do servidor além do que o servidor explicitamente enviar em uma resposta.
+
+```js title="typeof window existe no navegador, mas não no Node.js."
+// Este trecho roda no navegador
+
+// window é o objeto global — sempre disponível no cliente
+console.log(typeof window); // "object"
+
+// document dá acesso ao DOM
+console.log(document.title); // título da aba atual
+
+// localStorage persiste dados entre sessões, no próprio navegador
+localStorage.setItem("tema", "escuro");
+```
+
+O código-fonte JavaScript que você escreve para o cliente fica visível para qualquer pessoa que abra o devtools e vá na aba Sources. Isso é uma consequência inevitável do modelo: o navegador precisa receber o código para executá-lo. Por isso, **nunca coloque segredos — chaves de API, senhas, tokens privados — em código que roda no cliente**. Eles ficariam expostos.
+
+## O que roda no servidor
+
+O servidor é um programa que roda em uma máquina remota. Pode ser escrito em qualquer linguagem que consiga ouvir conexões de rede e responder no formato HTTP: Node.js, Python, Go, Ruby, PHP, Java. O que importa é a capacidade de receber uma requisição e enviar uma resposta formatada.
+
+Diferente do cliente, o servidor tem acesso a recursos privados. Ele pode abrir uma conexão com um banco de dados, ler arquivos do sistema de arquivos da máquina, acessar variáveis de ambiente onde ficam segredos como chaves de API e senhas. Esse código nunca chega ao navegador — o cliente recebe apenas a resposta que o servidor decide enviar.
+
+Um servidor Node.js mínimo que responde a qualquer requisição é assim:
+
+```js title="Servidor HTTP mínimo em Node.js — escuta na porta 3000 e responde com HTML."
+const http = require("http");
+
+const server = http.createServer((req, res) => {
+  // req contém método, caminho, cabeçalhos da requisição
+  // res é usado para construir e enviar a resposta
+  res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+  res.end("<h1>Olá de artigo.dev</h1>");
+});
+
+server.listen(3000);
+```
+
+Quando o navegador faz um GET para `http://localhost:3000/`, esse código recebe a requisição, prepara a resposta com status 200 e o HTML, e envia de volta. O usuário vê o HTML renderizado — mas o código do servidor, a lógica que gerou a resposta, nunca chegou ao navegador.
+
+O servidor também é onde ficam as operações que não podem ser feitas no cliente: verificar se uma senha está correta (comparando com um hash no banco de dados), gerar um token de sessão, enviar um e-mail, fazer uma chamada a uma API de terceiros usando uma chave privada.
+
+## A fronteira: a requisição HTTP
+
+O que separa cliente de servidor é a requisição HTTP. Tudo que o cliente sabe sobre o servidor é o que vem nas respostas. Tudo que o servidor sabe sobre o cliente é o que vem nas requisições.
+
+Depois que uma página carrega no navegador, o JavaScript do cliente pode iniciar novas requisições usando a `Fetch API` — sem precisar recarregar a página inteira. Isso é o que permite que aplicações web sejam interativas: o usuário clica em algo, o JavaScript faz uma requisição ao servidor, recebe dados e atualiza a página sem um recarregamento completo.
+
+```js title="fetch no navegador pede dados ao servidor e atualiza a página."
+// Este código roda no navegador (cliente)
+async function carregarArtigos() {
+  // fetch faz uma requisição HTTP ao servidor
+  const response = await fetch("/api/artigos");
+
+  // o servidor respondeu com JSON
+  const artigos = await response.json();
+
+  // atualiza o DOM com os dados recebidos
+  const lista = document.getElementById("lista-artigos");
+  lista.innerHTML = artigos
+    .map((artigo) => `<li>${artigo.titulo}</li>`)
+    .join("");
+}
+```
+
+Nesse exemplo, o código que roda no cliente (`fetch`, manipulação do DOM) está na máquina do usuário. O código que processa a requisição `/api/artigos`, busca os dados no banco de dados e monta a resposta JSON — esse está no servidor, e o cliente nunca o vê.
+
+Essa separação é o modelo de toda a web. APIs REST, GraphQL, WebSockets — são todas variações do mesmo padrão: cliente e servidor em máquinas diferentes, trocando mensagens através da requisição HTTP. Os módulos de HTML, CSS e JavaScript deste curso ensinam o que roda no cliente. O servidor fica do outro lado da requisição `fetch`.
+
+## Resumo
+
+- Cliente é quem inicia a conversa (geralmente o navegador); servidor é quem escuta e responde.
+- O cliente roda na máquina do usuário e tem acesso ao DOM, à tela e ao armazenamento local — mas não a segredos nem ao banco de dados.
+- O servidor roda em uma máquina remota, tem acesso a banco de dados, arquivos e credenciais privadas, e seu código nunca chega ao navegador.
+- A fronteira entre cliente e servidor é a requisição HTTP: o cliente pede, o servidor responde, e cada troca é independente.
+- O JavaScript do cliente pode usar `fetch` para fazer novas requisições ao servidor após a página carregar, permitindo interatividade sem recarregar a página inteira.

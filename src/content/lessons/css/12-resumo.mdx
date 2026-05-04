@@ -1,6 +1,346 @@
 ---
-title: "Resumo do módulo"
-description: "Checklist final do módulo CSS: reset/normalize, mobile-first, hierarquia de seletores enxuta, Flexbox vs. Grid, tokens com custom properties."
-comingSoon: true
+title: "Resumo do módulo CSS"
+description: "O estilos.css final revisitado, checklist para qualquer folha de estilos e o que o módulo de JavaScript vai construir sobre essa base."
 order: 12
+hero:
+  titleBefore: "Tudo que você"
+  titleAccent: "aprendeu"
+  titleAfter: "sobre CSS."
 ---
+
+Lição por lição, você foi preenchendo `estilos.css` — a folha de estilos de `artigo.html`. Começou com a anatomia de uma regra e o reset de `box-sizing`. Adicionou seletores precisos, entendeu como a cascata resolve conflitos, dominou o modelo de caixa, aprendeu os sistemas de layout e chegou em responsividade e temas com custom properties. Esta lição revisita a estrutura do arquivo final, consolida os conceitos em um checklist e aponta para o que vem a seguir.
+
+## O `estilos.css` final
+
+O arquivo cresceu ao longo de doze lições. A estrutura que emergiu segue uma ordem lógica — da base mais abstrata para os componentes mais específicos:
+
+```css title="estilos.css — estrutura completa comentada por seção."
+/* ============================================================
+   1. DESIGN TOKENS — valores reutilizáveis em custom properties
+   ============================================================ */
+:root {
+  /* cores */
+  --cor-fundo: #ffffff;
+  --cor-texto: #0a0a0b;
+  --cor-texto-muted: #6b6b72;
+  --cor-primaria: #2563eb;
+  --cor-primaria-hover: #1d4ed8;
+  --cor-borda: #e5e7eb;
+  --cor-fundo-destaque: #f4f2ed;
+
+  /* tipografia */
+  --fonte-base: system-ui, -apple-system, sans-serif;
+  --fonte-mono: "JetBrains Mono", Consolas, monospace;
+  --tamanho-base: 1rem;
+  --altura-linha: 1.72;
+
+  /* espaçamento */
+  --espaco-xs: 4px;
+  --espaco-sm: 8px;
+  --espaco-md: 16px;
+  --espaco-lg: 24px;
+  --espaco-xl: 48px;
+
+  /* layout */
+  --largura-conteudo: 65ch;
+  --largura-pagina: 1200px;
+  --raio-md: 8px;
+}
+
+/* tema escuro — automático pelo sistema */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cor-fundo: #0f0f10;
+    --cor-texto: #f0f0f1;
+    --cor-texto-muted: #9ca3af;
+    --cor-primaria: #60a5fa;
+    --cor-borda: #27272a;
+    --cor-fundo-destaque: #1c1c1e;
+  }
+}
+
+/* tema escuro — manual via data-theme */
+[data-theme="dark"] {
+  --cor-fundo: #0f0f10;
+  --cor-texto: #f0f0f1;
+  --cor-texto-muted: #9ca3af;
+  --cor-primaria: #60a5fa;
+  --cor-borda: #27272a;
+  --cor-fundo-destaque: #1c1c1e;
+}
+
+/* ============================================================
+   2. RESET — elimina inconsistências entre navegadores
+   ============================================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ============================================================
+   3. BASE — estilos globais do documento
+   ============================================================ */
+body {
+  background-color: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-base);
+  line-height: var(--altura-linha);
+}
+
+/* escala tipográfica */
+h1 { font-size: clamp(1.75rem, 4vw + 0.5rem, 2.5rem); line-height: 1.15; }
+h2 { font-size: clamp(1.25rem, 2.5vw + 0.25rem, 1.75rem); line-height: 1.25; }
+h3 { font-size: 1.125rem; line-height: 1.35; }
+
+h1, h2, h3 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* links */
+a {
+  color: var(--cor-primaria);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  color: var(--cor-primaria-hover);
+}
+
+/* foco acessível */
+:focus-visible {
+  outline: 2px solid var(--cor-primaria);
+  outline-offset: 2px;
+}
+
+/* seleção de texto */
+::selection {
+  background-color: color-mix(in srgb, var(--cor-primaria) 20%, transparent);
+  color: var(--cor-texto);
+}
+
+/* ============================================================
+   4. LAYOUT — estrutura de página com Grid
+   ============================================================ */
+
+/* header fixo */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--espaco-lg);
+  background-color: var(--cor-fundo);
+  border-bottom: 1px solid var(--cor-borda);
+  z-index: 100;
+}
+
+/* compensar o header fixo */
+body {
+  padding-top: 64px;
+}
+
+/* conteúdo centrado */
+.pagina-conteudo {
+  width: min(100% - 2 * var(--espaco-lg), var(--largura-pagina));
+  margin-inline: auto;
+  padding-block: var(--espaco-xl);
+}
+
+/* layout do artigo: mobile em coluna, desktop em grid */
+.layout-artigo {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--espaco-xl);
+}
+
+@media (min-width: 1024px) {
+  .layout-artigo {
+    grid-template-columns: 220px 1fr 200px;
+    grid-template-areas:
+      "sidebar  main   aside";
+    align-items: start;
+  }
+
+  .sidebar-artigo { grid-area: sidebar; }
+  .conteudo-artigo { grid-area: main; }
+  .aside-artigo { grid-area: aside; }
+}
+
+/* ============================================================
+   5. COMPONENTES — partes reutilizáveis
+   ============================================================ */
+
+/* conteúdo do artigo */
+.conteudo-artigo {
+  max-width: var(--largura-conteudo);
+}
+
+.conteudo-artigo p {
+  margin-bottom: var(--espaco-md);
+}
+
+.conteudo-artigo img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--raio-md);
+  margin-block: var(--espaco-lg);
+}
+
+/* citações */
+blockquote {
+  border-left: 3px solid var(--cor-primaria);
+  padding-left: var(--espaco-md);
+  margin-left: 0;
+  color: var(--cor-texto-muted);
+  font-style: italic;
+}
+
+/* código inline */
+code {
+  font-family: var(--fonte-mono);
+  font-size: 0.875em;
+  background-color: var(--cor-fundo-destaque);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* tags de categoria */
+.tag-artigo {
+  display: inline-block;
+  padding: var(--espaco-xs) var(--espaco-sm);
+  background-color: color-mix(in srgb, var(--cor-primaria) 15%, transparent);
+  color: var(--cor-primaria);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--raio-md);
+  text-decoration: none;
+}
+
+/* botão de envio do formulário */
+.botao-enviar {
+  display: block;
+  width: 100%;
+  padding: var(--espaco-md) var(--espaco-lg);
+  background-color: var(--cor-primaria);
+  color: white;
+  border: none;
+  border-radius: var(--raio-md);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.botao-enviar:hover {
+  background-color: var(--cor-primaria-hover);
+}
+
+/* formulário de contato */
+.campo-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-xs);
+  margin-bottom: var(--espaco-md);
+}
+
+.campo-formulario label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--cor-texto-muted);
+}
+
+.campo-formulario input,
+.campo-formulario select,
+.campo-formulario textarea {
+  padding: var(--espaco-sm) var(--espaco-md);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  font-family: inherit;
+  font-size: 1rem;
+  background-color: var(--cor-fundo);
+  color: var(--cor-texto);
+}
+
+.campo-formulario input:focus,
+.campo-formulario select:focus,
+.campo-formulario textarea:focus {
+  outline: 2px solid var(--cor-primaria);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+/* índice lateral com sticky */
+.indice-artigo {
+  position: sticky;
+  top: 88px;
+}
+
+/* footer do site */
+.site-footer {
+  border-top: 1px solid var(--cor-borda);
+  padding: var(--espaco-xl) var(--espaco-lg);
+  margin-top: var(--espaco-xl);
+  color: var(--cor-texto-muted);
+  font-size: 0.875rem;
+}
+```
+
+## Checklist para qualquer folha de estilos
+
+Estes são os pontos a verificar em qualquer `estilos.css` antes de considerar o trabalho feito:
+
+**Reset e base**
+- `*, *::before, *::after { box-sizing: border-box }` — presente
+- `img, video { max-width: 100%; height: auto }` — imagens não vazam do container
+- `html { font-size: 100% }` — respeita a preferência de tamanho de texto do usuário
+- Design tokens definidos em `:root` com nomes semânticos
+
+**Seletores e cascata**
+- Seletores de baixa especificidade — ids evitados em CSS
+- Sem `!important` sem comentário justificando o uso
+- Sem estilos inline no HTML (exceto testes rápidos)
+
+**Tipografia**
+- `font-size` em `rem`, não `px`
+- `line-height` sem unidade (`1.5`–`1.8` para texto corrido)
+- `max-width` do conteúdo em `ch` (55–70ch para legibilidade)
+
+**Layout**
+- Mobile-first: estilos base para mobile, `min-width` media queries para desktop
+- Flexbox para componentes (uma dimensão); Grid para layout de página (duas dimensões)
+- `gap` em vez de margens individuais entre items de flex/grid
+
+**Acessibilidade**
+- `:focus-visible` com estilo visível — nunca `outline: none` sem alternativa
+- Contraste mínimo de 4.5:1 entre texto e fundo (WCAG AA)
+- `@media (prefers-reduced-motion: reduce)` desativa animações para quem precisa
+
+**Responsividade**
+- Sem larguras fixas em `px` para conteúdo principal — usar `%`, `fr`, `min()`, `max-width`
+- Tipografia fluida com `clamp()` para títulos
+- Tema escuro implementado com custom properties
+
+## O que vem a seguir
+
+`artigo.html` agora tem estrutura e aparência. A página é legível, tem layout responsivo que se adapta a qualquer tela, suporte a tema escuro baseado na preferência do sistema — e toda a tipografia e as cores estão centralizadas em custom properties que facilitam qualquer mudança futura.
+
+Mas o artigo ainda é completamente estático. Não há interação, não há estado, não há nada que mude depois que o navegador termina de renderizar a página.
+
+O módulo de **JavaScript** começa do mesmo ponto: o `artigo.html` estilizado que você construiu. Você vai adicionar comportamento: o botão de alternância de tema vai funcionar de verdade, o formulário de contato vai validar os campos antes de enviar, o contador de "curtidas" vai atualizar sem recarregar a página.
+
+Os `id`s, `class`es e atributos `data-*` que você definiu no HTML são os pontos de ancoragem que o JavaScript vai usar para selecionar elementos e reagir a eventos. A estrutura semântica e o CSS organizado que você construiu não foram apenas para o HTML e o CSS — foram a base que o JavaScript vai manipular.

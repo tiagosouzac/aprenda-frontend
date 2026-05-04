@@ -1,6 +1,90 @@
 ---
 title: "Resumo do módulo"
-description: "Checklist consolidado do módulo Web: o caminho completo de uma requisição, vocabulário essencial e divisão cliente/servidor."
-comingSoon: true
+description: "O caminho completo de uma requisição revisitado, vocabulário essencial e o que cada próximo módulo vai construir sobre esse modelo mental."
 order: 8
+hero:
+  titleBefore: "Tudo que você"
+  titleAccent: "aprendeu"
+  titleAfter: "sobre a web."
 ---
+
+Você percorreu o caminho inteiro: de um nome digitado na barra de endereço até os pixels pintados na tela. Cada lição deste módulo adicionou um pedaço ao modelo mental — e agora eles se encaixam em uma sequência coerente. Este resumo reconstrói essa sequência de ponta a ponta, com o vocabulário acumulado, e aponta para onde o curso vai a partir daqui.
+
+## O caminho completo, revisitado
+
+Tudo começa quando você digita `artigo.dev` e pressiona Enter. Veja o que acontece em cada etapa:
+
+**Etapa 1 — Resolução de DNS.** O navegador precisa de um endereço IP para se conectar. Ele consulta o resolver DNS configurado no sistema, que percorre a hierarquia: root servers → servidor de TLD do `.dev` → servidor autoritativo de `artigo.dev`. A resposta chega com um IP e um TTL que define por quanto tempo pode ser usada em cache. Todo o processo leva dezenas de milissegundos, mas muitas vezes é instantâneo porque o resolver já tem a resposta em cache de uma consulta anterior.
+
+**Etapa 2 — Conexão TCP.** Com o IP em mãos, o navegador abre uma conexão TCP com o servidor naquele endereço. TCP é o protocolo que garante que os dados chegam na ordem certa e sem perdas — o canal confiável sobre o qual tudo mais vai trafegar.
+
+**Etapa 3 — Negociação TLS.** Como a URL usa `https://`, o navegador e o servidor realizam o handshake TLS antes de qualquer dado real ser trocado. O servidor apresenta seu certificado — assinado por uma autoridade certificadora confiável — o navegador verifica, e os dois derivam uma chave de sessão compartilhada. A partir daí, toda a comunicação é criptografada.
+
+**Etapa 4 — Requisição HTTP.** Com a conexão segura estabelecida, o navegador envia a requisição: método, caminho, cabeçalhos. Para a página inicial de `artigo.dev`, é um `GET /` com cabeçalhos que informam o domínio pedido, o tipo de conteúdo aceito e as capacidades do navegador.
+
+**Etapa 5 — Resposta HTTP.** O servidor recebe a requisição, localiza o recurso, e devolve uma resposta: status code, cabeçalhos de resposta e o corpo — normalmente o HTML da página. Um `200 OK` significa sucesso. Um `404` significa que o caminho não existe. Um `500` significa que algo falhou no servidor.
+
+**Etapa 6 — Parse do HTML e construção do DOM.** O navegador lê o HTML de forma incremental, transformando cada tag em um nó de uma árvore em memória: o DOM. Se encontrar um `<script>` sem `defer` ou `async`, pausa o parse até o script executar. Se encontrar um `<link rel="stylesheet">`, dispara uma requisição para buscar o CSS.
+
+**Etapa 7 — Parse do CSS e construção do CSSOM.** O CSS é processado em paralelo com o HTML. O navegador resolve a cascata, a herança e a especificidade para cada elemento, e organiza o resultado em uma estrutura análoga ao DOM: o CSSOM. A renderização fica bloqueada até o CSSOM estar completo.
+
+**Etapa 8 — Render tree.** DOM e CSSOM se combinam em uma render tree: apenas os elementos visíveis, com seus estilos calculados. Elementos com `display: none` não entram.
+
+**Etapa 9 — Layout.** O navegador calcula a posição e o tamanho de cada elemento na viewport, levando em conta o mode de layout (block, flex, grid), margens, padding e as dimensões da janela. É a etapa mais cara — uma mudança em um elemento pode forçar o recálculo de tudo que vem depois.
+
+**Etapa 10 — Paint e compositing.** O navegador converte o layout em pixels: texto, cores, bordas, sombras. A página é dividida em camadas que são pintadas e depois compostas na GPU. Propriedades como `transform` e `opacity` afetam apenas o compositing, sem custo de layout ou repaint.
+
+```
+artigo.dev → DNS → IP
+                    ↓ TCP + TLS
+             HTTP GET /
+                    ↓ 200 OK + HTML
+             Parse HTML → DOM
+             Parse CSS  → CSSOM
+                    ↓
+             Render tree → Layout → Paint → Compositing
+                    ↓
+             Página na tela
+```
+
+Se qualquer dessas etapas falhar, o problema vai aparecer em um lugar específico. Um `404` no DNS significa que o domínio não existe ou não está configurado. Um `404` no HTTP significa que o caminho pedido não existe no servidor. Um timeout na conexão aponta para um problema de rede ou de servidor indisponível. A aba Network do devtools mostra exatamente onde na sequência o problema está.
+
+## Vocabulário essencial
+
+| Termo | O que é |
+|---|---|
+| **IP** | Endereço numérico de um dispositivo na internet (IPv4: `104.21.45.67`, IPv6: `2606:4700::`) |
+| **DNS** | Sistema que traduz nomes de domínio em endereços IP |
+| **Resolver** | Servidor intermediário que percorre a hierarquia DNS em nome do seu computador |
+| **TTL** | Prazo de validade de uma resposta DNS em cache |
+| **Registro A** | Tipo de registro DNS que mapeia um nome para um endereço IPv4 |
+| **CNAME** | Tipo de registro DNS que cria um alias de um nome para outro nome |
+| **TCP** | Protocolo de transporte que garante entrega confiável e ordenada dos dados |
+| **TLS** | Protocolo de criptografia que protege a comunicação (o "S" do HTTPS) |
+| **Certificado** | Documento digital assinado por uma CA que prova a identidade de um servidor |
+| **CA** | Autoridade certificadora — organização que assina certificados TLS |
+| **HTTP** | Protocolo de requisição-resposta que define o formato das mensagens na web |
+| **Método HTTP** | Verbo da requisição: GET (ler), POST (criar), PUT (substituir), DELETE (remover) |
+| **Status code** | Número de três dígitos que resume o resultado de uma requisição HTTP |
+| **Header** | Par chave-valor que carrega metadados em uma requisição ou resposta |
+| **DOM** | Árvore em memória que representa a estrutura HTML do documento |
+| **CSSOM** | Estrutura análoga ao DOM, mas para as regras de estilo CSS |
+| **Render tree** | Combinação de DOM e CSSOM, com apenas os elementos visíveis e seus estilos |
+| **Layout** | Etapa que calcula posição e tamanho de cada elemento na viewport |
+| **Paint** | Etapa que converte o layout em pixels — texto, cores, bordas |
+| **Compositing** | Etapa que combina as camadas pintadas na GPU para produzir a imagem final |
+| **CDN** | Rede de servidores distribuídos geograficamente que entregam arquivos estáticos mais rápido |
+| **Cliente** | Quem inicia a requisição — geralmente o navegador |
+| **Servidor** | Quem recebe a requisição e envia a resposta |
+
+## O que esperar dos próximos módulos
+
+Com esse modelo mental formado, os próximos módulos têm um contexto. Cada tecnologia que você vai aprender é uma peça desse pipeline que você acabou de ver.
+
+O módulo de **HTML** ensina a escrever a estrutura que o navegador vai parsear em DOM. Cada tag que você escreve vira um nó nessa árvore — e saber disso muda como você escolhe os elementos, porque elementos semânticos carregam significado que o navegador, os mecanismos de busca e os leitores de tela conseguem usar.
+
+O módulo de **CSS** ensina a escrever as regras que o navegador vai parsear em CSSOM. Você vai entender a cascata e a especificidade, que determinam quais regras vencem quando há conflito. Vai aprender Flexbox e Grid, que mudam o modo de layout e afetam diretamente a etapa de cálculo de posições. Vai ver como `transform` e `opacity` são mais eficientes para animações do que propriedades que disparam reflow.
+
+O módulo de **JavaScript** ensina a manipular o DOM que o navegador construiu — adicionar, remover e modificar nós — e a usar `fetch` para cruzar a fronteira com o servidor. Você vai escrever o código que roda no cliente, no navegador do usuário, e vai entender por que ele tem acesso a certas coisas e não a outras.
+
+A sequência HTML → CSS → JavaScript replica, de certa forma, a ordem do pipeline de renderização: estrutura, depois apresentação, depois comportamento.

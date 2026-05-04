@@ -1,6 +1,182 @@
 ---
 title: "React em geral"
 description: "O que é React, por que existe e em que ele difere de manipular o DOM diretamente. Modelo declarativo, virtual DOM, componentes como blocos."
-comingSoon: true
 order: 1
+hero:
+  titleBefore: "React:"
+  titleAccent: "UI declarativa"
+  titleAfter: "baseada em estado."
+quiz:
+  - question: "Qual é a diferença fundamental entre a abordagem imperativa (DOM puro) e a abordagem declarativa (React)?"
+    options:
+      - "Com DOM puro você descreve COMO mudar a UI (encontre o elemento, mude o atributo, atualize o texto). Com React você descreve COMO a UI deve ser dado o estado atual — React cuida do COMO mudar"
+      - "React é mais rápido que DOM puro em todos os casos"
+      - "React usa HTML diretamente; DOM puro usa JavaScript"
+      - "Dom puro não suporta eventos; React sim"
+    correct: 0
+  - question: "O que é o virtual DOM?"
+    options:
+      - "Um DOM mais rápido fornecido pelos navegadores modernos"
+      - "Um arquivo HTML separado mantido pelo React"
+      - "Uma representação em memória da UI que React mantém. Quando o estado muda, React recalcula o virtual DOM e aplica apenas as diferenças no DOM real — evitando operações desnecessárias"
+      - "Uma versão comprimida do DOM para mobile"
+    correct: 2
+  - question: "Por que a abordagem imperativa escala mal à medida que o estado cresce?"
+    options:
+      - "Porque o JavaScript fica mais lento com mais código"
+      - "Porque o DOM tem um limite de elementos"
+      - "Porque eventos não funcionam com estado complexo"
+      - "Porque você precisa rastrear manualmente quais elementos do DOM refletem qual parte do estado — cada novo estado ou interação exige atualizar todos os pontos relevantes, e é fácil esquecer algum"
+    correct: 3
+  - question: "O que é um componente React?"
+    options:
+      - "Um arquivo CSS separado para cada parte da UI"
+      - "Uma função com nome em PascalCase que retorna JSX — uma descrição de parte da UI. Componentes se compõem: ArticlePage usa Header, ArticleCard, LikeButton"
+      - "Uma classe que herda de React.Component"
+      - "Um módulo JavaScript que manipula o DOM diretamente"
+    correct: 1
 ---
+
+O módulo de JavaScript terminou com `script.js` organizado em quatro módulos: `utils.js`, `api.js`, `ui.js` e `main.js`. O blog funciona — mas há uma tensão crescente: à medida que as funcionalidades crescem, rastrear qual parte do DOM reflete qual parte do estado fica cada vez mais manual. Adicionar um novo estado significa lembrar de atualizar todos os elementos que dependem dele. React resolve essa tensão invertendo a abordagem.
+
+## O problema que React resolve
+
+Considere o botão de curtir do blog. Em DOM puro, a implementação é imperativa — você descreve cada passo:
+
+```js title="DOM puro — implementação imperativa do botão de curtir."
+// estado espalhado por variáveis e pelo DOM
+const curtidos = JSON.parse(localStorage.getItem("curtidos")) ?? [];
+
+function curtir(artigoId, botao) {
+  const jaCurtiu = curtidos.includes(artigoId);
+
+  if (jaCurtiu) {
+    // remover — atualizar array, localStorage, texto, aria, ícone
+    const novos = curtidos.filter(id => id !== artigoId);
+    localStorage.setItem("curtidos", JSON.stringify(novos));
+    botao.textContent = "🤍 Curtir";
+    botao.setAttribute("aria-pressed", "false");
+    // e se houver um contador em outro lugar da página?
+    // precisa lembrar de atualizar manualmente
+  } else {
+    // curtir — seis lugares para atualizar
+    curtidos.push(artigoId);
+    localStorage.setItem("curtidos", JSON.stringify(curtidos));
+    botao.textContent = "❤️ Curtido";
+    botao.setAttribute("aria-pressed", "true");
+  }
+}
+```
+
+O código funciona — mas há um problema estrutural: **o estado e a UI estão sincronizados manualmente**. Você é responsável por garantir que todo elemento do DOM que reflete `curtidos` seja atualizado cada vez que `curtidos` mudar. Se você adicionar um badge "❤ X artigos curtidos" no `<header>`, precisa lembrar de atualizá-lo na função `curtir`. Se esquecer, o estado e a UI ficam dessincronizados — e o bug só aparece quando você testa.
+
+À medida que o estado cresce (tema, curtidas, artigos carregados, filtros, notificações), o número de atualizações manuais cresce exponencialmente. Um estado afeta cinco elementos do DOM? São cinco lugares para não esquecer.
+
+## O modelo declarativo
+
+React inverte a abordagem: em vez de descrever **como** mudar a UI, você descreve **como a UI deve ser** dado o estado atual. React cuida de fazer o DOM corresponder:
+
+```tsx title="React — o mesmo botão, abordagem declarativa."
+// estado centralizado no componente
+function LikeButton({ artigoId }: { artigoId: number }) {
+  const [curtido, setCurtido] = useState(false);
+
+  // descrição da UI baseada no estado
+  // quando curtido muda, React re-renderiza — automaticamente
+  return (
+    <button
+      aria-pressed={curtido}
+      onClick={() => setCurtido(prev => !prev)}
+    >
+      {curtido ? "❤️ Curtido" : "🤍 Curtir"}
+    </button>
+  );
+}
+```
+
+Não há atualização manual — o JSX **descreve** o que o botão deve parecer quando `curtido` é `true` e quando é `false`. Quando o estado muda, React re-executa a função e recalcula o que deve aparecer. O DOM é uma consequência do estado, não algo que você mantém sincronizado manualmente.
+
+Se você adicionar um badge no header que mostra o número de curtidas, você simplesmente descreve o badge em função do mesmo estado — React garante que ambos ficam sincronizados automaticamente, porque ambos derivam do mesmo dado.
+
+## Componentes como unidade básica
+
+Um componente React é uma **função com nome em PascalCase que retorna JSX** — uma descrição de parte da UI. O componente mais simples possível:
+
+```tsx title="O componente mais simples — função que retorna JSX."
+function ArticleCard() {
+  return (
+    <article className="card-artigo">
+      <h2>CSS em geral</h2>
+      <p>O que é CSS, anatomia de uma regra e como conectar ao HTML.</p>
+    </article>
+  );
+}
+```
+
+Componentes se **compõem**: você usa um componente como se fosse uma tag HTML dentro de outro. A `ArticlePage` não precisa saber como o `LikeButton` funciona internamente — ela só declara `<LikeButton artigoId={artigo.id} />` e o botão aparece:
+
+```tsx title="Composição — ArticlePage montada de componentes menores."
+function ArticlePage({ artigo }: { artigo: Artigo }) {
+  return (
+    <main>
+      <Header />
+      <article>
+        <h1>{artigo.titulo}</h1>
+        <ArticleBody conteudo={artigo.conteudo} />
+        <LikeButton artigoId={artigo.id} />
+      </article>
+      <RelatedArticles tags={artigo.tags} />
+      <Footer />
+    </main>
+  );
+}
+```
+
+Cada componente gerencia sua própria responsabilidade. `Header` cuida do cabeçalho, `LikeButton` cuida da lógica de curtir, `RelatedArticles` filtra e exibe artigos relacionados. Você pode testar, modificar ou substituir cada um sem tocar nos outros.
+
+## O ciclo de renderização
+
+O ciclo de vida fundamental do React é simples:
+
+1. **Estado muda** — via `useState`, `useReducer` ou Context
+2. **React re-executa a função** do componente que tem esse estado (e todos os filhos que recebem o estado via props)
+3. **React compara o output** com o que está no DOM atualmente — isso é chamado de **reconciliação**
+4. **React aplica apenas as diferenças** — não apaga e recria o DOM inteiro, só muda o que mudou
+
+A representação intermediária que React mantém em memória — antes de aplicar ao DOM real — é o **virtual DOM**. Ele é mais barato de computar e comparar do que fazer operações no DOM diretamente. A comparação entre o virtual DOM anterior e o novo determina o mínimo de operações necessárias.
+
+```tsx title="O ciclo — estado muda, React atualiza só o que precisa."
+function ContadorCurtidas() {
+  const [curtidas, setCurtidas] = useState(0);
+
+  // quando setCurtidas é chamado:
+  // 1. React agenda uma re-renderização
+  // 2. Re-executa esta função com o novo valor
+  // 3. Compara o JSX novo com o anterior
+  // 4. Atualiza apenas o texto do <span> — não o botão inteiro
+  return (
+    <div>
+      <span>{curtidas} curtidas</span>
+      <button onClick={() => setCurtidas(prev => prev + 1)}>
+        Curtir
+      </button>
+    </div>
+  );
+}
+```
+
+## O que será construído
+
+Este módulo reconstrói o blog do módulo de JavaScript como aplicação React com TypeScript. Mesma aparência, mesmas funcionalidades — toggle de tema, curtidas persistidas, lista de artigos carregada de JSON. O que muda é a arquitetura: componentes reutilizáveis, estado declarativo, React gerenciando o DOM.
+
+Os componentes que serão construídos: `Header`, `ThemeToggle`, `ArticleCard`, `ArticleList`, `LikeButton`, e os hooks que encapsulam lógica: `useTema`, `useCurtidas`, `useArtigos`.
+
+## Resumo
+
+- **DOM puro é imperativo**: você descreve cada passo da atualização. Estado e UI precisam ser sincronizados manualmente — o que escala mal.
+- **React é declarativo**: você descreve como a UI deve ser dado o estado. React garante que o DOM corresponde automaticamente.
+- Um **componente** é uma função em PascalCase que retorna JSX. Componentes se compõem como tags HTML.
+- O **ciclo**: estado muda → React re-executa a função → compara com virtual DOM anterior → aplica apenas as diferenças no DOM real.
+- O módulo reconstrói o blog como aplicação React + TypeScript — mesmas funcionalidades, arquitetura declarativa com componentes.
+
+A próxima aula configura o projeto com Vite e TypeScript, mostra a estrutura de pastas e escreve o primeiro componente renderizando algo na tela.

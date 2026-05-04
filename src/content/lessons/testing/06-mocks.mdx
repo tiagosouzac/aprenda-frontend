@@ -1,6 +1,221 @@
 ---
 title: "Mocks e stubs"
-description: "Quando substituir dependências externas (rede, tempo, módulos) e como, com vi.fn() e vi.mock(). Riscos de mockar demais."
-comingSoon: true
+description: "Quando substituir dependências externas (rede, tempo, módulos) e como fazê-lo com vi.fn() e vi.mock(). Riscos de mockar demais."
 order: 6
+hero:
+  titleBefore: "Mocks"
+  titleAccent: "e stubs"
+  titleAfter: "— controlar dependências."
+quiz:
+  - question: "Por que mockar fetch nos testes em vez de fazer requisições reais?"
+    options:
+      - "Porque fetch não funciona com Vitest"
+      - "Requisições reais são lentas, dependem da rede e de um servidor disponível, e podem retornar dados diferentes em execuções diferentes — tornando os testes instáveis e dependentes de infraestrutura externa"
+      - "Porque fetch é uma API do browser e não existe no Node.js"
+      - "Porque mocks são sempre mais rápidos que fetch"
+    correct: 1
+  - question: "Qual é a diferença entre vi.fn() e vi.mock()?"
+    options:
+      - "vi.fn() é mais rápido; vi.mock() é mais preciso"
+      - "vi.fn() cria uma função mock individual; vi.mock() substitui um módulo inteiro — todas as exportações do módulo ficam disponíveis como funções mock"
+      - "vi.fn() funciona apenas com funções assíncronas; vi.mock() funciona com qualquer tipo"
+      - "São equivalentes — apenas sintaxes diferentes"
+    correct: 0
+  - question: "O que significa 'testar o mock em vez do código'?"
+    options:
+      - "Quando o teste usa expect no mock em vez do componente"
+      - "Quando você usa vi.mock() para módulos de terceiros"
+      - "Quando o mock substitui tanto código real que o teste verifica apenas que o mock foi chamado — mas não verifica o comportamento real do sistema. Se o mock diverge da implementação real, o teste passa enquanto o código está quebrado"
+      - "Quando o mock é mais complexo que o código que ele substitui"
+    correct: 2
+  - question: "Qual é a heurística correta sobre o que mockar?"
+    options:
+      - "Mockar tudo para garantir isolamento total"
+      - "Mockar apenas funções assíncronas"
+      - "Nunca mockar — sempre usar dados reais"
+      - "Mockar dependências externas ao sistema (rede, sistema de arquivos, tempo, serviços de terceiros); não mockar lógica interna da sua aplicação — isso testa o mock, não o código"
+    correct: 3
 ---
+
+Testes que dependem da rede, do horário atual ou de um banco de dados são lentos, instáveis e difíceis de depurar. Mocks são substitutos controlados para essas dependências — você define o que elas retornam, quando retornam, e pode verificar se foram chamadas corretamente. A chave é saber o que mockar e o que não mockar.
+
+## Quando substituir dependências
+
+Três sinais de que uma dependência deve ser substituída no teste:
+
+**Rede e APIs externas**: `fetch` é lento, pode falhar, retorna dados diferentes em execuções diferentes. Um teste que depende da rede é frágil por natureza.
+
+**Tempo**: funções que leem `Date.now()` internamente produzem resultados diferentes dependendo de quando o teste roda. O caso ideal é injetar a data como parâmetro (lição anterior), mas quando não é possível, use mocks.
+
+**Módulos com efeitos colaterais**: analytics, logging, envio de e-mails. Nos testes, você não quer que esses efeitos aconteçam de verdade.
+
+## `vi.fn()` — função mock individual
+
+`vi.fn()` cria uma função que registra cada chamada — argumentos, número de chamadas, valor de retorno:
+
+```ts title="vi.fn() — criar e verificar uma função mock."
+import { describe, it, expect, vi } from "vitest";
+
+// mock de callback
+const onCurtir = vi.fn();
+
+// passar o mock como prop e simular a interação
+// onCurtir é chamado quando o botão é clicado
+
+// verificações
+expect(onCurtir).toHaveBeenCalledOnce();             // chamada exatamente uma vez
+expect(onCurtir).toHaveBeenCalledWith(42);           // chamada com o argumento 42
+expect(onCurtir).toHaveBeenCalledTimes(3);           // chamada três vezes
+expect(onCurtir).not.toHaveBeenCalled();             // nunca chamada
+```
+
+Para definir o que a função retorna:
+
+```ts title="vi.fn() — controlar o retorno."
+// retornar um valor fixo
+const buscarArtigos = vi.fn().mockReturnValue([{ id: 1, titulo: "CSS" }]);
+
+// retornar uma Promise resolvida
+const fetchArtigos = vi.fn().mockResolvedValue({ ok: true, json: async () => artigos });
+
+// retornar uma Promise rejeitada — simular erro
+const fetchComErro = vi.fn().mockRejectedValue(new Error("Rede indisponível"));
+
+// retornar valores diferentes em cada chamada
+const fetchSequencial = vi.fn()
+  .mockResolvedValueOnce({ artigos: [artigo1] })   // primeira chamada
+  .mockResolvedValueOnce({ artigos: [artigo2] });   // segunda chamada
+```
+
+## `vi.mock()` — substituir um módulo inteiro
+
+Quando o código importa um módulo e você quer substituí-lo nos testes:
+
+```ts title="vi.mock() — substituir o módulo de API."
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { ArticleList } from "./ArticleList";
+import * as api from "../api";
+
+// substitui todas as exportações do módulo api
+vi.mock("../api");
+
+const artigosFixture = [
+  { id: 1, titulo: "CSS em geral", descricao: "...", tags: ["css"], curtidas: 5 },
+  { id: 2, titulo: "Flexbox",      descricao: "...", tags: ["css"], curtidas: 12 },
+];
+
+describe("ArticleList", () => {
+  beforeEach(() => {
+    vi.clearAllMocks(); // limpar chamadas anteriores antes de cada teste
+  });
+
+  it("exibe os artigos quando o fetch é bem-sucedido", async () => {
+    // configurar o que o mock deve retornar neste teste
+    vi.mocked(api.carregarArtigos).mockResolvedValue(artigosFixture);
+
+    render(<ArticleList />);
+
+    // aguardar os artigos aparecerem
+    expect(await screen.findByText("CSS em geral")).toBeInTheDocument();
+    expect(screen.getByText("Flexbox")).toBeInTheDocument();
+  });
+
+  it("exibe mensagem de erro quando o fetch falha", async () => {
+    vi.mocked(api.carregarArtigos).mockRejectedValue(new Error("Erro 500"));
+
+    render(<ArticleList />);
+
+    expect(await screen.findByText(/Erro 500/)).toBeInTheDocument();
+  });
+});
+```
+
+## Mockar `fetch` globalmente
+
+Quando o componente usa `fetch` diretamente (não via módulo separado), você pode substituir o `fetch` global:
+
+```ts title="Mockar fetch global nos testes."
+import { vi, beforeEach } from "vitest";
+
+beforeEach(() => {
+  // substituir fetch por um mock controlado
+  vi.stubGlobal("fetch", vi.fn());
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals(); // restaurar fetch original
+});
+
+it("carrega artigos do endpoint correto", async () => {
+  const artigosMock = [{ id: 1, titulo: "CSS" }];
+
+  // configurar o que fetch retorna
+  vi.mocked(fetch).mockResolvedValue({
+    ok: true,
+    json: async () => artigosMock,
+  } as Response);
+
+  render(<ArticleList />);
+
+  expect(await screen.findByText("CSS")).toBeInTheDocument();
+  expect(fetch).toHaveBeenCalledWith("/artigos.json");
+});
+```
+
+## Mockar `Date.now()` para testes de tempo
+
+Quando você não pode refatorar a função para injetar a data:
+
+```ts title="vi.spyOn — mockar Date.now() para testes determinísticos."
+import { vi, afterEach } from "vitest";
+
+afterEach(() => {
+  vi.restoreAllMocks(); // restaurar Date.now() original após cada teste
+});
+
+it("retorna 'há 5 minutos' para data de 5 minutos atrás", () => {
+  const referencia = new Date("2024-06-01T12:00:00Z").getTime();
+  vi.spyOn(Date, "now").mockReturnValue(referencia);
+
+  const cincoMinutosAtras = new Date("2024-06-01T11:55:00Z");
+  expect(formatarData(cincoMinutosAtras)).toBe("há 5 minutos");
+});
+```
+
+## Os riscos de mockar demais
+
+Mockar em excesso é um dos problemas mais comuns em suites de teste. Quando você substitui lógica interna da sua aplicação por mocks, passa a testar o mock — não o código:
+
+```ts title="Excesso de mocks — teste que não diz nada."
+// ❌ todo o comportamento real foi substituído
+vi.mock("./filtrarArtigos");
+vi.mock("./ordenarPorData");
+vi.mock("./formatarArtigo");
+
+it("ArticleList exibe artigos filtrados e ordenados", async () => {
+  vi.mocked(filtrarArtigos).mockReturnValue([artigoMock]);
+  vi.mocked(ordenarPorData).mockReturnValue([artigoMock]);
+  vi.mocked(formatarArtigo).mockReturnValue(artigoFormatado);
+
+  render(<ArticleList />);
+
+  expect(screen.getByText(artigoFormatado.titulo)).toBeInTheDocument();
+  // este teste prova que o mock funciona — não que ArticleList funciona
+});
+```
+
+A heurística correta:
+
+- **Mockar**: dependências externas ao seu sistema — rede, sistema de arquivos, APIs de terceiros, relógio do sistema, `localStorage` (quando não disponível no ambiente)
+- **Não mockar**: lógica interna da sua aplicação — filtros, formatadores, cálculos, transformações. Testar esses via mocks é testar o mock, não o código
+
+O `localStorage` é um caso especial: em `jsdom` (o ambiente de test padrão para React), o `localStorage` é uma implementação real que funciona nos testes. Não é necessário mockár — só lembre de limpar com `localStorage.clear()` no `beforeEach`.
+
+## Resumo
+
+- **Por que mockar**: dependências externas são lentas, instáveis e não controláveis — rede, tempo, serviços de terceiros.
+- **`vi.fn()`**: função mock individual. Registra chamadas, controla retorno com `.mockReturnValue`, `.mockResolvedValue`, `.mockRejectedValue`.
+- **`vi.mock(módulo)`**: substitui um módulo inteiro. Configure o retorno de cada exportação no teste com `vi.mocked(fn).mockResolvedValue(...)`.
+- **`vi.spyOn`**: substitui um método específico de um objeto (ex: `Date.now`). `vi.restoreAllMocks()` no `afterEach` restaura o original.
+- **Mockar demais**: quando você substitui lógica interna, o teste verifica o mock — não o código. Mocks para dependências externas; código real para lógica interna.

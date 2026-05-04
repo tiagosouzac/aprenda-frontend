@@ -1,6 +1,274 @@
 ---
 title: "Testes de integração"
-description: "Vários módulos juntos: componente + hook, formulário + API mockada. Quando esse nível compensa mais do que muitos unitários."
-comingSoon: true
+description: "Componente + estado, componente + fetch mockado, formulário + validação. Quando integração compensa mais que unitários isolados."
 order: 8
+hero:
+  titleBefore: "Testes de"
+  titleAccent: "integração"
+  titleAfter: "— múltiplas peças juntas."
+quiz:
+  - question: "O que um teste de integração verifica que um teste unitário de componente não consegue?"
+    options:
+      - "A renderização visual do componente"
+      - "Que múltiplas peças funcionam corretamente em conjunto — que o componente e seu hook de fetch se integram bem, que o estado persiste corretamente no localStorage, que o formulário e a validação interagem como esperado"
+      - "Que a sintaxe do código está correta"
+      - "Que as props estão tipadas corretamente com TypeScript"
+    correct: 1
+  - question: "Por que usar localStorage.clear() no beforeEach de testes que envolvem persistência?"
+    options:
+      - "Para garantir que cada teste começa com localStorage vazio — sem dados de testes anteriores que possam mudar o comportamento esperado e tornar os resultados dependentes da ordem de execução"
+      - "Porque localStorage não funciona em jsdom sem ser limpo"
+      - "Para que o TypeScript consiga tipar os dados do localStorage"
+      - "Por convenção de estilo — não tem impacto técnico"
+    correct: 0
+  - question: "Quando um teste de integração compensa mais do que vários testes unitários separados?"
+    options:
+      - "Sempre — integração é sempre mais completo"
+      - "Quando o componente tem mais de 100 linhas"
+      - "Quando o valor está no fluxo completo e não nas peças isoladas — um teste de integração que verifica 'digitar na busca filtra a lista' cobre mais cenários reais que três unitários de filtro, input e lista separados"
+      - "Quando há mais de 5 estados diferentes"
+    correct: 2
+  - question: "Como testar que um componente exibe um estado de loading enquanto o fetch está pendente?"
+    options:
+      - "Não é possível testar estados transitórios com Testing Library"
+      - "Usar setTimeout para esperar o fetch completar"
+      - "Apenas verificar o estado final após o fetch completar"
+      - "Renderizar o componente com fetch mockado mas ainda pendente (usando uma Promise que não resolve ainda), e verificar que o indicador de loading está presente antes de resolver a Promise"
+    correct: 3
 ---
+
+Unitários testam peças isoladas. Testes de integração testam que essas peças funcionam corretamente juntas — o componente e seu hook, o formulário e sua validação, o estado e o `localStorage`. São mais lentos que unitários, mas capturam uma categoria de bugs que os unitários não conseguem.
+
+## Componente + fetch — os três estados
+
+`ArticleList` tem três estados possíveis: carregando, erro, e dados. Um teste de integração verifica os três:
+
+```tsx title="ArticleList.test.tsx — loading, sucesso e erro."
+import { render, screen, waitFor } from "@testing-library/react";
+import { vi, beforeEach } from "vitest";
+import { ArticleList } from "./ArticleList";
+
+const artigosFixture = [
+  { id: 1, titulo: "CSS Grid",    descricao: "Layout com Grid.",  tags: ["css"], curtidas: 5, autor: { nome: "Ana" } },
+  { id: 2, titulo: "Flexbox",     descricao: "Layout com Flex.", tags: ["css"], curtidas: 8, autor: { nome: "Bruno" } },
+];
+
+beforeEach(() => {
+  vi.stubGlobal("fetch", vi.fn());
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+describe("ArticleList — estados de fetch", () => {
+  it("exibe indicador de loading enquanto os dados chegam", () => {
+    // fetch que nunca resolve — componente fica no estado de loading
+    vi.mocked(fetch).mockReturnValue(new Promise(() => {}));
+
+    render(<ArticleList />);
+
+    expect(screen.getByLabelText("Carregando artigos...")).toBeInTheDocument();
+  });
+
+  it("exibe os artigos após fetch bem-sucedido", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => artigosFixture,
+    } as Response);
+
+    render(<ArticleList />);
+
+    // findBy* aguarda os artigos aparecerem
+    expect(await screen.findByText("CSS Grid")).toBeInTheDocument();
+    expect(screen.getByText("Flexbox")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Carregando...")).not.toBeInTheDocument();
+  });
+
+  it("exibe mensagem de erro quando o fetch falha", async () => {
+    vi.mocked(fetch).mockRejectedValue(new Error("Sem conexão"));
+
+    render(<ArticleList />);
+
+    expect(await screen.findByText(/Sem conexão/)).toBeInTheDocument();
+    expect(screen.queryByLabelText("Carregando...")).not.toBeInTheDocument();
+  });
+
+  it("exibe mensagem quando a resposta não é ok", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: false,
+      status: 500,
+      statusText: "Internal Server Error",
+    } as Response);
+
+    render(<ArticleList />);
+
+    expect(await screen.findByText(/Erro 500/)).toBeInTheDocument();
+  });
+});
+```
+
+## Componente + `localStorage` — persistência
+
+A integração entre `LikeButton` e `localStorage` é um caso clássico: clicar curte, o estado é salvo, remontar o componente carrega o estado salvo:
+
+```tsx title="LikeButton.test.tsx — persistência no localStorage."
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach } from "vitest";
+import { LikeButtonPersistente } from "./LikeButtonPersistente";
+
+// LikeButtonPersistente — versão que gerencia o estado internamente
+// lê e escreve curtidos no localStorage por artigoId
+
+beforeEach(() => {
+  localStorage.clear(); // cada teste começa com localStorage limpo
+});
+
+describe("LikeButtonPersistente", () => {
+  it("começa no estado não curtido por padrão", () => {
+    render(<LikeButtonPersistente artigoId={1} />);
+    expect(screen.getByRole("button")).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("salva a curtida no localStorage ao clicar", async () => {
+    const user = userEvent.setup();
+    render(<LikeButtonPersistente artigoId={1} />);
+
+    await user.click(screen.getByRole("button"));
+
+    const salvo = JSON.parse(localStorage.getItem("curtidos") ?? "[]");
+    expect(salvo).toContain(1);
+  });
+
+  it("carrega estado curtido do localStorage ao montar", () => {
+    // simular estado já salvo de sessão anterior
+    localStorage.setItem("curtidos", JSON.stringify([1]));
+
+    render(<LikeButtonPersistente artigoId={1} />);
+
+    expect(screen.getByRole("button")).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("remove a curtida ao clicar novamente", async () => {
+    const user = userEvent.setup();
+    localStorage.setItem("curtidos", JSON.stringify([1]));
+
+    render(<LikeButtonPersistente artigoId={1} />);
+    await user.click(screen.getByRole("button")); // descurtir
+
+    const salvo = JSON.parse(localStorage.getItem("curtidos") ?? "[]");
+    expect(salvo).not.toContain(1);
+  });
+});
+```
+
+## Formulário + validação + callback
+
+O fluxo completo do formulário de inscrição na newsletter:
+
+```tsx title="NewsletterForm.test.tsx — fluxo completo do formulário."
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { NewsletterForm } from "./NewsletterForm";
+
+describe("NewsletterForm — fluxo completo", () => {
+  it("impede envio com e-mail inválido", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<NewsletterForm onSubmit={onSubmit} />);
+
+    // digitar e-mail inválido e tentar submeter
+    await user.type(screen.getByLabelText("E-mail"), "nao-e-um-email");
+    await user.click(screen.getByRole("button", { name: "Inscrever" }));
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText(/e-mail inválido/i)).toBeInTheDocument();
+  });
+
+  it("envia o e-mail correto ao submeter com dados válidos", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<NewsletterForm onSubmit={onSubmit} />);
+
+    await user.type(screen.getByLabelText("E-mail"), "ana@example.com");
+    await user.click(screen.getByRole("button", { name: "Inscrever" }));
+
+    expect(onSubmit).toHaveBeenCalledOnce();
+    expect(onSubmit).toHaveBeenCalledWith("ana@example.com");
+  });
+
+  it("exibe mensagem de sucesso e limpa o campo após envio", async () => {
+    const user = userEvent.setup();
+    render(<NewsletterForm onSubmit={() => {}} />);
+
+    await user.type(screen.getByLabelText("E-mail"), "ana@example.com");
+    await user.click(screen.getByRole("button", { name: "Inscrever" }));
+
+    expect(screen.getByText(/obrigado por se inscrever/i)).toBeInTheDocument();
+    // o formulário some após o envio
+    expect(screen.queryByLabelText("E-mail")).not.toBeInTheDocument();
+  });
+});
+```
+
+## Quando integração compensa mais que unitários
+
+A pergunta é: qual teste dá mais confiança pelo menor custo de manutenção?
+
+**Prefira integração quando o valor está no fluxo, não nas peças isoladas.** Testar `ArticleList` com fetch mockado cobre mais do que três unitários separados (um para o estado de loading, um para o estado de sucesso, um para o estado de erro) — porque também testa que os estados transitam corretamente, que o componente re-renderiza quando o fetch completa, e que o erro aparece no lugar certo.
+
+**Prefira unitários quando a lógica é complexa e isolada.** `filtrarArtigos` com 10 casos de borda é melhor como unitário: rápido, sem setup de DOM, com mensagens de erro precisas. Se estiver dentro de um teste de integração da `HomePage`, uma falha de filtro se perde em meio ao setup.
+
+```tsx title="HomePage.test.tsx — filtro integrado com a lista."
+describe("HomePage — filtro de busca", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [
+        { id: 1, titulo: "CSS Grid",    tags: ["css"] },
+        { id: 2, titulo: "React Hooks", tags: ["react"] },
+        { id: 3, titulo: "Flexbox",     tags: ["css"] },
+      ],
+    } as Response));
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("filtra a lista ao digitar na busca", async () => {
+    const user = userEvent.setup();
+    render(<HomePage />);
+
+    // aguardar os artigos carregarem
+    await screen.findByText("CSS Grid");
+
+    // digitar na busca
+    await user.type(screen.getByRole("searchbox"), "flex");
+
+    // apenas Flexbox deve aparecer
+    expect(screen.getByText("Flexbox")).toBeInTheDocument();
+    expect(screen.queryByText("CSS Grid")).not.toBeInTheDocument();
+    expect(screen.queryByText("React Hooks")).not.toBeInTheDocument();
+  });
+
+  it("exibe todos os artigos quando a busca está vazia", async () => {
+    const user = userEvent.setup();
+    render(<HomePage />);
+
+    await screen.findByText("CSS Grid");
+    await user.clear(screen.getByRole("searchbox"));
+
+    expect(screen.getByText("CSS Grid")).toBeInTheDocument();
+    expect(screen.getByText("React Hooks")).toBeInTheDocument();
+    expect(screen.getByText("Flexbox")).toBeInTheDocument();
+  });
+});
+```
+
+## Resumo
+
+- **Testes de integração** verificam que múltiplas peças funcionam juntas — o que unitários isolados não conseguem capturar.
+- **Três estados de fetch**: loading (fetch pendente), sucesso (dados renderizados), erro (mensagem de erro). Use `findBy*` para esperar o estado assincrono.
+- **`localStorage`**: em jsdom, é uma implementação real. Limpe com `localStorage.clear()` no `beforeEach` para isolar os testes.
+- **Fluxo completo de formulário**: digitar, validar, submeter, verificar callback e estado pós-envio — um teste de integração cobre o fluxo todo.
+- **Quando usar**: quando o valor está na interação entre as peças. Quando a lógica é isolada e complexa, prefira unitários — mais rápidos e mensagens de falha mais precisas.

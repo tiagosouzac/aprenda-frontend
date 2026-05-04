@@ -1,6 +1,234 @@
 ---
 title: "Eventos"
-description: "addEventListener, tipos de evento, objeto event, preventDefault, propagação (capture/bubble) e delegação de eventos."
-comingSoon: true
+description: "addEventListener, o objeto Event, preventDefault e stopPropagation. Bubbling, capturing e delegação de eventos. Implementando toggle de tema, curtidas e barra de progresso."
 order: 12
+hero:
+  titleBefore: "Eventos:"
+  titleAccent: "reagir"
+  titleAfter: "às ações do usuário."
+quiz:
+  - question: "Qual é a diferença entre event.target e event.currentTarget?"
+    options:
+      - "Não há diferença — são sempre o mesmo elemento"
+      - "event.target é sempre o document; event.currentTarget é o elemento clicado"
+      - "event.target é o elemento que originou o evento (onde o usuário clicou); event.currentTarget é o elemento onde o listener está registrado"
+      - "event.target existe apenas em eventos de teclado; event.currentTarget em eventos de mouse"
+    correct: 2
+  - question: "O que event.preventDefault() faz em um formulário?"
+    options:
+      - "Remove o formulário da página"
+      - "Limpa todos os campos do formulário"
+      - "Valida os campos antes de enviar"
+      - "Impede o comportamento padrão do navegador — no caso de formulário, impede o envio da página (reload)"
+    correct: 3
+  - question: "Por que delegação de eventos é eficiente para listas dinâmicas?"
+    options:
+      - "Porque um listener no pai é mais rápido que N listeners nos filhos"
+      - "Porque elementos criados dinamicamente não existiam quando os listeners foram registrados — um listener no pai captura eventos de filhos presentes e futuros via bubbling"
+      - "Porque event.target não está disponível em listeners individuais"
+      - "Porque delegação funciona apenas com eventos de clique"
+    correct: 1
+  - question: "O que window.addEventListener('scroll', handler) permite fazer?"
+    options:
+      - "Detectar quando a página é rolada e reagir — como calcular o progresso de leitura"
+      - "Detectar o scroll do mouse sobre qualquer elemento"
+      - "Criar um scroll suave automaticamente"
+      - "Bloquear o scroll do usuário"
+    correct: 0
 ---
+
+Eventos são sinais de que algo aconteceu — o usuário clicou, digitou, rolou a página, o documento terminou de carregar. O navegador emite esses sinais continuamente; o JavaScript pode registrar *listeners* para reagir quando um evento específico ocorre em um elemento específico.
+
+## `addEventListener`
+
+A forma correta de reagir a eventos é `addEventListener`. Você chama o método no elemento alvo, passa o tipo de evento como string e uma função handler que será chamada quando o evento ocorrer:
+
+```js title="addEventListener — registrar o toggle de tema."
+const botaoTema = document.getElementById("botao-tema");
+
+// função nomeada — pode ser removida depois com removeEventListener
+function alternarTema() {
+  document.documentElement.classList.toggle("dark");
+}
+
+botaoTema.addEventListener("click", alternarTema);
+
+// remover um listener — precisa da mesma referência de função
+// botaoTema.removeEventListener("click", alternarTema);
+
+// também aceita arrow function inline — mas não pode ser removida depois
+botaoTema.addEventListener("click", () => {
+  console.log("tema alternado");
+});
+```
+
+Por que `addEventListener` em vez de `element.onclick = fn`? Com `onclick`, você só pode ter uma função por vez — atribuir novamente substitui a anterior. Com `addEventListener`, você pode registrar múltiplos handlers para o mesmo evento.
+
+Tipos de evento comuns: `"click"`, `"keydown"`, `"keyup"`, `"input"`, `"change"`, `"submit"`, `"scroll"`, `"focus"`, `"blur"`, `"mouseenter"`, `"mouseleave"`, `"DOMContentLoaded"`.
+
+## O objeto `Event`
+
+Todo handler recebe automaticamente um objeto `Event` como primeiro argumento. Ele contém informações sobre o evento e métodos para controlá-lo.
+
+**`event.target`** é o elemento que originou o evento — onde o usuário clicou de fato. **`event.currentTarget`** é o elemento onde o listener está registrado. Em um listener direto no botão clicado, os dois são iguais. Em delegação (listener no pai), `target` é o filho clicado e `currentTarget` é o pai.
+
+**`event.type`** é o tipo do evento como string: `"click"`, `"keydown"`.
+
+**`event.preventDefault()`** impede o comportamento padrão do navegador para aquele evento. Em um link, impede a navegação. Em um formulário, impede o envio que recarregaria a página. Em um `keydown`, impede a digitação do caractere.
+
+**`event.stopPropagation()`** impede o bubble — o evento para de subir pela árvore. Use com cautela: interrompe todos os listeners nos ancestrais, incluindo os que você não controla.
+
+```js title="O objeto Event — preventDefault no formulário e leitura de event.target."
+const formContato = document.getElementById("form-contato");
+
+formContato.addEventListener("submit", (event) => {
+  // impede o reload da página — comportamento padrão do submit
+  event.preventDefault();
+
+  // ler os dados do formulário via event.target
+  const form = event.target;
+  const nome = form.querySelector("#nome").value;
+  const email = form.querySelector("#email").value;
+  const mensagem = form.querySelector("#mensagem").value;
+
+  // validar e enviar via fetch (lição 15)
+  enviarFormulario({ nome, email, mensagem });
+});
+
+// keydown — capturar o que o usuário digitou
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") fecharModal();
+  if (event.key === "Enter" && event.ctrlKey) enviarFormulario();
+  // event.key: "a", "Enter", "Escape", "ArrowUp", " " (espaço)
+  // event.ctrlKey, event.shiftKey, event.altKey: modificadores
+});
+```
+
+## Propagação — bubbling e capturing
+
+Quando um evento ocorre em um elemento, ele não fica naquele elemento — ele se **propaga**. A propagação tem duas fases:
+
+**Capturing** (descida): o evento desce do `document` até o elemento alvo. Por padrão, listeners não ouvem nessa fase.
+
+**Bubbling** (subida): o evento sobe do elemento alvo de volta ao `document`. É o comportamento padrão — a razão pela qual um clique num `<span>` dentro de um `<button>` também aciona o listener no `<button>`.
+
+Esse comportamento é o fundamento da delegação de eventos.
+
+```js title="Bubbling — ver a ordem dos listeners ao clicar no elemento interno."
+const lista = document.getElementById("lista-artigos");
+const card = document.querySelector(".card-artigo");
+const titulo = card.querySelector("h2");
+
+lista.addEventListener("click", () => console.log("lista"));
+card.addEventListener("click", () => console.log("card"));
+titulo.addEventListener("click", () => console.log("título"));
+
+// ao clicar no <h2>:
+// → "título" (target)
+// → "card"   (bubble)
+// → "lista"  (bubble)
+```
+
+## Delegação de eventos
+
+Delegação é a técnica de registrar um único listener em um elemento pai e usar `event.target` para identificar qual filho originou o evento. Dois motivos para usar:
+
+Eficiência: um listener no pai em vez de N listeners em N filhos. Para listas com dezenas de cards, a diferença é significativa.
+
+Dinamismo: elementos criados dinamicamente depois do listener ser registrado ainda são capturados — porque o evento bubble até o pai onde o listener está.
+
+**`event.target.closest(seletor)`** é a chave: ele verifica se o clique foi dentro de um elemento que corresponde ao seletor, subindo pela árvore se necessário.
+
+```js title="Delegação — um listener para curtir qualquer card da lista."
+const lista = document.getElementById("lista-artigos");
+
+lista.addEventListener("click", (event) => {
+  // verificar se o clique foi em (ou dentro de) um botão de curtir
+  const botaoCurtir = event.target.closest(".botao-curtir");
+  if (!botaoCurtir) return; // clique fora do botão — ignorar
+
+  // ler o id do artigo a partir do data attribute do card pai
+  const card = botaoCurtir.closest("[data-id]");
+  const artigoId = parseInt(card.dataset.id);
+
+  curtir(artigoId, botaoCurtir);
+});
+
+function curtir(artigoId, botao) {
+  const curtidos = JSON.parse(localStorage.getItem("curtidos")) ?? [];
+  const jaCurtiu = curtidos.includes(artigoId);
+
+  if (jaCurtiu) {
+    // descurtir
+    const novos = curtidos.filter(id => id !== artigoId);
+    localStorage.setItem("curtidos", JSON.stringify(novos));
+    botao.textContent = "🤍 Curtir";
+    botao.setAttribute("aria-pressed", "false");
+  } else {
+    // curtir
+    curtidos.push(artigoId);
+    localStorage.setItem("curtidos", JSON.stringify(curtidos));
+    botao.textContent = "❤️ Curtido";
+    botao.setAttribute("aria-pressed", "true");
+  }
+}
+```
+
+## Implementando as funcionalidades
+
+Com os conceitos desta e das lições anteriores, você tem o suficiente para implementar as três funcionalidades síncronas do blog:
+
+```js title="script.js — toggle de tema, curtidas e barra de progresso."
+// ============================================================
+// 1. TOGGLE DE TEMA
+// ============================================================
+const botaoTema = document.getElementById("botao-tema");
+
+function aplicarTema(tema) {
+  if (tema === "dark") {
+    document.documentElement.classList.add("dark");
+    document.documentElement.setAttribute("data-theme", "dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+    document.documentElement.removeAttribute("data-theme");
+  }
+}
+
+// restaurar tema salvo ao carregar
+aplicarTema(localStorage.getItem("tema") ?? "claro");
+
+botaoTema.addEventListener("click", () => {
+  const temaDark = document.documentElement.classList.contains("dark");
+  const novoTema = temaDark ? "claro" : "dark";
+  aplicarTema(novoTema);
+  localStorage.setItem("tema", novoTema);
+});
+
+// ============================================================
+// 2. BARRA DE PROGRESSO DE LEITURA
+// ============================================================
+const barraProgresso = document.getElementById("barra-progresso");
+const conteudo = document.querySelector(".conteudo-artigo");
+
+window.addEventListener("scroll", () => {
+  if (!barraProgresso || !conteudo) return;
+
+  const scrollAtual = window.scrollY;
+  const alturaTotal = conteudo.offsetHeight;
+  const alturaVisivel = window.innerHeight;
+  const scrollMaximo = alturaTotal - alturaVisivel;
+
+  const progresso = Math.min((scrollAtual / scrollMaximo) * 100, 100);
+  barraProgresso.style.width = `${progresso}%`;
+});
+```
+
+## Resumo
+
+- **`addEventListener(tipo, handler)`** registra uma função para reagir a eventos. Aceita múltiplos handlers para o mesmo evento.
+- O objeto **`Event`** passado ao handler: `target` (elemento que originou), `currentTarget` (onde o listener está), `type`, `key`, `ctrlKey`. `preventDefault()` cancela o comportamento padrão. `stopPropagation()` interrompe o bubble.
+- **Bubbling**: eventos sobem do elemento alvo até o `document`. É por isso que um clique num filho aciona listeners dos pais.
+- **Delegação**: listener no pai usa `event.target.closest(seletor)` para identificar o filho que originou o evento — eficiente e funciona com elementos criados dinamicamente.
+- `window.addEventListener("scroll", handler)` reage ao scroll da página — base da barra de progresso de leitura.
+
+As três próximas aulas mudam o tema: saem dos eventos síncronos e entram no modelo assíncrono. A próxima apresenta Promises — o objeto que representa uma operação que vai concluir no futuro.

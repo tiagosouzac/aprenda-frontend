@@ -1,6 +1,266 @@
 ---
 title: "Eventos em React"
-description: "onClick, onChange, onSubmit. Tipos de evento sintético, formulários controlados vs. não controlados."
-comingSoon: true
+description: "Eventos sintéticos, onClick, onChange, onSubmit. Formulários controlados e não controlados. useRef para acesso direto ao DOM."
 order: 9
+hero:
+  titleBefore: "Eventos"
+  titleAccent: "em React"
+  titleAfter: "— interação com o usuário."
+quiz:
+  - question: "O que é um SyntheticEvent no React?"
+    options:
+      - "O wrapper do React em torno dos eventos nativos do browser — mesma API, mas normalizado para funcionar de forma consistente em todos os browsers. Permite que React gerencie a delegação de eventos internamente"
+      - "Um evento criado manualmente com new Event()"
+      - "Um evento que não tem equivalente no DOM padrão"
+      - "Um evento que só dispara em componentes de classe"
+    correct: 0
+  - question: "Qual é a diferença entre um formulário controlado e um não controlado?"
+    options:
+      - "Controlado usa HTML nativo; não controlado usa React"
+      - "Formulários controlados são mais performáticos"
+      - "No formulário controlado, o valor do input é controlado pelo estado React (value + onChange). No não controlado, o DOM gerencia o valor — React acessa via ref quando precisar"
+      - "Formulários não controlados não funcionam com TypeScript"
+    correct: 2
+  - question: "Por que event.preventDefault() é necessário em onSubmit de formulário?"
+    options:
+      - "Para impedir que outros handlers de evento sejam chamados"
+      - "Para garantir que o estado seja atualizado antes do envio"
+      - "Para que o TypeScript consiga tipar o evento corretamente"
+      - "Por padrão, o submit de formulário causa um recarregamento da página (comportamento do HTML). preventDefault() cancela esse comportamento padrão do browser, permitindo que React processe o evento no cliente"
+    correct: 3
+  - question: "Quando faz sentido usar useRef em vez de um input controlado?"
+    options:
+      - "Sempre que possível — useRef é mais performático"
+      - "Para foco programático, integração com bibliotecas DOM que manipulam o input diretamente, ou formulários muito simples onde você só precisa do valor no submit. Para validação em tempo real e resetar valores, prefira controlado"
+      - "useRef e inputs controlados são equivalentes — é só preferência"
+      - "useRef não funciona com inputs de texto"
+    correct: 1
 ---
+
+React usa um sistema de eventos próprio chamado **SyntheticEvent** — um wrapper sobre os eventos nativos do browser com a mesma API, mas normalizado para funcionar de forma consistente em todos os browsers. Na prática, a diferença é invisível: `event.target`, `event.preventDefault()`, `event.currentTarget` funcionam exatamente como você espera.
+
+## Eventos sintéticos
+
+Os manipuladores de evento em React são atributos JSX em camelCase — `onClick`, `onChange`, `onKeyDown`, `onFocus`, `onBlur`. Eles recebem uma função, não uma string como em HTML:
+
+```tsx title="onClick — o evento mais comum."
+export function LikeButton({ onCurtir }: { onCurtir: () => void }) {
+  return (
+    <button
+      className="botao-curtir"
+      onClick={onCurtir}           // passa a função — não chama aqui
+    >
+      Curtir
+    </button>
+  );
+}
+
+// quando você precisa de lógica extra antes de chamar o callback
+export function LikeButtonComLog({ artigoId, onCurtir }: LikeButtonComLogProps) {
+  function handleClick(event: React.MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation(); // evita que o clique propague para o card
+    console.log("curtindo artigo", artigoId);
+    onCurtir(artigoId);
+  }
+
+  return (
+    <button className="botao-curtir" onClick={handleClick}>
+      Curtir
+    </button>
+  );
+}
+```
+
+Nunca passe a chamada `onClick={onCurtir()}` — isso chama a função **na hora da renderização**, não quando o usuário clica. A função é passada como referência: `onClick={onCurtir}` ou `onClick={() => onCurtir(artigoId)}`.
+
+Os tipos de evento são genéricos sobre o elemento HTML:
+
+```tsx title="Tipos de evento — elemento determina o tipo."
+// MouseEvent<HTMLButtonElement> — clique em botão
+function handleClick(event: React.MouseEvent<HTMLButtonElement>) {}
+
+// ChangeEvent<HTMLInputElement> — mudança em input de texto
+function handleChange(event: React.ChangeEvent<HTMLInputElement>) {}
+
+// FormEvent<HTMLFormElement> — submit de formulário
+function handleSubmit(event: React.FormEvent<HTMLFormElement>) {}
+
+// KeyboardEvent<HTMLInputElement> — tecla pressionada em input
+function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {}
+```
+
+## Formulários controlados
+
+Em um formulário **controlado**, o valor de cada input é controlado pelo estado React. O estado é a única fonte da verdade — o DOM reflete o estado, nunca o contrário:
+
+```tsx title="Formulário controlado — estado como fonte da verdade."
+import { useState } from "react";
+
+interface NewsletterFormProps {
+  onSubmit: (email: string) => void;
+}
+
+export function NewsletterForm({ onSubmit }: NewsletterFormProps) {
+  const [email, setEmail] = useState("");
+  const [enviado, setEnviado] = useState(false);
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault(); // cancela o recarregamento da página
+    onSubmit(email);
+    setEnviado(true);
+    setEmail("");           // resetar o campo — simples com estado controlado
+  }
+
+  if (enviado) {
+    return <p>Obrigado por se inscrever!</p>;
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="form-newsletter">
+      <label htmlFor="email-newsletter">E-mail</label>
+      <input
+        id="email-newsletter"
+        type="email"
+        value={email}           // value vincula ao estado
+        onChange={e => setEmail(e.target.value)}  // onChange atualiza o estado
+        placeholder="seu@email.com"
+        required
+      />
+      <button type="submit" disabled={!email}>
+        Inscrever
+      </button>
+    </form>
+  );
+}
+```
+
+A sequência é: usuário digita → `onChange` dispara → `setEmail` atualiza o estado → React re-renderiza → `value` reflete o novo estado. O input nunca tem um valor "próprio" — ele apenas exibe o que o estado diz.
+
+A vantagem do formulário controlado é que o estado está sempre disponível — você pode validar em tempo real, desabilitar botões baseado no valor, ou resetar o formulário com um simples `setEmail("")`.
+
+## Formulários controlados com múltiplos campos
+
+Para formulários com vários campos, agrupe o estado em um objeto:
+
+```tsx title="Formulário de contato — múltiplos campos com objeto de estado."
+interface FormContato {
+  nome: string;
+  email: string;
+  mensagem: string;
+}
+
+export function FormContato() {
+  const [form, setForm] = useState<FormContato>({
+    nome: "",
+    email: "",
+    mensagem: "",
+  });
+  const [erro, setErro] = useState<string | null>(null);
+
+  function handleChange(
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) {
+    const { name, value } = event.target;
+    // spread para não perder os outros campos
+    setForm(prev => ({ ...prev, [name]: value }));
+  }
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!form.nome || !form.email || !form.mensagem) {
+      setErro("Preencha todos os campos.");
+      return;
+    }
+    setErro(null);
+    // enviar form.nome, form.email, form.mensagem
+    console.log("enviando", form);
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {erro && <p className="erro">{erro}</p>}
+
+      <label htmlFor="nome">Nome</label>
+      <input id="nome" name="nome" value={form.nome} onChange={handleChange} />
+
+      <label htmlFor="email">E-mail</label>
+      <input id="email" name="email" type="email" value={form.email} onChange={handleChange} />
+
+      <label htmlFor="mensagem">Mensagem</label>
+      <textarea id="mensagem" name="mensagem" value={form.mensagem} onChange={handleChange} />
+
+      <button type="submit">Enviar</button>
+    </form>
+  );
+}
+```
+
+A chave é o atributo `name` do campo — `event.target.name` retorna `"nome"`, `"email"` ou `"mensagem"`, permitindo que um único handler atualize o campo correto via `[name]: value`.
+
+## Formulários não controlados e `useRef`
+
+Em um formulário **não controlado**, o DOM gerencia o valor do input. React acessa o valor via `useRef` quando precisar — geralmente no submit:
+
+```tsx title="useRef — acesso ao valor no submit sem estado intermediário."
+import { useRef } from "react";
+
+export function SearchForm({ onBuscar }: { onBuscar: (query: string) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    // acessa o valor atual do input via ref
+    if (inputRef.current) {
+      onBuscar(inputRef.current.value);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="form-busca">
+      <input
+        ref={inputRef}
+        type="search"
+        placeholder="Buscar artigos..."
+        defaultValue=""     // defaultValue em vez de value — não controlado
+      />
+      <button type="submit">Buscar</button>
+    </form>
+  );
+}
+```
+
+`useRef` cria uma referência que **persiste entre renders sem causar re-renderização**. `inputRef.current` aponta para o nó do DOM após a montagem. Use `defaultValue` (não `value`) para inputs não controlados — `value` tornaria o input controlado.
+
+`useRef` também é útil para foco programático — por exemplo, focar o campo de busca ao abrir um modal:
+
+```tsx title="Foco programático com useRef."
+import { useRef, useEffect } from "react";
+
+export function ModalBusca({ aberto }: { aberto: boolean }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (aberto && inputRef.current) {
+      inputRef.current.focus(); // foca o input quando o modal abre
+    }
+  }, [aberto]);
+
+  if (!aberto) return null;
+
+  return (
+    <div className="modal-busca" role="dialog" aria-modal="true">
+      <input ref={inputRef} type="search" placeholder="Buscar..." />
+    </div>
+  );
+}
+```
+
+## Resumo
+
+- **Eventos em React** são `onClick`, `onChange`, `onSubmit` — camelCase, recebem uma função (não uma chamada).
+- **SyntheticEvent**: wrapper do React sobre eventos nativos. Mesma API — `event.target`, `event.preventDefault()`, `event.stopPropagation()`.
+- **Formulários controlados**: `value={estado}` + `onChange` → estado como fonte da verdade. Fácil de validar, resetar e ler a qualquer momento.
+- **`event.preventDefault()`** no `onSubmit` cancela o recarregamento padrão do browser.
+- **Múltiplos campos**: agrupe em objeto de estado. Use `name` no input e `[event.target.name]: value` no handler.
+- **`useRef`**: referência ao nó do DOM, persiste entre renders sem causar re-render. Use para foco programático, inputs não controlados ou integração com bibliotecas DOM.
+- **Quando usar não controlado**: submit simples, integração com lib DOM, ou foco. Para validação em tempo real, prefira controlado.

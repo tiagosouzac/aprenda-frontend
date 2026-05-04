@@ -1,6 +1,234 @@
 ---
 title: "Texto e conteúdo"
-description: "Cabeçalhos h1 a h6, parágrafos, ênfase, listas ordenadas e não ordenadas, citações, código inline e quebras de linha."
-comingSoon: true
+description: "Cabeçalhos, parágrafos, ênfase, listas, citações, código inline e quebras de linha — os elementos que constroem o corpo do artigo."
 order: 4
+hero:
+  titleBefore: "Texto e"
+  titleAccent: "conteúdo"
+  titleAfter: "em HTML."
+quiz:
+  - question: "Quantos elementos h1 uma página deve ter?"
+    options:
+      - "Nenhum — h1 é obsoleto no HTML5"
+      - "Tantos quantos forem necessários para o conteúdo"
+      - "Um único, representando o título principal do documento"
+      - "Dois: um no header e um no body"
+    correct: 2
+  - question: "Qual é o uso correto de br?"
+    options:
+      - "Criar espaço vertical entre parágrafos"
+      - "Separar seções diferentes do conteúdo"
+      - "Substituir o elemento p em textos curtos"
+      - "Inserir uma quebra de linha onde ela faz parte do conteúdo, como em endereços ou poesia"
+    correct: 3
+  - question: "Qual é a diferença semântica entre strong e b?"
+    options:
+      - "Não há diferença — os dois deixam o texto em negrito"
+      - "strong indica importância semântica; b é apenas estilístico, sem semântica"
+      - "b é para palavras; strong é para frases inteiras"
+      - "strong funciona sem CSS; b precisa de CSS para ter efeito"
+    correct: 1
+  - question: "Qual elemento representa uma lista de itens sem ordem definida?"
+    options:
+      - "ul"
+      - "ol"
+      - "dl"
+      - "li"
+    correct: 0
 ---
+
+Com a estrutura de `artigo.html` pronta, é hora de começar a preencher o conteúdo. O post "Meu primeiro projeto web" tem título, subtítulos, parágrafos explicando o que foi construído, uma lista de aprendizados, um bloco de código de exemplo e uma citação de um livro. Cada um desses pedaços de conteúdo tem um elemento HTML específico — e escolher o correto importa por razões de acessibilidade, SEO e manutenibilidade.
+
+Esta lição cobre os elementos de conteúdo textual: cabeçalhos, parágrafos, ênfase, listas, citações e código.
+
+## Cabeçalhos
+
+HTML tem seis níveis de cabeçalho, de `<h1>` a `<h6>`. Eles formam uma hierarquia — `<h1>` é o título principal, `<h2>` são seções principais, `<h3>` são subseções dentro das seções, e assim por diante.
+
+A regra mais importante: **uma página deve ter um único `<h1>`**. O `<h1>` é o título do documento — o que o navegador, o Google e os leitores de tela entendem como o assunto principal. Dois `<h1>` na mesma página criam ambiguidade: qual é o título de verdade?
+
+A hierarquia deve ser lógica e nunca pular níveis. Se depois de um `<h2>` você precisar de um subcabeçalho, use `<h3>` — não pule para `<h4>` ou `<h5>` só porque visualmente ficaria menor. O tamanho visual é trabalho do CSS, não do HTML.
+
+```html title="Hierarquia de cabeçalhos em artigo.html — um único h1, h2 para seções."
+<!-- h1: título principal do artigo — único na página -->
+<h1>Meu primeiro projeto web</h1>
+
+<!-- h2: seções principais do artigo -->
+<h2>O que eu construí</h2>
+
+<h2>O que aprendi no processo</h2>
+
+<!-- h3: subseção dentro de uma seção h2 -->
+<h3>HTML e estrutura</h3>
+<h3>CSS e layout</h3>
+```
+
+Leitores de tela permitem que usuários naveguem por cabeçalhos — é como um índice navegável da página. Se a hierarquia estiver errada ou pulando níveis, a navegação fica confusa. Mecanismos de busca usam os cabeçalhos para entender a organização do conteúdo e atribuir relevância a cada seção.
+
+## Parágrafos e quebras
+
+O `<p>` — *paragraph* — é o elemento básico de texto. Cada bloco de texto que forma uma ideia completa deve estar em seu próprio `<p>`. O navegador adiciona espaço vertical entre parágrafos automaticamente por padrão, mas a quantidade de espaço é controlada pelo CSS.
+
+```html title="Parágrafos do artigo — cada ideia em seu próprio p."
+<p>
+  Depois de três semanas estudando HTML, CSS e um pouco de JavaScript, consegui
+  publicar meu primeiro site. Não é o projeto mais bonito do mundo, mas funciona —
+  e isso é o que importa nesse momento.
+</p>
+
+<p>
+  O processo foi mais trabalhoso do que eu esperava. Cada vez que algo não
+  aparecia como eu queria, precisava investigar se o problema era no HTML, no
+  CSS ou em alguma configuração que eu tinha esquecido.
+</p>
+```
+
+O elemento `<br>` insere uma quebra de linha dentro do fluxo do texto. Mas ele tem um uso muito específico — quebras de linha que fazem parte do **conteúdo em si**, não espaçamento visual. Endereços postais e poesia são os exemplos clássicos:
+
+```html title="br tem uso legítimo quando a quebra de linha é parte do conteúdo."
+<!-- endereço: a quebra de linha é semanticamente correta aqui -->
+<address>
+  artigo.dev<br />
+  São Paulo, SP<br />
+  Brasil
+</address>
+
+<!-- poesia: a quebra é parte da estrutura do poema -->
+<p>
+  Código que funciona<br />
+  é melhor que código perfeito<br />
+  que ainda não existe.
+</p>
+```
+
+O que **não** fazer é usar `<br>` para criar espaço entre parágrafos ou seções. `<br><br>` para criar "espaço extra" é um erro comum — o espaço entre elementos é trabalho do CSS, com `margin` ou `padding`. O `<br>` representa uma quebra de linha no conteúdo, não um mecanismo de espaçamento.
+
+## Ênfase e importância
+
+Quando você escreve em Markdown ou num processador de texto, negrito e itálico são decisões visuais. Em HTML, existem dois pares de elementos distintos — um com semântica, outro sem.
+
+**`<strong>`** marca texto com **importância semântica**. Use quando o conteúdo é crítico — um aviso, um dado chave, algo que o leitor absolutamente precisa notar. Leitores de tela podem dar mais ênfase a conteúdo marcado com `<strong>`. Visualmente, o padrão do navegador é negrito.
+
+**`<em>`** marca texto com **ênfase de entonação** — a palavra que você diria com mais força em uma fala. Leitores de tela podem mudar a entonação para refletir isso. Visualmente, o padrão é itálico.
+
+**`<b>`** e **`<i>`** são puramente estilísticos — negrito e itálico sem nenhuma semântica adicional. Use-os quando o efeito visual é desejado mas `<strong>` e `<em>` não se aplicam: nomes de produtos em itálico, palavras-chave em negrito sem implicação de importância.
+
+```html title="strong e em no artigo — ênfase com significado."
+<p>
+  O projeto levou três semanas, mas o aprendizado mais importante aconteceu
+  nos <strong>primeiros três dias</strong>: entender a diferença entre HTML,
+  CSS e JavaScript mudou como eu enxergo qualquer página.
+</p>
+
+<p>
+  Quando digo que o projeto <em>funciona</em>, quero dizer que qualquer pessoa
+  consegue acessar, ler e usar — não apenas que o código compila.
+</p>
+```
+
+A regra prática: se a ênfase carrega significado que um leitor de tela precisa transmitir, use `<strong>` ou `<em>`. Se é apenas visual, `<b>` ou `<i>` — ou melhor ainda, CSS.
+
+## Listas
+
+Listas são uma das estruturas de conteúdo mais comuns. HTML tem três tipos, cada um para um propósito diferente.
+
+**`<ul>`** (*unordered list*) é para itens sem ordem definida — a ordem não muda o significado. O marcador padrão é um bullet. Cada item fica dentro de um `<li>`:
+
+```html title="Lista de aprendizados do artigo — itens sem ordem de importância."
+<h2>O que aprendi</h2>
+<ul>
+  <li>HTML define estrutura, CSS define aparência</li>
+  <li>Semântica importa para acessibilidade e SEO</li>
+  <li>Ferramentas do desenvolvedor são indispensáveis para depurar</li>
+  <li>Deploy é mais simples do que eu imaginava</li>
+</ul>
+```
+
+**`<ol>`** (*ordered list*) é para itens em sequência — a ordem importa. O marcador padrão é um número. Use quando os passos precisam ser seguidos naquele exato orden:
+
+```html title="Lista numerada para passos que precisam ser seguidos em sequência."
+<h3>Como publiquei o site</h3>
+<ol>
+  <li>Criei o repositório no GitHub</li>
+  <li>Commitei os arquivos HTML e CSS</li>
+  <li>Conectei o repositório ao Netlify</li>
+  <li>Configurei o domínio personalizado</li>
+</ol>
+```
+
+**`<dl>`** (*description list*) é para pares de termo e definição. `<dt>` (*description term*) marca o termo; `<dd>` (*description details*) marca a definição. É o elemento certo para glossários e metadados:
+
+```html title="Lista de definições para termos técnicos mencionados no artigo."
+<dl>
+  <dt>HTML</dt>
+  <dd>Linguagem de marcação que define a estrutura de uma página web.</dd>
+
+  <dt>CSS</dt>
+  <dd>Linguagem de estilo que controla a aparência dos elementos HTML.</dd>
+
+  <dt>Deploy</dt>
+  <dd>Processo de publicar um projeto em um servidor acessível pela internet.</dd>
+</dl>
+```
+
+## Citações e código
+
+O artigo "Meu primeiro projeto web" menciona um livro e contém um bloco de código de exemplo. HTML tem elementos específicos para ambos.
+
+**`<blockquote>`** marca uma citação longa, em bloco — um trecho de outra fonte reproduzido no documento. O atributo `cite` recebe a URL da fonte original (não é exibido visualmente, mas é útil para ferramentas e robôs):
+
+```html title="Citação de livro técnico com blockquote e cite."
+<blockquote cite="https://eloquentjavascript.net">
+  <p>
+    "Abaixo da superfície do programa, o programa se move. Sem esforço,
+    ele se expande e se contrai. Em grande harmonia, os elétrons se dispersam
+    e se reagrupam."
+  </p>
+  <footer>
+    — Marijn Haverbeke, <cite>Eloquent JavaScript</cite>
+  </footer>
+</blockquote>
+```
+
+Note o `<cite>` dentro do `<footer>` da citação — ele marca o título da obra, não o autor. O `<footer>` dentro de um `<blockquote>` é a forma semântica de atribuir a citação.
+
+Para código, HTML tem três elementos que trabalham juntos:
+
+**`<code>`** marca código inline — um trecho de código dentro de um parágrafo de texto. Visualmente, a maioria dos navegadores usa fonte monoespaçada por padrão.
+
+**`<pre>`** (*preformatted*) preserva espaços e quebras de linha exatamente como foram escritos no HTML. Normalmente o HTML ignora múltiplos espaços e quebras de linha, colapsando tudo em um espaço. O `<pre>` desativa esse comportamento.
+
+A combinação `<pre><code>` é o padrão para blocos de código multi-linha:
+
+```html title="Bloco de código de exemplo dentro do artigo — pre preserva a formatação."
+<p>
+  O primeiro código que escrevi foi um simples
+  <code>console.log</code> para testar se o JavaScript estava funcionando.
+</p>
+
+<p>Depois evoluí para uma função completa:</p>
+
+<pre><code>function saudar(nome) {
+  const mensagem = "Olá, " + nome + "!";
+  console.log(mensagem);
+}
+
+saudar("mundo"); // Olá, mundo!</code></pre>
+```
+
+O `<kbd>` (*keyboard*) é um elemento menos conhecido mas útil: ele marca teclas do teclado. Útil em tutoriais e documentação:
+
+```html title="kbd marca atalhos de teclado em texto de instrução."
+<p>
+  Para abrir o devtools, pressione <kbd>F12</kbd> no Windows
+  ou <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>I</kbd> no Mac.
+</p>
+```
+
+## Resumo
+
+- Cabeçalhos vão de `<h1>` a `<h6>`; uma página deve ter um único `<h1>` e a hierarquia deve ser lógica, sem pular níveis.
+- `<p>` é a unidade básica de texto; `<br>` tem uso legítimo apenas quando a quebra de linha é parte do conteúdo (endereços, poesia) — nunca para espaçamento.
+- `<strong>` e `<em>` têm semântica — importância e ênfase de entonação; `<b>` e `<i>` são puramente estilísticos.
+- `<ul>` para listas sem ordem, `<ol>` para listas ordenadas (a ordem importa), `<dl>` para pares de termo e definição.
+- `<blockquote>` para citações em bloco; `<pre><code>` para blocos de código; `<code>` para código inline; `<cite>` para títulos de obras.

@@ -1,6 +1,177 @@
 ---
 title: "CSS em geral"
-description: "O que é CSS, como ele se conecta ao HTML (inline, style, link) e por que separar conteúdo de aparência."
-comingSoon: true
+description: "O que é CSS, por que a separação de aparência e conteúdo existe, a anatomia de uma regra e como conectar o arquivo ao HTML."
 order: 1
+hero:
+  titleBefore: "CSS:"
+  titleAccent: "aparência"
+  titleAfter: "separada do conteúdo."
+quiz:
+  - question: "O que significa a sigla CSS?"
+    options:
+      - "Cascading Style Sheets"
+      - "Content Style Sheets"
+      - "Computer Style System"
+      - "Cascading Structure Syntax"
+    correct: 0
+  - question: "Qual é a forma recomendada de conectar CSS ao HTML em projetos reais?"
+    options:
+      - "Atributo style em cada elemento HTML"
+      - "Tag style no body"
+      - "Link rel='stylesheet' no head apontando para um arquivo externo"
+      - "Importar o CSS pelo JavaScript"
+    correct: 2
+  - question: "O que é uma declaração CSS?"
+    options:
+      - "O seletor que aponta para um elemento"
+      - "O arquivo .css inteiro"
+      - "Um comentário que explica a regra"
+      - "Um par propriedade: valor terminado com ponto e vírgula"
+    correct: 3
+  - question: "Por que o link para o arquivo CSS vai no head e não no final do body?"
+    options:
+      - "É apenas uma convenção sem impacto real"
+      - "Para que o CSS esteja pronto antes do body ser renderizado, evitando flash de conteúdo sem estilo"
+      - "Porque o JavaScript precisa que o CSS esteja carregado primeiro"
+      - "Para melhorar o SEO da página"
+    correct: 1
 ---
+
+`artigo.html` existe e funciona. A estrutura está correta, o conteúdo está marcado semanticamente, o formulário está no lugar. Mas tudo é preto e branco com a tipografia padrão do navegador — o visual que o navegador aplica por conta própria quando não há nenhum CSS.
+
+Este módulo muda isso. Você vai criar `estilos.css`, linkar ao HTML, e lição por lição transformar o documento em um blog legível, com tipografia cuidadosa, layout estruturado e suporte a tema escuro. Esta primeira lição cobre o que CSS é, como ele se estrutura e como conectá-lo ao HTML.
+
+## O que é CSS e por que existe
+
+**CSS** significa *Cascading Style Sheets* — Folhas de Estilo em Cascata. É a linguagem que controla a aparência de documentos HTML: cores, fontes, tamanhos, espaçamentos, layout, animações.
+
+Antes do CSS existir, aparência e conteúdo viviam no mesmo lugar. O HTML da época tinha atributos como `bgcolor` para cor de fundo, `<font>` para definir tamanho e família da fonte, `<b>` para negrito e `<center>` para centralizar. Cada página definia seu visual dentro do próprio HTML — o que tornava qualquer mudança de design um pesadelo: para trocar a cor dos títulos de um site inteiro, você percorria cada arquivo HTML e editava cada tag.
+
+O CSS resolve esse problema separando as responsabilidades. O HTML descreve *o que* o conteúdo é; o CSS descreve *como* ele deve parecer. Um único arquivo CSS pode controlar a aparência de centenas de páginas HTML. Mudar a cor primária do site é questão de editar um valor em um único lugar.
+
+A "cascata" do nome não é decorativa — é central ao funcionamento do sistema. Significa que múltiplas fontes de estilo se combinam de forma ordenada: os estilos padrão do navegador, depois os estilos do autor, depois estilos inline no próprio elemento. Dentro de cada camada, regras mais específicas vencem regras mais gerais. A lição 3 entra em detalhes — por agora, o importante é que CSS é intencional e hierárquico.
+
+## A anatomia de uma regra CSS
+
+Uma regra CSS tem duas partes: o **seletor** e o **bloco de declarações**.
+
+O **seletor** define a quais elementos a regra se aplica. Pode ser uma tag (`p`), uma classe (`.artigo-meta`), um id (`#conteudo`), ou combinações mais sofisticadas — assunto da lição 2.
+
+O **bloco de declarações** fica entre chaves `{ }` e contém uma ou mais **declarações**. Cada declaração é um par `propriedade: valor;` — sempre terminando com ponto e vírgula. A propriedade é o que você quer mudar; o valor é como você quer que fique.
+
+```css title="Anatomia de uma regra CSS — seletor, declarações, propriedades e valores."
+/* seletor → bloco de declarações */
+h1 {
+  /* propriedade: valor; */
+  font-size: 2.5rem;
+  color: #0a0a0b;
+  line-height: 1.2;
+}
+
+/* múltiplos seletores separados por vírgula */
+h1,
+h2,
+h3 {
+  font-weight: 700;
+}
+
+/* comentários com /* assim */ */
+p {
+  /* tamanho de linha confortável para leitura */
+  line-height: 1.72;
+}
+```
+
+Você pode ter múltiplas declarações no mesmo bloco — cada uma em sua própria linha, por convenção. Você pode listar múltiplos seletores separados por vírgula quando quer aplicar as mesmas regras a vários elementos. E comentários em CSS usam a sintaxe `/* texto */`.
+
+## Como conectar CSS ao HTML
+
+Há três formas de aplicar CSS a um documento HTML, cada uma com seu lugar:
+
+**CSS inline** é o atributo `style` diretamente em um elemento HTML. Tem a maior especificidade de todas — vence qualquer regra de qualquer arquivo. O problema é que não é reutilizável: o mesmo estilo precisa ser repetido em cada elemento, e qualquer mudança exige editar o HTML. Use apenas para casos extremamente específicos ou para testes rápidos.
+
+```html title="CSS inline — diretamente no elemento, sem reutilização."
+<!-- ❌ evite em projetos reais — difícil de manter -->
+<h1 style="font-size: 2.5rem; color: #0a0a0b;">Meu primeiro projeto web</h1>
+```
+
+**CSS interno** é uma tag `<style>` dentro do `<head>`. É útil para páginas únicas ou para testes rápidos, porque não exige um arquivo separado. Mas o CSS fica preso naquele arquivo HTML — não pode ser compartilhado com outras páginas.
+
+```html title="CSS interno — no head do HTML, sem arquivo separado."
+<head>
+  <style>
+    /* CSS aqui afeta apenas esta página */
+    h1 {
+      font-size: 2.5rem;
+    }
+  </style>
+</head>
+```
+
+**CSS externo** é um arquivo `.css` separado, linkado no `<head>` com `<link rel="stylesheet">`. É o padrão para qualquer projeto com mais de uma página — o mesmo `estilos.css` controla a aparência de todas as páginas que o linkarem.
+
+```html title="CSS externo em artigo.html — link no head apontando para estilos.css."
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Meu primeiro projeto web — artigo.dev</title>
+  <!-- link vai no head para que o CSS carregue antes do body ser renderizado -->
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+```
+
+O `link` vai **no `<head>`**, não no final do `<body>`. A razão é o comportamento do navegador: o CSS bloqueia a renderização — o navegador não pinta nada na tela até ter o CSSOM pronto. Se o link for no final do `<body>`, o HTML é parseado e o usuário vê o conteúdo sem estilo por um instante antes do CSS chegar. Esse fenômeno tem até nome: *FOUC* — *Flash of Unstyled Content*. Colocar o link no `<head>` garante que o CSS esteja pronto antes de qualquer coisa ser pintada.
+
+Crie o arquivo `estilos.css` na mesma pasta de `artigo.html` e adicione as primeiras regras:
+
+```css title="estilos.css — ponto de partida com reset universal e tipografia base."
+/* garante que padding e border não aumentam o tamanho declarado */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* tipografia base legível para o corpo do artigo */
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #0a0a0b;
+  background-color: #ffffff;
+}
+```
+
+A regra `box-sizing: border-box` merece atenção especial — ela está na lição 4, mas é tão fundamental que entra logo no início de praticamente todo projeto CSS moderno. O `*` seleciona todos os elementos (incluindo `::before` e `::after`), e `box-sizing: border-box` muda o modelo de caixa para que `width` e `height` incluam padding e border — um comportamento muito mais intuitivo que o padrão do navegador.
+
+## A cascata em resumo
+
+Quando duas regras CSS diferentes se aplicam ao mesmo elemento para a mesma propriedade, uma precisa ganhar. Essa decisão é governada por três fatores, em ordem de prioridade:
+
+**Origem**: estilos do navegador têm o menor peso. Estilos que você escreve em `estilos.css` têm peso maior. Estilos inline têm peso máximo (exceto `!important`).
+
+**Especificidade**: dentro da mesma origem, a regra mais específica vence. Um seletor com ID é mais específico que um com classe, que é mais específico que um de tag. A lição 3 ensina a calcular isso com precisão.
+
+**Ordem de declaração**: quando duas regras têm exatamente a mesma especificidade, a que aparece por último no código vence. É por isso que a ordem das declarações importa — e por isso que importar um CSS de reset antes do seu próprio CSS faz sentido.
+
+```css title="Demonstração simples de cascata — a última regra de mesma especificidade vence."
+/* ambas as regras têm a mesma especificidade — seletor de tag */
+p {
+  color: gray;
+}
+
+p {
+  /* esta vence por aparecer depois */
+  color: #0a0a0b;
+}
+```
+
+## Resumo
+
+- CSS é a linguagem que controla a aparência de documentos HTML — separada do conteúdo por design, para que um arquivo de estilo possa servir muitas páginas e mudanças de visual sejam centralizadas.
+- Uma regra CSS tem um seletor (que aponta para elementos) e um bloco de declarações (pares de `propriedade: valor;`).
+- CSS externo (`<link rel="stylesheet">` no `<head>`) é o padrão para projetos reais — reutilizável e separado do HTML.
+- O link CSS vai no `<head>` para evitar FOUC — o flash de conteúdo sem estilo que acontece se o CSS chegar depois do body ser parseado.
+- Quando duas regras conflitam, a cascata resolve: origem ganha da mais geral para a mais específica, depois especificidade do seletor, depois ordem de declaração.
+
+A próxima aula aprofunda os seletores — como apontar para elementos por tipo, classe, id, atributo e pseudo-classes para aplicar estilos com precisão.

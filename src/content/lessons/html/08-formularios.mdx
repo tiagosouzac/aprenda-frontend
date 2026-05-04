@@ -1,6 +1,239 @@
 ---
 title: "Formulários"
-description: "form, input e seus tipos, label, select, textarea, button. Validação nativa com required, pattern, minlength e type=email."
-comingSoon: true
+description: "form, input e seus tipos, label, select, textarea e button. Validação nativa do navegador sem JavaScript."
 order: 8
+hero:
+  titleBefore: "Formulários:"
+  titleAccent: "entrada de dados"
+  titleAfter: "do usuário."
+quiz:
+  - question: "Qual é a diferença entre os métodos GET e POST em um formulário?"
+    options:
+      - "GET é mais seguro; POST é mais rápido"
+      - "GET funciona sem JavaScript; POST precisa de JavaScript"
+      - "GET envia os dados na URL; POST os envia no corpo da requisição"
+      - "GET é para formulários simples; POST é para formulários com mais de três campos"
+    correct: 2
+  - question: "Por que o label é essencial em formulários?"
+    options:
+      - "Para estilizar o campo com CSS"
+      - "Para aumentar a área clicável em torno do input"
+      - "Para que o JavaScript consiga encontrar o campo"
+      - "Para associar um texto descritivo ao campo, tornando-o acessível para leitores de tela"
+    correct: 3
+  - question: "O que o atributo required faz em um input?"
+    options:
+      - "Marca o campo como somente leitura"
+      - "Impede o envio do formulário se o campo estiver vazio"
+      - "Aplica um estilo visual de destaque ao campo"
+      - "Pré-preenche o campo com um valor padrão"
+    correct: 1
+  - question: "Qual é a vantagem de usar button type='submit' em vez de input type='submit'?"
+    options:
+      - "Permite ter HTML como conteúdo do botão, como ícones e texto formatado"
+      - "É obrigatório no HTML5"
+      - "Funciona sem JavaScript"
+      - "Envia o formulário mais rapidamente"
+    correct: 0
 ---
+
+O rodapé de `artigo.html` tem um formulário de contato: campo de nome, campo de e-mail, um seletor de assunto, uma área de mensagem e um botão de envio. É um formulário simples, mas cobre os elementos e padrões que você vai usar em praticamente qualquer formulário web.
+
+Formulários são o principal mecanismo de entrada de dados do usuário na web. Saber construí-los corretamente — com labels associados, tipos de input corretos, validação nativa e estrutura semântica — é tão importante quanto qualquer outra parte do HTML.
+
+## A tag `<form>` e seus atributos
+
+**`<form>`** agrupa todos os controles que o usuário preenche e envia juntos. Sem ele, os inputs existem mas não há como enviá-los como um conjunto ao servidor.
+
+Dois atributos definem o comportamento de envio:
+
+**`action`** é a URL para onde os dados são enviados quando o usuário submete o formulário. Se omitido, o formulário submete para a própria URL da página atual.
+
+**`method`** define como os dados são enviados. `GET` coloca os dados na URL como parâmetros de query — útil para buscas, onde você quer que o resultado seja "bookmarkável". `POST` envia os dados no corpo da requisição HTTP, invisíveis na URL — o correto para formulários que modificam dados (contato, login, cadastro):
+
+```html title="Estrutura básica do formulário de contato em artigo.html."
+<!-- method POST: dados no corpo da requisição, não na URL -->
+<form action="/contato" method="POST">
+
+  <!-- campos do formulário vão aqui -->
+
+  <button type="submit">Enviar mensagem</button>
+</form>
+```
+
+Na prática moderna, a maioria dos formulários é tratada por JavaScript, que intercepta o submit, envia os dados via `fetch` e exibe feedback sem recarregar a página. Mas mesmo assim, os atributos `action` e `method` importam como fallback e como documentação do intenção do formulário.
+
+## Inputs e seus tipos
+
+**`<input>`** é o elemento de campo de formulário mais versátil. O atributo `type` define o tipo de dado esperado e muda o comportamento do campo, os controles exibidos e a validação nativa.
+
+**`type="text"`** é o padrão — campo de texto livre de uma linha:
+
+**`type="email"`** exige um endereço de e-mail. Em celulares, abre o teclado com `@` em destaque. O navegador valida o formato antes de permitir o envio.
+
+**`type="password"`** oculta os caracteres enquanto o usuário digita.
+
+**`type="number"`** aceita apenas números. Em celulares, abre o teclado numérico. Suporta `min`, `max` e `step`.
+
+**`type="checkbox"`** cria uma caixa de seleção binária — marcada ou desmarcada.
+
+**`type="radio"`** cria botões de escolha exclusiva. Todos os `radio` com o mesmo `name` formam um grupo — apenas um pode estar selecionado por vez.
+
+**`type="file"`** permite que o usuário selecione um arquivo do computador.
+
+```html title="Campos do formulário de contato com tipos corretos para cada dado."
+<!-- name é o identificador do campo nos dados enviados ao servidor -->
+<input type="text" name="nome" placeholder="Seu nome completo" />
+
+<input type="email" name="email" placeholder="seu@email.com" />
+
+<input type="text" name="site" placeholder="https://seusite.com" />
+```
+
+O atributo `name` é o identificador do campo — é o que aparece como chave nos dados enviados ao servidor. Sem `name`, o campo não é incluído no envio. O `placeholder` é um texto de dica dentro do campo que desaparece quando o usuário começa a digitar — ele não substitui o `<label>`.
+
+## `<label>` e acessibilidade
+
+Todo campo de formulário deve ter um `<label>` — um texto descritivo que identifica o campo para o usuário e para tecnologias assistivas. Um campo sem label é inacessível: leitores de tela não conseguem anunciar o propósito do campo, e clicar no texto do label não foca o campo correspondente.
+
+Há duas formas de associar label e input. A primeira usa os atributos `for` e `id`:
+
+```html title="Label associado por for e id — o clique no label foca o input."
+<label for="nome">Nome completo</label>
+<input type="text" id="nome" name="nome" />
+
+<label for="email">E-mail</label>
+<input type="email" id="email" name="email" />
+```
+
+A segunda envolve o input dentro do label — a associação é implícita:
+
+```html title="Label envolvendo o input — associação implícita, sem necessidade de id."
+<label>
+  E-mail
+  <input type="email" name="email" />
+</label>
+```
+
+Ambas funcionam. A primeira é mais flexível para estilização — permite colocar label e input em posições diferentes na página. A segunda é mais simples quando label e input estão sempre juntos.
+
+Uma dica importante: o `placeholder` não substitui o `<label>`. O placeholder desaparece quando o campo é preenchido, e quem está no meio do preenchimento não sabe mais o que cada campo pede. O label deve estar sempre visível.
+
+## `<select>`, `<textarea>` e `<button>`
+
+**`<select>`** cria uma lista suspensa de opções. Cada opção é um `<option>`. Opções relacionadas podem ser agrupadas com `<optgroup>`:
+
+```html title="Select de assunto com opções agrupadas por categoria."
+<label for="assunto">Assunto</label>
+<select id="assunto" name="assunto">
+  <option value="">Selecione um assunto</option>
+  <optgroup label="Sobre o curso">
+    <option value="duvida-tecnica">Dúvida técnica</option>
+    <option value="sugestao-conteudo">Sugestão de conteúdo</option>
+  </optgroup>
+  <optgroup label="Outros">
+    <option value="parceria">Parceria</option>
+    <option value="outro">Outro</option>
+  </optgroup>
+</select>
+```
+
+**`<textarea>`** cria um campo de texto multi-linha — para mensagens, comentários, qualquer texto longo. Os atributos `rows` e `cols` definem o tamanho inicial visível, mas o usuário pode redimensionar:
+
+```html title="Textarea para a mensagem do formulário de contato."
+<label for="mensagem">Mensagem</label>
+<textarea
+  id="mensagem"
+  name="mensagem"
+  rows="6"
+  placeholder="Escreva sua mensagem aqui..."
+></textarea>
+```
+
+**`<button>`** é o elemento de botão. Com `type="submit"`, envia o formulário. Com `type="button"`, não tem comportamento padrão — é controlado por JavaScript. Com `type="reset"`, limpa todos os campos (use com cuidado — usuários clicam sem querer).
+
+A vantagem do `<button>` sobre `<input type="submit">` é que o conteúdo do `<button>` pode ser HTML completo — um ícone, texto formatado, ou ambos:
+
+```html title="Botão de envio com ícone e texto — possível por ser elemento com conteúdo."
+<button type="submit">
+  Enviar mensagem
+</button>
+
+<!-- reset: use apenas quando faz sentido para o fluxo do formulário -->
+<!-- <button type="reset">Limpar</button> -->
+```
+
+## Validação nativa
+
+O navegador pode validar os campos antes de enviar o formulário, sem nenhuma linha de JavaScript. A validação nativa cobre os casos mais comuns:
+
+**`required`** torna o campo obrigatório. O navegador bloqueia o envio e exibe uma mensagem de erro se o campo estiver vazio.
+
+**`type="email"`** e **`type="url"`** validam o formato automaticamente — o navegador recusa envio se o valor não corresponder ao padrão esperado.
+
+**`minlength`** e **`maxlength`** definem o comprimento mínimo e máximo de texto.
+
+**`min`** e **`max`** definem os limites para campos numéricos e de data.
+
+**`pattern`** aceita uma expressão regular para validação customizada:
+
+```html title="Formulário de contato completo com validação nativa em cada campo."
+<form action="/contato" method="POST">
+
+  <div>
+    <label for="nome-completo">Nome completo</label>
+    <input
+      type="text"
+      id="nome-completo"
+      name="nome"
+      minlength="2"
+      maxlength="100"
+      required
+    />
+  </div>
+
+  <div>
+    <label for="email-contato">E-mail</label>
+    <input
+      type="email"
+      id="email-contato"
+      name="email"
+      required
+    />
+  </div>
+
+  <div>
+    <label for="assunto-contato">Assunto</label>
+    <select id="assunto-contato" name="assunto" required>
+      <option value="">Selecione</option>
+      <option value="duvida">Dúvida técnica</option>
+      <option value="sugestao">Sugestão</option>
+      <option value="outro">Outro</option>
+    </select>
+  </div>
+
+  <div>
+    <label for="mensagem-contato">Mensagem</label>
+    <textarea
+      id="mensagem-contato"
+      name="mensagem"
+      rows="6"
+      minlength="10"
+      required
+    ></textarea>
+  </div>
+
+  <button type="submit">Enviar mensagem</button>
+
+</form>
+```
+
+A validação nativa funciona sem JavaScript, mas tem limitações: a aparência das mensagens de erro varia entre navegadores e não é fácil de estilizar. Em produção, é comum combinar validação nativa (como camada de segurança) com validação em JavaScript (para controle da aparência e feedback em tempo real). Mas para a maioria dos projetos simples, a validação nativa é suficiente e não requer código extra.
+
+## Resumo
+
+- `<form action="..." method="POST">` agrupa os controles; `GET` coloca dados na URL, `POST` os envia no corpo da requisição — use POST para formulários que modificam dados.
+- `<input type="...">` define o tipo de dado: `text`, `email`, `password`, `number`, `checkbox`, `radio`, `file`; o `type` correto ativa teclado otimizado em celulares e validação nativa.
+- Todo input precisa de um `<label>` associado por `for`/`id` ou por envolvimento — o placeholder não substitui o label.
+- `<select>` para listas suspensas, `<textarea>` para texto multi-linha, `<button type="submit">` para envio — prefira `<button>` ao `<input type="submit">` pela flexibilidade de conteúdo.
+- Validação nativa com `required`, `type="email"`, `minlength`, `maxlength` e `pattern` bloqueia envios inválidos sem JavaScript.

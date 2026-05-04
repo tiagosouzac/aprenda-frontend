@@ -1,6 +1,132 @@
 ---
 title: "Caminhos de carreira"
 description: "Frontend, full-stack, UI engineering, DevRel, design engineering. Sinais de que cada caminho pode encaixar."
-comingSoon: true
 order: 11
+hero:
+  titleBefore: "Caminhos"
+  titleAccent: "de carreira"
+  titleAfter: "— o que vem depois."
+quiz:
+  - question: "O que diferencia um UI Engineer de um dev frontend convencional?"
+    options:
+      - "UI Engineers trabalham na interface entre design e engenharia — constroem sistemas de componentes, definem tokens de design, garantem consistência visual em escala, e frequentemente trabalham junto com designers para definir o que é implementável. É uma especialização que valoriza tanto a engenharia quanto o olho para design"
+      - "UI Engineers só trabalham com CSS"
+      - "UI Engineers são mais sêniors que devs frontend"
+      - "UI Engineers não escrevem testes"
+    correct: 0
+  - question: "Por que React + TypeScript é o par mais pedido no mercado de trabalho frontend hoje?"
+    options:
+      - "Porque é a tecnologia mais recente"
+      - "Porque Next.js exige React e TypeScript"
+      - "React ocupa a maior fatia do mercado de trabalho frontend há vários anos — a maioria dos produtos digitais em produção usa React. TypeScript virou padrão de fato em projetos profissionais porque detecta erros antes de rodar e torna o código mais navegável em equipe. A combinação é o mínimo esperado na maioria das vagas"
+      - "Porque é a combinação mais fácil de aprender"
+    correct: 2
+  - question: "O que torna um projeto de portfólio mais valioso do que muitos projetos superficiais?"
+    options:
+      - "O número de tecnologias listadas no README"
+      - "Usar a tecnologia mais nova disponível"
+      - "Ter muitos commits no histórico do git"
+      - "Código limpo com estrutura clara, testes funcionando, deploy em produção (URL real que funciona), e um README que explica as decisões técnicas. Isso demonstra que você sabe não só escrever código mas também entregar, documentar, e sustentar um projeto"
+    correct: 3
+  - question: "Qual é o valor de contribuir para projetos open source como parte do desenvolvimento de carreira?"
+    options:
+      - "Para ter um repositório com muitas estrelas"
+      - "Contribuição open source expõe você a bases de código reais mantidas por equipes distribuídas — você lê código que não escreveu, submete mudanças sujeitas a revisão rigorosa, e aprende padrões de colaboração profissional. Também é visível no perfil do GitHub e aparece em conversas de processo seletivo"
+      - "Para aprender frameworks novos mais rápido"
+      - "Para conseguir emprego em empresas de open source"
+    correct: 1
 ---
+
+Terminar este curso coloca você numa posição real: você entende como a web funciona de ponta a ponta, sabe construir interfaces com React e TypeScript, e tem um projeto funcionando. O que vem depois depende de para onde você quer ir. Esta lição mapeia os caminhos principais, o que o mercado pede, e como construir um portfólio que demonstra o que você sabe.
+
+## Perfis de frontend
+
+Frontend não é um caminho único. Existem pelo menos quatro perfis distintos — e a maioria das pessoas acaba numa mistura de dois ou mais.
+
+**Frontend especialista** — profundidade em CSS, acessibilidade, performance, e design systems. Esse perfil resolve problemas que a maioria dos devs ignora: animações complexas sem janking, componentes que funcionam com leitor de tela, páginas que carregam em 1 segundo em conexões lentas. É um perfil raro e muito valorizado em empresas que têm produtos de alta escala. Exemplos de trabalho: construir o sistema de design usado por 20 equipes, garantir que o produto atende WCAG AA, otimizar o LCP de uma página de e-commerce.
+
+**Full-stack** — frontend mais backend. O mais pedido no mercado, especialmente em startups e empresas de médio porte onde não faz sentido ter especialistas separados para cada camada. Full-stack não significa saber tudo igualmente — na prática significa ter profundidade em frontend com competência suficiente em backend para construir features completas sem depender de outra equipe para cada endpoint. O stack mais comum hoje: React + TypeScript no frontend, Node.js (Express ou Fastify) + PostgreSQL no backend.
+
+**UI Engineer** — o perfil que fica na interface entre design e engenharia. Constrói e mantém sistemas de componentes (como o Material UI ou o Radix), define tokens de design (cores, espaçamentos, tipografia como variáveis), e colabora diretamente com designers para definir o que é implementável. Trabalha em Figma e em código. Valoriza a qualidade visual tanto quanto a qualidade de engenharia. É um perfil que aparece mais em empresas com times de design maduros.
+
+**DevRel (Developer Relations)** — escreve documentação, cria tutoriais, dá palestras, mantém relações com a comunidade de desenvolvedores. Não é exclusivamente um trabalho de escrita — bons DevRels são desenvolvedores experientes que entendem os problemas do público. Esse curso, por exemplo, é o tipo de trabalho que um DevRel produziria. É um caminho que une engenharia com comunicação e ensino.
+
+## O que o mercado pede
+
+Uma análise honesta do que vagas de frontend pedem consistentemente hoje:
+
+**React é o requisito mais comum.** Ocupa a maior fatia do mercado de trabalho frontend há anos — a maioria dos produtos digitais em produção usa React. Saber React não garante emprego, mas não saber limita muito as opções. Vue e Angular aparecem em vagas específicas, mas em volume menor.
+
+**TypeScript virou padrão de fato.** Projetos profissionais novos usam TypeScript. Vagas que listam "JavaScript" frequentemente aceitam (ou esperam) TypeScript. A diferença entre saber e não saber TypeScript aparece em code reviews, na capacidade de navegar em bases de código grandes, e na velocidade de refatoração.
+
+**Git e GitHub são pré-requisito.** Não aparecem como destaque nas vagas porque são assumidos. Criar branches, escrever commits descritivos, abrir pull requests, revisar código — são habilidades do dia a dia que você vai usar mais do que qualquer framework.
+
+**Testes variam por empresa.** Algumas empresas têm cultura sólida de testes, outras quase não testam. No frontend, Vitest + Testing Library é o par mais comum hoje. Playwright aparece para E2E. O que importa mais do que conhecer uma ferramenta específica é entender o *porquê* dos testes — o que você protege, o que você não protege, e como escrever testes que duram.
+
+**Comunicação técnica.** Explicar uma decisão técnica em texto (em um PR, em uma issue, em um Slack), dar e receber feedback em code review sem conflito, fazer perguntas precisas — são habilidades que separam devs júnior de devs que avançam rapidamente. Não aparecem nas vagas porque são difíceis de colocar em lista de requisitos, mas aparecem nas conversas de processo seletivo e no dia a dia de trabalho.
+
+**Next.js aparece cada vez mais.** À medida que SSR e SSG se tornam padrão para produtos que precisam de SEO e performance de primeiro carregamento, Next.js virou o framework de referência. Saber React é o pré-requisito; adicionar Next.js é o passo natural.
+
+## Como construir um portfólio
+
+Portfólio é a prova do que você sabe fazer. Não é uma lista de tecnologias — é evidência de que você consegue construir, entregar, e sustentar um produto.
+
+**O blog deste curso é um projeto de portfólio real.** Antes de publicar, passe pelo checklist abaixo. Um projeto bem-acabado vale mais do que três projetos pela metade.
+
+```
+Checklist do blog antes de publicar no portfólio:
+
+Código e qualidade
+□ TypeScript strict mode ativado — sem erros de tipo
+□ ESLint configurado e sem warnings não resolvidos
+□ Testes passando — pelo menos para as funções de utils e componentes principais
+□ Sem console.log() deixado no código
+□ Sem imports não usados
+
+Deploy
+□ Publicado em URL pública (Vercel, Netlify, ou similar)
+□ Domínio personalizado (opcional, mas profissional)
+□ HTTPS funcionando
+□ Testado no mobile — layout responsivo funcionando
+
+README
+□ O que o projeto é — uma frase descritiva
+□ Como rodar localmente — comandos exatos, sem suposições
+□ Stack usada — React, TypeScript, Vite, Vitest
+□ Decisões técnicas que merecem explicação (ex: por que usar Context em vez de prop drilling)
+□ Link para o deploy
+
+Git
+□ Histórico de commits com mensagens descritivas — não "fix" ou "update"
+□ Branch main sempre em estado deployable
+```
+
+**Dois ou três projetos bem feitos valem mais do que dez incompletos.** Um recrutador vai abrir o link do projeto, verificar se funciona, e ler o código. Um projeto com deploy funcionando, README claro, e código organizado comunica muito mais do que um repositório com `console.log("teste")` por todo o lugar.
+
+**O segundo projeto mostra que o primeiro não foi sorte.** Depois do blog, escolha algo que resolva um problema real que você tem ou que você encontrou. Projetos que resolvem problemas reais — mesmo que pequenos — são mais interessantes para conversar em entrevistas do que projetos feitos só para ter no portfólio.
+
+**Contribuir para open source aparece em conversas de processo seletivo.** Não precisa ser um projeto famoso. Corrigir uma typo na documentação, melhorar um exemplo de código, ou abrir uma issue bem descrita são contribuições legítimas. O valor está em demonstrar que você leu o código de outra pessoa, entendeu o problema, e enviou uma mudança que passou por revisão.
+
+Para encontrar uma boa primeira contribuição: `github.com/explore` → Topics → `good-first-issue`. Projetos que você já usa são os melhores candidatos — você já conhece o comportamento esperado.
+
+## Por onde começar agora
+
+Terminar o curso cria uma janela. O próximo passo depende de onde você está:
+
+**Se o objetivo é emprego no curto prazo:** publicar o blog, adicionar dois projetos ao GitHub, e começar a aplicar para vagas júnior. Não espere estar "pronto" — o aprendizado mais rápido acontece no trabalho real. O que você aprende neste curso é suficiente para uma vaga júnior de frontend em empresas que investem em desenvolvimento de pessoas.
+
+**Se o objetivo é aprofundar antes de aplicar:** escolher um caminho (full-stack ou frontend especialista) e ir fundo. Para full-stack: adicionar um backend ao blog com Express e PostgreSQL. Para frontend especialista: aprender Next.js e construir um projeto com SSG real.
+
+**Se o objetivo é mudar de área dentro da tecnologia:** frontend é uma das áreas mais acessíveis para transição — o ciclo de feedback é rápido (você vê o resultado no browser), os recursos de aprendizado são abundantes, e o mercado é grande. O processo é o mesmo: construir projetos, publicar código, aplicar.
+
+Em qualquer caminho: escreva código todo dia. Não há substituto para a prática acumulada. Vinte minutos por dia durante um ano constrói muito mais do que quatro horas por semana durante um mês.
+
+## Resumo
+
+- **Frontend especialista**: CSS, acessibilidade, performance, design systems. Perfil raro e valorizado em escala.
+- **Full-stack**: frontend + Node.js + banco de dados. O mais pedido no mercado — especialmente em startups.
+- **UI Engineer**: interface entre design e engenharia. Sistemas de componentes, tokens, colaboração com designers.
+- **DevRel**: documentação, tutoriais, comunidade. Une engenharia com comunicação.
+- **Mercado pede**: React + TypeScript como base. Git como pré-requisito. Testes variam. Comunicação técnica diferencia.
+- **Portfólio**: deploy funcionando, README claro, código organizado, commits descritivos. Dois projetos completos valem mais que dez incompletos.
+- **Próximo passo**: publicar o blog, escolher um caminho, escrever código todo dia.

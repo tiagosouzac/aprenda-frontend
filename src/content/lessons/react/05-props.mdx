@@ -1,6 +1,262 @@
 ---
 title: "Props"
 description: "Passando dados de pai para filho. Props como objeto, desestruturação, valores padrão, children como prop especial."
-comingSoon: true
 order: 5
+hero:
+  titleBefore: "Props:"
+  titleAccent: "dados"
+  titleAfter: "de pai para filho."
+quiz:
+  - question: "Em que direção os dados fluem via props em React?"
+    options:
+      - "Apenas de pai para filho — unidirecional. Para comunicar eventos do filho ao pai, use callbacks passados como props"
+      - "Em qualquer direção — props podem ir de filho para pai"
+      - "Apenas de componente raiz para folhas"
+      - "Bidirecional quando o componente usa useState"
+    correct: 0
+  - question: "Por que props são imutáveis dentro do componente que as recebe?"
+    options:
+      - "Por limitação técnica do JavaScript"
+      - "Porque TypeScript impede a mutação"
+      - "Porque mutar props diretamente tornaria o fluxo de dados imprevisível — o pai não saberia que a prop mudou. Quando um filho precisa derivar estado de uma prop, usa useState com a prop como valor inicial"
+      - "Por convenção sem impacto técnico"
+    correct: 2
+  - question: "O que é children em React?"
+    options:
+      - "Uma array de todos os componentes filhos da aplicação"
+      - "Um hook para acessar elementos do DOM"
+      - "O componente pai de um componente"
+      - "A prop especial que recebe o conteúdo entre as tags de abertura e fechamento do componente — <Card>conteúdo aqui</Card>"
+    correct: 3
+  - question: "Qual é a diferença entre desestruturar props no parâmetro vs. acessar via objeto props?"
+    options:
+      - "Desestruturar é mais rápido"
+      - "São equivalentes funcionalmente. Desestruturar no parâmetro ({ titulo, artigo }) é mais conciso e deixa claro quais props o componente usa. Acessar via props.titulo é útil quando você precisa repassar todas as props com spread"
+      - "Você só pode usar spread com o objeto props inteiro"
+      - "TypeScript só suporta desestruturação"
+    correct: 1
 ---
+
+Props são o mecanismo de comunicação de pai para filho em React. Um componente pai passa dados para um filho como atributos JSX — o filho recebe como objeto no primeiro parâmetro. O fluxo é **unidirecional**: dados descem, eventos sobem (via callbacks). Entender props é entender como componentes se comunicam.
+
+## O que são props
+
+Props são os argumentos de um componente — dados que o pai decide e o filho recebe. Em JSX, props parecem atributos HTML:
+
+```tsx title="Passando props — pai passa, filho recebe."
+// pai — passa dados como atributos JSX
+function App() {
+  return (
+    <ArticleCard
+      titulo="CSS em geral"
+      descricao="O que é CSS, anatomia de uma regra e como conectar ao HTML."
+      curtidas={42}
+      publicado={true}
+    />
+  );
+}
+
+// filho — recebe como objeto no primeiro parâmetro
+function ArticleCard(props) {
+  return (
+    <article>
+      <h2>{props.titulo}</h2>
+      <p>{props.descricao}</p>
+      <span>{props.curtidas} curtidas</span>
+    </article>
+  );
+}
+```
+
+A forma mais comum é **desestruturar diretamente no parâmetro** — deixa explícito quais props o componente usa:
+
+```tsx title="Desestruturação no parâmetro — idioma padrão."
+function ArticleCard({ titulo, descricao, curtidas }: ArticleCardProps) {
+  return (
+    <article>
+      <h2>{titulo}</h2>
+      <p>{descricao}</p>
+      <span>{curtidas} curtidas</span>
+    </article>
+  );
+}
+```
+
+Props são **imutáveis** dentro do componente que as recebe. Você não muta `props.curtidas` diretamente — o pai não veria a mudança e o estado ficaria inconsistente. Quando o filho precisa de estado derivado de uma prop, usa `useState` (próxima lição).
+
+## Props com dados do blog
+
+Para tornar os componentes dinâmicos, passe o objeto `Artigo` completo como prop:
+
+```tsx title="ArticleCard.tsx — recebendo o artigo como prop."
+import type { Artigo } from "../types";
+
+interface ArticleCardProps {
+  artigo: Artigo;
+}
+
+export function ArticleCard({ artigo }: ArticleCardProps) {
+  const dataFormatada = artigo.publicadoEm
+    ? new Intl.DateTimeFormat("pt-BR").format(new Date(artigo.publicadoEm))
+    : null;
+
+  return (
+    <article className="card-artigo" data-id={artigo.id}>
+      <h2 className="card-titulo">{artigo.titulo}</h2>
+      <p className="card-descricao">{artigo.descricao}</p>
+
+      <div className="card-meta">
+        <span>Por {artigo.autor.nome}</span>
+        {dataFormatada && (
+          <time dateTime={artigo.publicadoEm ?? ""}>{dataFormatada}</time>
+        )}
+      </div>
+
+      <div className="card-tags">
+        {artigo.tags.map(tag => (
+          <span key={tag} className="tag">{tag}</span>
+        ))}
+      </div>
+
+      <span className="card-curtidas">{artigo.curtidas} curtidas</span>
+    </article>
+  );
+}
+```
+
+```tsx title="ArticleList.tsx — passando artigos como props."
+import type { Artigo } from "../types";
+import { ArticleCard } from "./ArticleCard";
+
+interface ArticleListProps {
+  artigos: Artigo[];
+}
+
+export function ArticleList({ artigos }: ArticleListProps) {
+  return (
+    <section className="lista-artigos">
+      {artigos.map(artigo => (
+        <ArticleCard key={artigo.id} artigo={artigo} />
+      ))}
+    </section>
+  );
+}
+```
+
+## Props opcionais e valores padrão
+
+Props opcionais são declaradas com `?` na interface. Valores padrão ficam na desestruturação:
+
+```tsx title="Props opcionais e valores padrão."
+interface ArticleCardProps {
+  artigo: Artigo;
+  destaque?: boolean;    // opcional — undefined quando não passado
+  compact?: boolean;     // opcional — undefined quando não passado
+}
+
+export function ArticleCard({
+  artigo,
+  destaque = false,   // valor padrão na desestruturação
+  compact = false,
+}: ArticleCardProps) {
+  return (
+    <article className={`card-artigo ${destaque ? "card-destaque" : ""} ${compact ? "card-compact" : ""}`}>
+      <h2>{artigo.titulo}</h2>
+      {!compact && <p>{artigo.descricao}</p>}
+    </article>
+  );
+}
+
+// uso — destaque e compact são opcionais
+<ArticleCard artigo={artigo} />                 // destaque=false, compact=false
+<ArticleCard artigo={artigo} destaque />        // destaque=true (boolean sem valor)
+<ArticleCard artigo={artigo} compact={true} />  // compact=true
+```
+
+## `children` — a prop especial
+
+`children` é a prop que recebe o conteúdo entre as tags de abertura e fechamento do componente. É o que permite criar componentes de layout genéricos:
+
+```tsx title="children — conteúdo entre as tags."
+import { type ReactNode } from "react";
+
+interface CardProps {
+  children: ReactNode;
+  className?: string;
+}
+
+export function Card({ children, className = "" }: CardProps) {
+  return (
+    <div className={`card ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+// uso — o conteúdo entre as tags vai para children
+<Card>
+  <h2>Título</h2>
+  <p>Descrição do artigo.</p>
+</Card>
+
+<Card className="card-destaque">
+  <ArticleCard artigo={artigo} />
+</Card>
+```
+
+`ReactNode` é o tipo mais amplo para `children` — aceita JSX, strings, números, `null`, `undefined` e arrays deles. Use `ReactNode` para componentes de layout que precisam aceitar qualquer conteúdo.
+
+## Callbacks como props
+
+Para que um filho comunique eventos ao pai, o pai passa uma **função como prop**:
+
+```tsx title="Callback como prop — filho avisa o pai de eventos."
+interface LikeButtonProps {
+  artigoId: number;
+  curtido: boolean;
+  onCurtir: (id: number) => void;  // callback — pai decide o que fazer
+}
+
+export function LikeButton({ artigoId, curtido, onCurtir }: LikeButtonProps) {
+  return (
+    <button
+      className="botao-curtir"
+      aria-pressed={curtido}
+      onClick={() => onCurtir(artigoId)}  // chama o callback com o id
+    >
+      {curtido ? "❤️ Curtido" : "🤍 Curtir"}
+    </button>
+  );
+}
+
+// pai — decide o que fazer quando o filho avisa
+function ArticleCard({ artigo }: ArticleCardProps) {
+  function handleCurtir(id: number) {
+    console.log(`Artigo ${id} curtido`);
+    // lógica de persistência virá com useState
+  }
+
+  return (
+    <article>
+      <h2>{artigo.titulo}</h2>
+      <LikeButton
+        artigoId={artigo.id}
+        curtido={false}
+        onCurtir={handleCurtir}
+      />
+    </article>
+  );
+}
+```
+
+O padrão é: estado no pai, evento no filho, callback como ponte. O filho não precisa saber o que acontece depois de chamar `onCurtir` — ele só avisa. O pai decide.
+
+## Resumo
+
+- **Props são os argumentos de um componente** — dados passados como atributos JSX pelo pai, recebidos como objeto pelo filho.
+- O fluxo é **unidirecional**: dados descem (pai → filho via props), eventos sobem (filho → pai via callbacks).
+- **Desestruturar no parâmetro** é o idioma padrão — deixa explícito o que o componente usa.
+- **Props são imutáveis** — o filho não muta props. Estado derivado vai para `useState`.
+- **Props opcionais** (`prop?: Tipo`) com **valores padrão** na desestruturação (`{ compact = false }`).
+- **`children: ReactNode`** — a prop especial para conteúdo entre as tags de abertura e fechamento.
+- **Callbacks como props** (`onCurtir: (id: number) => void`) — o filho avisa o pai de eventos via função.

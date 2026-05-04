@@ -1,6 +1,180 @@
 ---
 title: "DOM — selecionando elementos"
-description: "document.querySelector, querySelectorAll, getElementById. Como navegar pela árvore com parentElement, children, closest."
-comingSoon: true
+description: "O que é o DOM. querySelector e querySelectorAll. Navegar pela árvore com parentElement, children e closest. NodeList vs. Array."
 order: 10
+hero:
+  titleBefore: "DOM:"
+  titleAccent: "selecionar"
+  titleAfter: "elementos da página."
+quiz:
+  - question: "O que querySelector retorna quando não encontra nenhum elemento?"
+    options:
+      - "Um array vazio"
+      - "undefined"
+      - "null"
+      - "Lança um erro"
+    correct: 2
+  - question: "Qual é a diferença entre querySelector e querySelectorAll?"
+    options:
+      - "querySelector é mais rápido; querySelectorAll é mais preciso"
+      - "querySelectorAll aceita apenas seletores de id; querySelector aceita qualquer seletor"
+      - "Não há diferença — um é um alias do outro"
+      - "querySelector retorna o primeiro elemento correspondente; querySelectorAll retorna uma NodeList com todos os correspondentes"
+    correct: 3
+  - question: "O que el.closest('.card') faz?"
+    options:
+      - "Seleciona o elemento .card mais próximo dentro de el"
+      - "Percorre os ancestrais de el até encontrar o primeiro que corresponde ao seletor '.card', retornando-o"
+      - "Cria um novo elemento .card próximo de el"
+      - "Verifica se el tem a classe 'card'"
+    correct: 1
+  - question: "Por que NodeList não tem os métodos map() e filter()?"
+    options:
+      - "NodeList não é um Array — é um tipo próprio do DOM. Para ter map/filter, converta para Array com [...nodelist] ou Array.from()"
+      - "NodeList é mais eficiente sem esses métodos"
+      - "map() e filter() foram removidos do NodeList em versões recentes"
+      - "Esses métodos existem no NodeList, mas com nomes diferentes"
+    correct: 0
 ---
+
+O DOM (*Document Object Model*) é a representação em memória do HTML da página — uma árvore de objetos que o JavaScript pode ler e modificar. Quando você altera o DOM, o navegador atualiza a tela automaticamente. É a ponte entre o JavaScript e o que o usuário vê.
+
+## O que é o DOM
+
+Quando o navegador carrega um documento HTML, ele constrói uma árvore de nós. Cada elemento HTML se torna um objeto no DOM — um objeto com propriedades (como `className`, `textContent`, `style`) e métodos (como `addEventListener`, `querySelector`, `remove`).
+
+`document` é o ponto de entrada. É um objeto global disponível em qualquer script rodando no navegador — não precisa ser importado. `document.body` é o `<body>`, `document.head` é o `<head>`, `document.documentElement` é o `<html>`.
+
+O DOM é **dinâmico**: ele reflete o estado atual da página, não o HTML original. Se o JavaScript adiciona um elemento, ele aparece no DOM. Se um `display: none` é aplicado via CSS, o elemento ainda existe no DOM — apenas não é renderizado.
+
+```js title="Explorando o DOM pelo console — document como ponto de entrada."
+// abrir artigo.html no navegador e digitar no console:
+document.title
+// → "Meu primeiro projeto web — artigo.dev"
+
+document.body.children
+// → HTMLCollection com todos os filhos diretos do body
+
+document.querySelectorAll("h2").length
+// → número de h2 na página
+
+// modificar o DOM diretamente no console (para experimentação)
+document.body.style.background = "salmon";
+// → o fundo muda instantaneamente
+```
+
+## Selecionar elementos
+
+**`document.querySelector(seletor)`** retorna o **primeiro** elemento que corresponde ao seletor CSS. O seletor é exatamente o mesmo que você usaria em CSS — classe, id, tag, atributo, combinadores. Se nenhum elemento corresponder, retorna `null`.
+
+**`document.querySelectorAll(seletor)`** retorna uma **NodeList** com todos os elementos correspondentes — em ordem de aparição no documento. Se nenhum corresponder, retorna uma NodeList vazia.
+
+**`document.getElementById(id)`** é mais rápido que `querySelector("#id")` para seleção por id, mas menos flexível — só funciona com ids.
+
+```js title="Selecionando os elementos do blog que serão manipulados pelo script.js."
+// selecionar por id
+const botaoTema = document.getElementById("botao-tema");
+const botaoCurtir = document.getElementById("botao-curtir");
+const contadorCurtidas = document.getElementById("contagem-curtidas");
+const barraProgresso = document.getElementById("barra-progresso");
+
+// selecionar por classe — primeiro elemento com essa classe
+const conteudoArtigo = document.querySelector(".conteudo-artigo");
+
+// selecionar por atributo — todos os links externos
+const linksExternos = document.querySelectorAll("a[target='_blank']");
+
+// selecionar por combinador — todos os h2 dentro do artigo
+const secoes = document.querySelectorAll(".conteudo-artigo h2");
+
+// verificar antes de usar — querySelector pode retornar null
+if (botaoCurtir) {
+  botaoCurtir.addEventListener("click", curtir);
+}
+```
+
+Você pode chamar `querySelector` e `querySelectorAll` não apenas em `document`, mas em qualquer elemento do DOM. Isso limita a busca à subárvore daquele elemento:
+
+```js title="querySelector em um elemento — busca limitada à subárvore."
+const cardArtigo = document.querySelector(".card-artigo");
+
+// busca apenas dentro do card — não em toda a página
+const tituloCard = cardArtigo.querySelector("h2");
+const tagsCard = cardArtigo.querySelectorAll(".tag-artigo");
+```
+
+## Navegar pela árvore
+
+Além de selecionar por seletor CSS, você pode navegar pela árvore de elementos a partir de um elemento já conhecido:
+
+**`.parentElement`** retorna o elemento pai imediato.
+**`.children`** retorna uma HTMLCollection dos filhos diretos (apenas elementos, não nós de texto).
+**`.firstElementChild`** e **`.lastElementChild`** retornam o primeiro e o último filho.
+**`.nextElementSibling`** e **`.previousElementSibling`** retornam o irmão adjacente.
+**`.closest(seletor)`** percorre os ancestrais até encontrar o primeiro que corresponde ao seletor — inclui o próprio elemento. Muito útil para event delegation.
+
+```js title="Navegando pela árvore — de um botão até o card pai."
+// HTML: <article class="card-artigo" data-id="1">
+//         <h2>CSS em geral</h2>
+//         <button class="botao-curtir">Curtir</button>
+//       </article>
+
+const botao = document.querySelector(".botao-curtir");
+
+// navegar para cima — encontrar o card que contém este botão
+const card = botao.parentElement;
+// → o <article class="card-artigo">
+
+// closest — mais robusto: sobe a árvore até encontrar o seletor
+const cardPeloClosest = botao.closest(".card-artigo");
+// → o mesmo <article>, mas funciona mesmo com nesting intermediário
+
+// ler o id do card
+const artigoId = cardPeloClosest.dataset.id; // data-id="1" → "1"
+
+// navegar para baixo — filhos do card
+const filhos = card.children;
+// → HTMLCollection [h2, button]
+
+const primeiroFilho = card.firstElementChild;
+// → h2
+
+// irmão — o próximo card na listagem
+const proximoCard = card.nextElementSibling;
+```
+
+## NodeList vs. Array
+
+`querySelectorAll` retorna uma `NodeList` — um objeto que parece um array mas não é. A NodeList tem `length`, pode ser acessada por índice e tem `.forEach()`. Mas **não tem** `map()`, `filter()`, `reduce()`, `find()` — os métodos de array que você aprendeu.
+
+`getElementsByClassName` e `getElementsByTagName` retornam `HTMLCollection` — similar à NodeList, mas **viva**: quando o DOM muda, a collection reflete a mudança automaticamente (o que pode causar comportamentos inesperados em loops).
+
+Para usar os métodos de array em uma NodeList, converta com spread ou `Array.from`:
+
+```js title="Convertendo NodeList para Array — usando métodos de array."
+const links = document.querySelectorAll("a");
+
+// forEach funciona diretamente na NodeList
+links.forEach(link => {
+  console.log(link.href);
+});
+
+// map, filter, reduce — precisam converter para Array
+const hrefs = [...links].map(link => link.href);
+
+// Array.from — equivalente ao spread
+const linksArray = Array.from(links);
+const linksExternos = linksArray.filter(l => l.href.startsWith("https://"));
+
+// querySelectorAll de tags — converter e filtrar por texto
+const todasTags = document.querySelectorAll(".tag-artigo");
+const tagsCss = [...todasTags].filter(t => t.textContent.toLowerCase().includes("css"));
+```
+
+## Resumo
+
+- O **DOM** é a representação em memória do HTML. `document` é o ponto de entrada — disponível globalmente no navegador.
+- **`querySelector(seletor)`** retorna o primeiro elemento correspondente ou `null`. **`querySelectorAll(seletor)`** retorna uma NodeList com todos.
+- Você pode chamar `querySelector`/`querySelectorAll` em qualquer elemento para limitar a busca à sua subárvore.
+- Navegação pela árvore: **`.parentElement`** para subir, **`.children`** para os filhos, **`.closest(seletor)`** para subir até encontrar um ancestral correspondente.
+- **NodeList ≠ Array**: tem `forEach`, mas não `map`/`filter`/`reduce`. Converta com `[...nodelist]` ou `Array.from(nodelist)` para usar os métodos de array.

@@ -1,6 +1,315 @@
 ---
 title: "TypeScript em projetos reais"
 description: "Tipando respostas de API, as const, declarações ambientes (.d.ts), evitando any, lidando com bibliotecas sem tipos."
-comingSoon: true
 order: 11
+hero:
+  titleBefore: "TypeScript"
+  titleAccent: "em projetos"
+  titleAfter: "reais."
+quiz:
+  - question: "Por que TypeScript não detecta quando uma API retorna dados com formato diferente do esperado?"
+    options:
+      - "Porque TypeScript não suporta fetch"
+      - "Porque APIs sempre retornam any"
+      - "Porque fetch não é suportado pelo compilador TypeScript"
+      - "Porque response.json() retorna Promise<any> — o compilador aceita qualquer cast. A verificação de tipos é estática (analisa o código), não dinâmica (não analisa dados em runtime)"
+    correct: 3
+  - question: "O que as const faz a um objeto literal?"
+    options:
+      - "Torna o objeto imutável em runtime — como Object.freeze()"
+      - "Instrui o compilador a inferir tipos literais para todos os valores — 'claro' vira o tipo 'claro', não string. As propriedades ficam readonly"
+      - "Converte o objeto para um enum"
+      - "Remove o objeto do output JavaScript"
+    correct: 1
+  - question: "O que é um arquivo .d.ts?"
+    options:
+      - "Um arquivo de declaração de tipos — descreve os tipos de código JavaScript existente sem conter lógica. Permite que TypeScript entenda bibliotecas JS sem código TypeScript"
+      - "Um arquivo de configuração do TypeScript"
+      - "Um arquivo de definição de rotas"
+      - "Um arquivo de dados JSON tipado"
+    correct: 0
+  - question: "Qual é a diferença entre any e unknown quando você recebe dados de uma API?"
+    options:
+      - "Não há diferença na prática"
+      - "unknown é apenas para funções"
+      - "any desativa toda verificação — você pode usar os dados sem checar. unknown também aceita qualquer valor mas exige verificação (narrowing ou cast) antes de usar — é a opção segura"
+      - "any é preferível para dados de API"
+    correct: 2
 ---
+
+As lições anteriores cobriram o sistema de tipos em ambiente controlado — você define interfaces, anota funções e o compilador valida tudo. Em projetos reais, há situações onde a linha entre TypeScript e o mundo externo é mais difusa: dados de APIs, bibliotecas JavaScript sem tipos, configurações que precisam de tipos literais. Esta lição cobre essas situações com o blog como exemplo concreto.
+
+## Tipando respostas de API
+
+O ponto mais delicado: `response.json()` retorna `Promise<any>`. TypeScript aceita qualquer cast sobre `any` sem reclamar — você pode declarar que recebeu `Artigo[]` e o compilador acredita, mesmo que o servidor envie outra coisa.
+
+```ts title="api.ts — o problema e as abordagens disponíveis."
+import type { Artigo } from "./types.ts";
+
+// abordagem ingênua — cast direto, sem verificação
+async function buscarArtigos(): Promise<Artigo[]> {
+  const response = await fetch("/artigos.json");
+  if (!response.ok) throw new Error(`Erro ${response.status}`);
+  return response.json() as Promise<Artigo[]>;
+  // TypeScript acredita — se o servidor enviar formato errado, o erro aparece em runtime
+}
+
+// abordagem mais honesta — cast explícito com variável intermediária
+async function buscarArtigos(): Promise<Artigo[]> {
+  const response = await fetch("/artigos.json");
+  if (!response.ok) throw new Error(`Erro ${response.status}`);
+  const dados: unknown = await response.json();
+  // dados é unknown — TypeScript obriga verificação antes de usar
+  // para o blog, cast com satisfação de que o servidor está correto:
+  return dados as Artigo[];
+}
+```
+
+A abordagem completamente segura é validar os dados em runtime com uma biblioteca de validação como **Zod**:
+
+```ts title="Validação com Zod — tipos derivados do schema, segurança em runtime."
+import { z } from "zod";
+
+// schema descreve a forma esperada
+const AutorSchema = z.object({
+  id: z.number(),
+  nome: z.string(),
+  avatar: z.string().nullable(),
+  bio: z.string().optional(),
+});
+
+const ArtigoSchema = z.object({
+  id: z.number(),
+  titulo: z.string(),
+  descricao: z.string(),
+  autor: AutorSchema,
+  tags: z.array(z.string()),
+  curtidas: z.number(),
+  publicado: z.boolean(),
+  publicadoEm: z.string().nullable(),
+  slug: z.string(),
+});
+
+// inferir o tipo TypeScript do schema — single source of truth
+type Artigo = z.infer<typeof ArtigoSchema>;
+type Autor = z.infer<typeof AutorSchema>;
+
+async function buscarArtigos(): Promise<Artigo[]> {
+  const response = await fetch("/artigos.json");
+  if (!response.ok) throw new Error(`Erro ${response.status}`);
+  const dados = await response.json();
+  // .parse() lança ZodError se os dados não baterem com o schema
+  // TypeScript sabe que o retorno é Artigo[] se passar
+  return z.array(ArtigoSchema).parse(dados);
+}
+```
+
+Para o blog com um JSON local que você controla, o cast simples é razoável. Para uma API de terceiros ou dados de formulário do usuário, Zod garante que seu código não silencia formatos inesperados.
+
+## `as const` e tipos literais
+
+`as const` instrui o compilador a inferir os tipos mais específicos possíveis — literais em vez de tipos amplos, e `readonly` em vez de mutável:
+
+```ts title="as const — inferência literal vs. inferência ampla."
+// sem as const: tipos amplos
+const temas = ["claro", "escuro"];
+// tipo: string[] — qualquer array de strings
+
+// com as const: tipos literais e readonly
+const temas = ["claro", "escuro"] as const;
+// tipo: readonly ["claro", "escuro"] — exatamente esses dois valores, nessa ordem
+
+// objetos
+const config = {
+  apiUrl: "/artigos.json",
+  timeout: 5000,
+};
+// tipo: { apiUrl: string; timeout: number } — valores podem mudar
+
+const config = {
+  apiUrl: "/artigos.json",
+  timeout: 5000,
+} as const;
+// tipo: { readonly apiUrl: "/artigos.json"; readonly timeout: 5000 }
+// os valores são literais — apiUrl só pode ser "/artigos.json"
+
+// extrair o tipo das rotas de um objeto de configuração
+const ROTAS = {
+  home: "/",
+  artigos: "/artigos",
+  sobre: "/sobre",
+} as const;
+
+type NomeRota = keyof typeof ROTAS;        // "home" | "artigos" | "sobre"
+type CaminhoRota = typeof ROTAS[NomeRota]; // "/" | "/artigos" | "/sobre"
+
+function navegar(rota: NomeRota): void {
+  window.location.href = ROTAS[rota];
+}
+```
+
+`as const` é especialmente útil como alternativa a enums — cria o conjunto de valores com zero custo em runtime e tipos literais precisos.
+
+## Evitando `any`
+
+`any` é um buraco no sistema de tipos — valores com tipo `any` podem ser usados como qualquer coisa sem erro de compilação. As alternativas:
+
+```ts title="Substituições para any — cada situação tem uma alternativa melhor."
+// em vez de any para dados desconhecidos: unknown
+function processarDados(dados: unknown): string {
+  // TypeScript obriga verificar antes de usar
+  if (typeof dados === "string") return dados.toUpperCase();
+  if (typeof dados === "number") return dados.toString();
+  return JSON.stringify(dados);
+}
+
+// em vez de any para erros no catch: unknown (padrão com strict)
+try {
+  await buscarArtigos();
+} catch (erro) {
+  // erro tem tipo unknown com strict — mais seguro que any
+  if (erro instanceof Error) {
+    console.error(erro.message);
+  } else {
+    console.error(String(erro));
+  }
+}
+
+// em vez de any para callbacks genéricos: generics
+function transformar<T, U>(array: T[], fn: (item: T) => U): U[] {
+  return array.map(fn);
+}
+
+// quando você realmente precisa ignorar um erro: @ts-expect-error
+function funcaoLegada(x: any) {
+  // @ts-expect-error — biblioteca externa retorna any, cast necessário aqui
+  return (x as string).toUpperCase();
+}
+```
+
+A regra de ouro: se você sente vontade de escrever `any`, pergunte "o que eu realmente sei sobre esse valor?" — a resposta quase sempre leva a `unknown`, um generic, ou um tipo mais específico.
+
+## Declarações ambiente (`.d.ts`)
+
+Arquivos `.d.ts` descrevem tipos de código que não é TypeScript. Eles permitem que TypeScript entenda bibliotecas JavaScript, módulos de assets e APIs globais:
+
+```ts title="Declarações ambiente — dar tipos ao que TS não entende."
+// declarar um módulo de imagem — para importar .svg, .png sem erro
+// src/types/assets.d.ts
+declare module "*.svg" {
+  const content: string;
+  export default content;
+}
+
+declare module "*.png" {
+  const content: string;
+  export default content;
+}
+
+// declarar uma variável global — definida fora do TypeScript
+// src/types/globals.d.ts
+declare const __VERSION__: string; // injetada pelo bundler
+declare const __DEV__: boolean;
+
+// declarar um módulo JSON com tipo específico
+// (alternativa: usar import assertions)
+declare module "*.json" {
+  const value: unknown;
+  export default value;
+}
+
+// estender tipos de uma biblioteca — adicionar propriedades ao Window
+interface Window {
+  dataLayer: unknown[]; // Google Tag Manager
+  __tema: "claro" | "escuro"; // variável global do blog
+}
+```
+
+Quando uma biblioteca JavaScript não tem tipos (não vem com `.d.ts` e não tem `@types/nome-da-lib` no npm), você pode criar um `.d.ts` mínimo para ela:
+
+```ts title="Declaração mínima para biblioteca sem tipos."
+// src/types/lib-sem-tipos.d.ts
+declare module "lib-sem-tipos" {
+  export function funcaoX(param: string): number;
+  export const versao: string;
+}
+```
+
+Para bibliotecas populares, o DefinitelyTyped tem tipos prontos — instale com `npm install -D @types/nome-da-lib`.
+
+## Módulos TypeScript no blog — o resultado final
+
+Com tudo isso, os módulos do blog tipados:
+
+```ts title="types.ts — fonte única de verdade para os tipos do blog."
+export interface Autor {
+  id: number;
+  nome: string;
+  avatar: string | null;
+  bio?: string;
+}
+
+export interface Artigo {
+  id: number;
+  titulo: string;
+  descricao: string;
+  autor: Autor;
+  tags: string[];
+  curtidas: number;
+  publicado: boolean;
+  publicadoEm: string | null;
+  readonly slug: string;
+}
+
+export type Tema = "claro" | "escuro";
+```
+
+```ts title="utils.ts — funções puras, totalmente tipadas."
+export function formatarData(dateString: string): string {
+  return new Intl.DateTimeFormat("pt-BR").format(new Date(dateString));
+}
+
+export function calcularTempoLeitura(palavras: number): number {
+  return Math.ceil(palavras / 238);
+}
+
+export function truncar(texto: string, max: number = 160): string {
+  if (texto.length <= max) return texto;
+  return texto.slice(0, max).trimEnd() + "…";
+}
+
+export function gerarSlug(titulo: string): string {
+  return titulo.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+}
+```
+
+```ts title="api.ts — fetch tipado, erro tratado."
+import type { Artigo } from "./types.ts";
+
+export async function buscarArtigos(): Promise<Artigo[]> {
+  const response = await fetch("/artigos.json");
+  if (!response.ok) throw new Error(`Erro ${response.status}`);
+  return response.json() as Promise<Artigo[]>;
+}
+
+export async function enviarContato(dados: {
+  nome: string;
+  email: string;
+  mensagem: string;
+}): Promise<void> {
+  const response = await fetch("/contato", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(dados),
+  });
+  if (!response.ok) throw new Error(`Erro ${response.status}`);
+}
+```
+
+## Resumo
+
+- `response.json()` retorna `Promise<any>` — TypeScript não valida dados externos. Para dados críticos, use Zod ou similar para validação em runtime.
+- **`as const`** instrui o compilador a inferir tipos literais e `readonly` — valores viram literais (`"claro"` em vez de `string`). Útil como alternativa a enums e para derivar tipos de configurações.
+- Prefira **`unknown`** a `any` para dados desconhecidos — exige verificação antes de usar, mantendo a proteção do compilador.
+- **Arquivos `.d.ts`** declaram tipos para código JavaScript existente — módulos de assets (`.svg`, `.png`), variáveis globais injetadas pelo bundler, bibliotecas sem tipos.
+- Para bibliotecas com tipos: `@types/nome-da-lib` via npm. Para bibliotecas sem tipos: crie um `.d.ts` mínimo com as partes que você usa.

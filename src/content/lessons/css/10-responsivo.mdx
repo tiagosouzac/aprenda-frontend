@@ -1,6 +1,238 @@
 ---
 title: "Design responsivo"
-description: "Mobile-first, media queries, container queries. Funções clamp(), min(), max() para tipografia e espaçamentos fluidos. Imagens responsivas."
-comingSoon: true
+description: "Mobile-first como filosofia e prática. Media queries, as funções clamp(), min() e max(), viewport units e imagens responsivas com aspect-ratio."
 order: 10
+hero:
+  titleBefore: "Design"
+  titleAccent: "responsivo:"
+  titleAfter: "para qualquer tela."
+quiz:
+  - question: "Por que a abordagem mobile-first é recomendada em CSS?"
+    options:
+      - "Porque os estilos base são aplicados a todos os dispositivos e media queries adicionam complexidade apenas onde necessário, além de forçar a resolver as restrições da tela menor primeiro"
+      - "Porque celulares têm processadores mais lentos e precisam de menos CSS"
+      - "Porque max-width é mais rápido que min-width"
+      - "Porque o Google penaliza sites que não são mobile-first"
+    correct: 0
+  - question: "O que a declaração font-size: clamp(1rem, 2vw + 0.5rem, 1.5rem) produz?"
+    options:
+      - "Um tamanho fixo de 1rem"
+      - "Um tamanho que usa 2vw em mobile e 0.5rem em desktop"
+      - "Um tamanho que cresce linearmente com a viewport, mas nunca menor que 1rem nem maior que 1.5rem"
+      - "Um tamanho que alterna entre 1rem e 1.5rem dependendo da viewport"
+    correct: 2
+  - question: "Qual é a diferença entre vh e dvh?"
+    options:
+      - "Não há diferença — são sinônimos"
+      - "dvh é suportado apenas em Safari; vh em todos os navegadores"
+      - "dvh é uma porcentagem; vh é em pixels"
+      - "dvh (dynamic viewport height) desconta a barra de endereço e outros elementos dinâmicos do navegador mobile; vh usa a altura total incluindo essas barras"
+    correct: 3
+  - question: "O que object-fit: cover faz em uma imagem?"
+    options:
+      - "Estica a imagem para preencher o container, distorcendo a proporção"
+      - "Recorta a imagem para preencher o container mantendo a proporção — sem distorção"
+      - "Reduz a imagem até caber no container"
+      - "Cria um fundo de cor sólida ao redor da imagem"
+    correct: 1
 ---
+
+Um site que só funciona bem em desktop não é um site pronto. A maioria do tráfego web hoje vem de celulares, e os usuários esperam que o conteúdo seja legível e navegável em qualquer tamanho de tela. CSS tem as ferramentas para isso — e a abordagem correta começa antes de escrever a primeira media query.
+
+## Mobile-first como filosofia
+
+Mobile-first é uma filosofia de design que diz: resolva os problemas da tela menor antes de pensar na maior. As restrições de um celular — tela estreita, toque em vez de mouse, conexão possivelmente lenta — forçam decisões que beneficiam todos os usuários.
+
+Em CSS, mobile-first se traduz em uma estrutura específica: os **estilos base** cobrem mobile, e **media queries com `min-width`** adicionam layout mais complexo para telas maiores. O CSS cresce — nunca descrescenta.
+
+A abordagem oposta — *desktop-first* — funciona ao contrário: estilos base para desktop, `max-width` media queries para degradar em mobile. O problema é que "degradar" é mais difícil do que "crescer". Remover complexidade é mais trabalhoso do que adicionar.
+
+```css title="Estrutura mobile-first — estilos base para mobile, media queries para desktop."
+/* estilos base: mobile — coluna única, tipografia legível */
+.layout-artigo {
+  display: block; /* fluxo normal: coluna única */
+  padding: 0 16px;
+}
+
+.artigo-corpo {
+  max-width: 100%; /* texto ocupa toda a largura disponível */
+  font-size: 1rem;
+}
+
+/* tablet: adicionar algum respiro */
+@media (min-width: 640px) {
+  .layout-artigo {
+    padding: 0 32px;
+  }
+}
+
+/* desktop: layout de duas colunas */
+@media (min-width: 1024px) {
+  .layout-artigo {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 48px;
+  }
+}
+```
+
+## Media queries
+
+`@media` é a forma de aplicar CSS condicionalmente, baseado em características do dispositivo ou da preferência do usuário.
+
+A sintaxe básica: `@media (min-width: 768px) { }` — aplica as regras dentro quando a viewport tem pelo menos 768px. Você pode combinar condições com `and`, `or` e `not`.
+
+Os breakpoints mais comuns (sem regra rígida — adapte ao conteúdo):
+- `640px` — smartphone grande / tablet pequeno
+- `768px` — tablet
+- `1024px` — desktop
+- `1280px` — desktop largo
+
+Além do tamanho, media queries respondem a **preferências do usuário** — recursos chamados de *media features*:
+
+`prefers-color-scheme: dark` detecta se o sistema operacional está em modo escuro. Você pode adaptar as cores automaticamente, sem botão de toggle.
+
+`prefers-reduced-motion: reduce` indica que o usuário configurou o sistema para reduzir animações — por sensibilidade a movimento ou por epilepsia. Sempre que adicionar animações, inclua uma versão sem movimento para esse caso.
+
+`print` aplica estilos quando a página é impressa. Útil para esconder nav, remover backgrounds pesados e aumentar o contraste.
+
+```css title="Media queries — tamanho, modo escuro e redução de movimento."
+/* tamanho: layout de duas colunas a partir de 1024px */
+@media (min-width: 1024px) {
+  .layout-pagina {
+    display: grid;
+    grid-template-columns: 220px 1fr 200px;
+  }
+}
+
+/* preferência do usuário: modo escuro */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cor-fundo: hsl(240 6% 10%);
+    --cor-texto: hsl(240 6% 90%);
+    --cor-borda: hsl(240 6% 20%);
+  }
+}
+
+/* preferência do usuário: menos animação */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* impressão */
+@media print {
+  .site-header,
+  .sidebar,
+  .site-footer {
+    display: none;
+  }
+
+  body {
+    font-size: 12pt;
+    color: black;
+  }
+}
+```
+
+## Funções CSS para valores fluidos
+
+Breakpoints criam mudanças abruptas — o layout salta de uma coluna para duas exatamente em 1024px. Para transições suaves, CSS tem funções matemáticas.
+
+**`clamp(min, preferido, max)`** define um valor que varia entre um mínimo e um máximo. O valor do meio é o "preferido" — geralmente uma unidade relativa como `vw` combinada com outro valor. O resultado é fluido: cresce suavemente com a viewport, mas nunca sai dos limites.
+
+Para tipografia fluida: `font-size: clamp(1rem, 2vw + 0.5rem, 1.5rem)` nunca fica menor que `1rem` nem maior que `1.5rem`, e entre esses limites escala com a viewport. Elimina a necessidade de redefinir `font-size` em cada breakpoint.
+
+**`min(a, b)`** retorna o menor dos dois valores. `width: min(100%, 720px)` é equivalente a `width: 100%; max-width: 720px` — a largura é 100% do pai ou 720px, o que for menor.
+
+**`max(a, b)`** retorna o maior dos dois. `padding: max(16px, 4vw)` garante padding de pelo menos 16px, mas aumenta proporcionalmente em viewports largas.
+
+```css title="Tipografia fluida com clamp() — sem redefinição em breakpoints."
+/* títulos que escalam suavemente com a viewport */
+h1 {
+  font-size: clamp(1.75rem, 4vw + 0.5rem, 3rem);
+  /* mobile: mínimo de 1.75rem */
+  /* desktop largo: máximo de 3rem */
+  /* entre: escala com 4vw + 0.5rem */
+}
+
+h2 {
+  font-size: clamp(1.25rem, 2.5vw + 0.5rem, 1.875rem);
+}
+
+/* conteúdo centrado com padding de segurança */
+.artigo-wrapper {
+  width: min(100% - 32px, 720px);
+  /* 100% menos 32px de padding total, ou 720px, o que for menor */
+  margin-inline: auto; /* centraliza horizontalmente */
+}
+
+/* padding que cresce em telas grandes */
+.secao-hero {
+  padding: max(48px, 10vh) max(24px, 6vw);
+}
+```
+
+## Viewport units e imagens responsivas
+
+**`vw`** é 1% da largura da viewport. **`vh`** é 1% da altura. Úteis para elementos que devem ter relação direta com o tamanho da tela — um hero de tela cheia, por exemplo.
+
+O problema com `vh` em mobile é que ele não considera a barra de endereço do navegador, que aparece e some durante o scroll. `100vh` em mobile frequentemente resulta em um elemento ligeiramente maior do que a tela visível, causando scroll inesperado. **`dvh`** (*dynamic viewport height*) resolve isso: ele recalcula considerando a barra de endereço atual.
+
+Para imagens responsivas, três combinações de propriedades trabalham juntas:
+
+**`max-width: 100%`** garante que a imagem nunca seja maior que o container — a imagem encolhe com o container, mas não cresce além do seu tamanho original.
+
+**`aspect-ratio`** mantém a proporção de um elemento sem JavaScript. `aspect-ratio: 16 / 9` garante que, independente da largura, a altura seja sempre 9/16 da largura. Antes dessa propriedade, o truque era usar `padding-top: 56.25%` (9/16 em porcentagem).
+
+**`object-fit: cover`** instrui a imagem a preencher o container mantendo a proporção — recortando o que sobra. `object-fit: contain` mantém a imagem inteira, adicionando espaço vazio nas laterais.
+
+```css title="Imagem de capa do artigo — responsiva com aspect-ratio e object-fit."
+/* container da imagem com proporção fixa */
+.imagem-capa {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden; /* esconde o que a imagem recortada ultrapassa */
+  border-radius: 8px;
+}
+
+/* a imagem preenche o container sem distorção */
+.imagem-capa img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center; /* onde o recorte é centrado */
+  display: block; /* remove o espaço inline abaixo da imagem */
+}
+
+/* hero de tela cheia com dvh */
+.hero-secao {
+  min-height: 100dvh; /* usa dvh para mobile, vh como fallback implícito */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* imagem simples — nunca maior que o container */
+.artigo-corpo img {
+  max-width: 100%;
+  height: auto; /* mantém a proporção original da imagem */
+  display: block;
+}
+```
+
+## Resumo
+
+- **Mobile-first**: estilos base para mobile, `min-width` media queries adicionam complexidade para telas maiores. Mais fácil crescer do que degradar.
+- **Media queries**: `@media (min-width: N)` para tamanho; `prefers-color-scheme: dark` para modo escuro; `prefers-reduced-motion: reduce` para respeitar sensibilidade a animações.
+- **`clamp(min, valor, max)`** cria valores fluidos que escalam com a viewport sem breakpoints. Ideal para tipografia: `clamp(1rem, 2vw + 0.5rem, 1.5rem)`.
+- **`min(a, b)`** e **`max(a, b)`** substituem padrões comuns: `min(100%, 720px)` = `max-width: 720px` + `width: 100%`.
+- **`dvh`** em vez de `vh` para altura de viewport em mobile — considera a barra de endereço do navegador.
+- Imagens responsivas: `max-width: 100%` para não vazar do container, `aspect-ratio` para manter proporção, `object-fit: cover` para preencher sem distorção.

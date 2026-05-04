@@ -1,6 +1,198 @@
 ---
 title: "Strings"
-description: "Template literals, métodos comuns (split, replace, includes, slice, trim). Interpolação e multilinha."
-comingSoon: true
+description: "Template literals e interpolação. Os métodos mais usados: split, replace, includes, slice, trim, padStart. Strings como arrays e imutabilidade."
 order: 9
+hero:
+  titleBefore: "Strings:"
+  titleAccent: "texto"
+  titleAfter: "como dado."
+quiz:
+  - question: "Qual é a vantagem de template literals (backticks) sobre concatenação com +?"
+    options:
+      - "Template literals são mais rápidos"
+      - "Template literals funcionam apenas com variáveis simples, não com expressões"
+      - "Template literals permitem interpolação de expressões com ${}, suportam múltiplas linhas e são mais legíveis do que concatenação encadeada"
+      - "Template literals só funcionam com strings — não com números"
+    correct: 2
+  - question: "O que slice(-3) retorna em uma string?"
+    options:
+      - "Os três primeiros caracteres"
+      - "Um erro — slice não aceita índices negativos"
+      - "A string sem os três últimos caracteres"
+      - "Os três últimos caracteres — índices negativos contam a partir do final"
+    correct: 3
+  - question: "Por que strings são imutáveis em JavaScript?"
+    options:
+      - "É uma limitação que será corrigida em versões futuras"
+      - "Strings são valores primitivos — uma vez criadas, não podem ser modificadas. Métodos como toUpperCase() retornam uma nova string, não modificam a original"
+      - "Porque strings compartilham referência como objetos"
+      - "Porque o JavaScript usa UTF-8 internamente"
+    correct: 1
+  - question: "O que split('') faz em uma string?"
+    options:
+      - "Divide a string em um array de caracteres individuais"
+      - "Divide a string em palavras"
+      - "Remove todos os espaços"
+      - "Converte a string para um array de códigos ASCII"
+    correct: 0
 ---
+
+Strings são o tipo de dado para texto — títulos de artigos, nomes de autores, slugs de URL, mensagens de erro, HTML gerado dinamicamente. Em JavaScript, strings são primitivos imutáveis: uma vez criados, não podem ser modificados. Os métodos que parecem "modificar" uma string na verdade retornam uma nova.
+
+## Template literals
+
+Template literals usam backticks (`` ` ``) em vez de aspas. A vantagem principal é a **interpolação**: você incorpora expressões diretamente com `${}` — sem concatenação com `+`.
+
+```js title="Template literals vs concatenação — legibilidade em código real."
+const titulo = "CSS em geral";
+const curtidas = 87;
+const autor = "Dev Aprendiz";
+
+// ❌ concatenação com + — difícil de ler com múltiplos valores
+const html1 = '<h2 class="card-titulo">' + titulo + '</h2><p>' + curtidas + ' curtidas por ' + autor + '</p>';
+
+// ✅ template literal — muito mais legível
+const html2 = `
+  <h2 class="card-titulo">${titulo}</h2>
+  <p>${curtidas} curtida${curtidas === 1 ? "" : "s"} por ${autor}</p>
+`;
+
+// expressões completas dentro de ${}
+const mensagem = `Artigo tem ${curtidas > 100 ? "mais de 100" : curtidas} curtidas`;
+
+// múltiplas linhas — a quebra de linha é literal
+const bloco = `
+  Linha um
+  Linha dois
+  Linha três
+`;
+```
+
+Qualquer expressão JavaScript é válida dentro de `${}` — operações matemáticas, chamadas de função, ternários, métodos. Evite apenas expressões muito longas que prejudiquem a leitura.
+
+## Métodos essenciais
+
+Strings em JavaScript têm dezenas de métodos. Estes são os que aparecem com mais frequência:
+
+**`.length`** retorna o número de caracteres.
+
+**`.toUpperCase()`** e **`.toLowerCase()`** convertem o case. Para gerar slugs de URL, é comum `toLowerCase()` + troca de espaços por hífens.
+
+**`.trim()`**, **`.trimStart()`**, **`.trimEnd()`** removem espaços em branco nas bordas — útil para limpar input do usuário.
+
+**`.includes(sub)`** verifica se a string contém a substring. **`.startsWith(pref)`** e **`.endsWith(suf)`** verificam início e fim.
+
+**`.indexOf(sub)`** retorna a posição da primeira ocorrência, ou `-1` se não encontrar.
+
+**`.slice(início, fim)`** extrai uma parte da string. Índices negativos contam a partir do final: `slice(-3)` pega os três últimos caracteres.
+
+**`.split(separador)`** divide a string em um array de partes. `split("")` divide em caracteres individuais. `split(",")` divide por vírgula.
+
+**`.replace(de, para)`** substitui a primeira ocorrência. **`.replaceAll(de, para)`** substitui todas. Ambos aceitam expressões regulares no primeiro argumento.
+
+**`.padStart(n, char)`** e **`.padEnd(n, char)`** preenchem a string até atingir o comprimento `n`.
+
+```js title="Implementando gerarSlug — usando múltiplos métodos em cadeia."
+function gerarSlug(titulo) {
+  return titulo
+    .toLowerCase()           // "Meu Primeiro Projeto Web" → "meu primeiro projeto web"
+    .trim()                  // remove espaços nas bordas
+    .replace(/\s+/g, "-")   // espaços → hífens (regex: um ou mais espaços)
+    .replace(/[^a-z0-9-]/g, ""); // remove tudo que não é letra, número ou hífen
+}
+
+gerarSlug("Meu Primeiro Projeto Web");
+// → "meu-primeiro-projeto-web"
+
+gerarSlug("  CSS: Grid & Flexbox! ");
+// → "css-grid--flexbox" (o ! foi removido, o & também)
+
+// outros usos dos métodos
+const email = "  Dev@Exemplo.com  ";
+email.trim().toLowerCase(); // → "dev@exemplo.com"
+
+const descricao = "Aprenda HTML, CSS e JavaScript";
+descricao.includes("CSS");      // → true
+descricao.startsWith("Aprenda"); // → true
+descricao.split(", ");          // → ["Aprenda HTML", "CSS e JavaScript"]
+
+// padStart — formatar número com zeros à esquerda
+const numero = "3";
+numero.padStart(3, "0"); // → "003"
+```
+
+## Truncar texto com slice
+
+`slice` é essencial para controlar o comprimento de textos em interfaces. Diferente de `substring`, aceita índices negativos.
+
+```js title="Truncar a descrição do artigo com slice e adicionar elipsis."
+function truncar(texto, maximo = 160) {
+  if (texto.length <= maximo) return texto;
+
+  // cortar no limite e adicionar elipsis
+  return texto.slice(0, maximo).trimEnd() + "…";
+}
+
+const descricao = "Aprenda a usar CSS Grid para criar layouts de duas dimensões com controle preciso de linhas e colunas, sem media queries desnecessárias.";
+
+truncar(descricao, 80);
+// → "Aprenda a usar CSS Grid para criar layouts de duas dimensões com controle…"
+
+// slice com índice negativo — pegar o final da string
+const url = "https://artigo.dev/css/grid";
+const slug = url.slice(url.lastIndexOf("/") + 1);
+// → "grid"
+```
+
+## Strings como arrays
+
+Strings se comportam como arrays em muitos aspectos: você pode acessar caracteres por índice, iterar com `for...of` e verificar o `length`. Mas strings são **imutáveis** — você não pode atribuir `str[0] = "X"`.
+
+```js title="Iterando sobre uma string e convertendo para array."
+const titulo = "HTML";
+
+// acesso por índice
+titulo[0]; // → "H"
+titulo[3]; // → "L"
+
+// for...of — itera caractere por caractere
+for (const letra of titulo) {
+  console.log(letra); // H, T, M, L
+}
+
+// converter para array de caracteres
+const caracteres = Array.from(titulo);
+// → ["H", "T", "M", "L"]
+
+// ou com split("")
+const chars = titulo.split("");
+// → ["H", "T", "M", "L"]
+
+// contar palavras em um texto
+function contarPalavras(texto) {
+  return texto.trim().split(/\s+/).length;
+}
+
+contarPalavras("Aprenda HTML CSS e JavaScript"); // → 5
+contarPalavras("  múltiplos   espaços  ");       // → 2
+```
+
+`Array.from` e `split("")` são úteis quando você precisa manipular caracteres individualmente — inverter uma string, verificar palíndromos, contar ocorrências de um caractere. Como strings são imutáveis, a forma de "modificar" uma string é criar uma nova:
+
+```js title="Criar nova string a partir de modificações — strings são imutáveis."
+const original = "css em geral";
+
+// uppercase não modifica 'original' — retorna nova string
+const maiusculo = original.toUpperCase();
+
+console.log(original); // → "css em geral" (não mudou)
+console.log(maiusculo); // → "CSS EM GERAL"
+```
+
+## Resumo
+
+- **Template literals** (backticks) permitem interpolação com `${}` e múltiplas linhas — muito mais legíveis que concatenação com `+`.
+- Métodos essenciais: `toLowerCase()`/`toUpperCase()` para conversão de case; `trim()` para limpar bordas; `includes()`/`startsWith()`/`endsWith()` para verificar conteúdo; `slice()` para extrair partes (aceita índices negativos); `split()` para dividir em array; `replace()`/`replaceAll()` para substituir.
+- `slice(início, fim)` extrai uma substring. Índices negativos contam do final.
+- Strings se comportam como arrays (índice, `for...of`, `length`), mas são **imutáveis** — métodos retornam novas strings, nunca modificam a original.
+- `Array.from(str)` e `str.split("")` convertem string em array de caracteres para manipulação individual.

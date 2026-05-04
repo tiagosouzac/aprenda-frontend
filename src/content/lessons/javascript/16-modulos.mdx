@@ -1,6 +1,262 @@
 ---
 title: "Módulos"
-description: "import e export, ESM vs. CommonJS, default vs. named exports, organização de código em arquivos e pastas."
-comingSoon: true
+description: "O problema do escopo global. ES Modules com import e export. Named vs default exports. Organizando script.js em utils.js, api.js, ui.js e main.js."
 order: 16
+hero:
+  titleBefore: "Módulos:"
+  titleAccent: "organizar"
+  titleAfter: "o código em arquivos."
+quiz:
+  - question: "O que type='module' faz em uma tag script?"
+    options:
+      - "Carrega um módulo CSS junto com o JavaScript"
+      - "Desativa o JavaScript e carrega WebAssembly"
+      - "Habilita ES Modules: import/export funcionam, cada arquivo tem escopo próprio (variáveis não vazam para o global) e strict mode é ativado automaticamente"
+      - "Converte o script para TypeScript automaticamente"
+    correct: 2
+  - question: "Qual é a diferença entre named export e default export?"
+    options:
+      - "Named export é para funções; default export é para classes"
+      - "Não há diferença prática — são sinônimos"
+      - "Default export só pode ser usado em Node.js; named export no navegador"
+      - "Named export exporta com um nome específico — pode haver vários por arquivo; default export exporta o valor principal — apenas um por arquivo. Named import usa {chaves}; default import usa qualquer nome"
+    correct: 3
+  - question: "Por que módulos têm defer implícito?"
+    options:
+      - "Para compatibilidade com sistemas mais antigos"
+      - "Para garantir que o HTML esteja completamente parseado antes dos módulos executarem — módulos frequentemente acessam o DOM"
+      - "Para que os imports possam ser resolvidos em paralelo"
+      - "Não é verdade — módulos não têm defer implícito"
+    correct: 1
+  - question: "Por que organizar o código em múltiplos módulos é vantajoso?"
+    options:
+      - "Cada módulo tem responsabilidade única, é mais fácil de testar isoladamente, variáveis não colide com outros arquivos e você importa apenas o que precisa"
+      - "Porque o navegador executa múltiplos arquivos mais rápido que um único"
+      - "Porque ES Modules é obrigatório em browsers modernos"
+      - "Apenas porque é convenção do mercado, sem benefício real"
+    correct: 0
 ---
+
+À medida que o `script.js` cresce — toggle de tema, curtidas, barra de progresso, carregamento de artigos — ele começa a ficar longo e difícil de navegar. Funções de utilidades se misturam com manipulação do DOM que se mistura com chamadas fetch. Módulos permitem dividir esse código em arquivos com responsabilidades bem definidas.
+
+## O problema sem módulos
+
+Antes de módulos existirem, todos os scripts compartilhavam o mesmo escopo global — o objeto `window`. Cada variável e função declaradas em qualquer `<script>` ficavam disponíveis em todos os outros:
+
+```html title="O problema do escopo global — colisão de nomes entre scripts."
+<!-- script-a.js rodou primeiro e definiu formatarData -->
+<script src="script-a.js"></script>
+<!-- script-b.js também define formatarData — sobrescreve o anterior silenciosamente -->
+<script src="script-b.js"></script>
+```
+
+```js title="Colisão silenciosa de nomes no escopo global."
+// script-a.js
+function formatarData(date) {
+  return date.toLocaleDateString("pt-BR");
+}
+
+// script-b.js — declara a mesma função com implementação diferente
+function formatarData(date) {
+  return date.toISOString(); // sobrescreve a primeira silenciosamente
+}
+
+// qualquer código que usa formatarData agora usa a versão do script-b
+// sem erro, sem aviso — bug difícil de rastrear
+```
+
+Além da colisão de nomes, a ordem dos `<script>` no HTML importa e é frágil — se você troca a ordem, o código quebra.
+
+## ES Modules (ESM)
+
+O sistema de módulos nativo do JavaScript resolve todos esses problemas. Ativa com `type="module"` no `<script>`:
+
+```html title="Habilitando ES Modules em artigo.html."
+<head>
+  <!-- type="module": habilita import/export, defer implícito, strict mode -->
+  <script type="module" src="main.js"></script>
+  <!-- não é necessário declarar os outros arquivos — main.js os importa -->
+</head>
+```
+
+Com `type="module"`:
+- Cada arquivo tem seu **próprio escopo** — variáveis não vazam para o `window`
+- **`import`** e **`export`** funcionam
+- **`strict mode`** é ativado automaticamente — `var` ainda funciona mas erros silenciosos do modo não-strict se tornam erros reais
+- O script tem **`defer` implícito** — executa após o HTML estar completamente parseado
+
+## Export
+
+Você exporta o que outros módulos podem usar. Há duas formas:
+
+**Named export**: exporta com um nome específico. Um arquivo pode ter múltiplos named exports. O importador usa o nome exato (ou renomeia com `as`).
+
+**Default export**: exporta o valor principal do arquivo. Um arquivo pode ter apenas um default export. O importador pode usar qualquer nome.
+
+```js title="utils.js — named exports de funções utilitárias."
+// named exports — múltiplos por arquivo
+export function formatarData(date) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(new Date(date));
+}
+
+export function calcularTempoLeitura(palavras) {
+  return Math.ceil(palavras / 238);
+}
+
+export function gerarSlug(titulo) {
+  return titulo
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+}
+
+export function truncar(texto, max = 160) {
+  if (texto.length <= max) return texto;
+  return texto.slice(0, max).trimEnd() + "…";
+}
+
+// exportar no final — alternativa equivalente
+// export { formatarData, calcularTempoLeitura, gerarSlug, truncar };
+```
+
+## Import
+
+Para usar o que foi exportado, use `import` no topo do arquivo:
+
+```js title="Importando de utils.js — named imports com chaves."
+// named imports — com chaves, usando o nome exato
+import { formatarData, calcularTempoLeitura, truncar } from "./utils.js";
+
+// renomear durante o import
+import { formatarData as formatar } from "./utils.js";
+
+// importar tudo em um namespace
+import * as utils from "./utils.js";
+utils.formatarData(new Date()); // acessar via namespace
+
+// default import — qualquer nome funciona
+// import minhaFuncao from "./modulo.js";
+```
+
+O caminho no `import` deve ser relativo e incluir a extensão `.js` — diferente de bundlers como Vite, onde a extensão é opcional.
+
+## Organizando o blog em módulos
+
+Com a estrutura de módulos, o `script.js` monolítico se divide em quatro arquivos com responsabilidades distintas:
+
+```js title="utils.js — funções puras, sem dependência do DOM."
+// funções que não dependem do DOM — fáceis de testar isoladamente
+
+export function formatarData(dateString) {
+  return new Intl.DateTimeFormat("pt-BR").format(new Date(dateString));
+}
+
+export function calcularTempoLeitura(palavras) {
+  return Math.ceil(palavras / 238);
+}
+
+export function truncar(texto, max = 160) {
+  if (texto.length <= max) return texto;
+  return texto.slice(0, max).trimEnd() + "…";
+}
+```
+
+```js title="api.js — funções de rede, importando utils quando necessário."
+export async function buscarArtigos() {
+  const response = await fetch("/artigos.json");
+  if (!response.ok) throw new Error(`Erro ${response.status}`);
+  return response.json();
+}
+
+export async function enviarContato(dados) {
+  const response = await fetch("/contato", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(dados),
+  });
+  if (!response.ok) throw new Error(`Erro ${response.status}`);
+  return response.json();
+}
+```
+
+```js title="ui.js — funções de manipulação do DOM, importando utils."
+import { formatarData, truncar } from "./utils.js";
+
+export function renderizarCards(artigos, curtidos) {
+  return artigos.map(a => `
+    <article class="card-artigo" data-id="${a.id}">
+      <h2>${a.titulo}</h2>
+      <p>${truncar(a.descricao)}</p>
+      <time datetime="${a.publicadoEm}">${formatarData(a.publicadoEm)}</time>
+      <button class="botao-curtir" aria-pressed="${curtidos.includes(a.id)}">
+        ${curtidos.includes(a.id) ? "❤️" : "🤍"} Curtir
+      </button>
+    </article>
+  `).join("");
+}
+
+export function exibirNotificacao(tipo, mensagem) {
+  const notif = document.getElementById("notificacao");
+  if (!notif) return;
+  notif.className = `notificacao notificacao-${tipo}`;
+  notif.textContent = mensagem;
+  notif.hidden = false;
+  setTimeout(() => { notif.hidden = true; }, 4000);
+}
+```
+
+```js title="main.js — ponto de entrada, importa e orquestra os módulos."
+import { buscarArtigos, enviarContato } from "./api.js";
+import { renderizarCards, exibirNotificacao } from "./ui.js";
+
+// ============================================================
+// TOGGLE DE TEMA
+// ============================================================
+const botaoTema = document.getElementById("botao-tema");
+const html = document.documentElement;
+
+const temaSalvo = localStorage.getItem("tema") ?? "claro";
+if (temaSalvo === "dark") {
+  html.setAttribute("data-theme", "dark");
+}
+
+botaoTema?.addEventListener("click", () => {
+  const temaDark = html.getAttribute("data-theme") === "dark";
+  const novoTema = temaDark ? "claro" : "dark";
+  html.setAttribute("data-theme", novoTema === "dark" ? "dark" : "");
+  if (novoTema === "claro") html.removeAttribute("data-theme");
+  localStorage.setItem("tema", novoTema);
+});
+
+// ============================================================
+// CARREGAMENTO DE ARTIGOS
+// ============================================================
+const listaArtigos = document.getElementById("lista-artigos");
+
+async function inicializar() {
+  if (!listaArtigos) return;
+
+  try {
+    const artigos = await buscarArtigos();
+    const curtidos = JSON.parse(localStorage.getItem("curtidos")) ?? [];
+    listaArtigos.innerHTML = renderizarCards(artigos.filter(a => a.publicado), curtidos);
+  } catch (erro) {
+    listaArtigos.innerHTML = "<p>Erro ao carregar artigos.</p>";
+  }
+}
+
+inicializar();
+```
+
+## Resumo
+
+- Sem módulos, todos os scripts compartilham o escopo global — colisão de nomes e dependência frágil de ordem de carregamento.
+- **`type="module"`** em `<script>` habilita ES Modules: escopo isolado por arquivo, `import`/`export` funcionam, strict mode ativado, defer implícito.
+- **Named export** (`export function f`) — múltiplos por arquivo, importado com `{ chaves }`. **Default export** (`export default`) — um por arquivo, importado com qualquer nome.
+- Organização recomendada para o blog: `utils.js` (funções puras), `api.js` (fetch), `ui.js` (DOM), `main.js` (ponto de entrada que importa e orquestra).
+- Escopo de módulo significa que você importa **exatamente** o que precisa — dependências são explícitas no código, não implícitas na ordem dos `<script>`.

@@ -1,6 +1,238 @@
 ---
 title: "Vitest — primeiros testes"
 description: "Instalação, primeiro arquivo .test.ts, describe, test, expect. Matchers mais usados (toBe, toEqual, toContain, toThrow)."
-comingSoon: true
 order: 3
+hero:
+  titleBefore: "Vitest"
+  titleAccent: "— primeiros"
+  titleAfter: "testes."
+quiz:
+  - question: "Por que Vitest precisa de pouca configuração em projetos Vite?"
+    options:
+      - "Porque Vitest não suporta TypeScript"
+      - "Porque Vitest reutiliza a configuração do Vite — os mesmos plugins, aliases e resolução de módulos já definidos no vite.config.ts funcionam automaticamente nos testes"
+      - "Porque Vitest não precisa transpilar o código"
+      - "Porque Vitest usa Node.js puro sem bundler"
+    correct: 1
+  - question: "Qual é a diferença entre .toBe() e .toEqual()?"
+    options:
+      - ".toBe() usa igualdade estrita (===) — falha para objetos com o mesmo conteúdo mas referências diferentes. .toEqual() faz comparação profunda de conteúdo — correto para objetos e arrays"
+      - "Não há diferença — são intercambiáveis"
+      - ".toEqual() é mais rápido que .toBe()"
+      - ".toBe() funciona apenas com strings; .toEqual() funciona com qualquer tipo"
+    correct: 0
+  - question: "O que o modo --watch do Vitest faz?"
+    options:
+      - "Monitora uso de memória durante os testes"
+      - "Exibe os testes em uma janela gráfica"
+      - "Fica em execução contínua e re-roda automaticamente os testes afetados sempre que um arquivo é salvo — ciclo de feedback imediato durante o desenvolvimento"
+      - "Grava o tempo de execução de cada teste"
+    correct: 2
+  - question: "Como você testa que uma função lança um erro?"
+    options:
+      - "Envolva a chamada em try/catch e use expect no catch"
+      - "Use expect(funcaoQueLanca()).toBe(Error)"
+      - "Não é possível testar erros lançados com Vitest"
+      - "expect(() => funcaoQueLanca()).toThrow() — passe a função como callback, não o resultado da chamada. Vitest captura o erro internamente"
+    correct: 3
 ---
+
+Vitest é o framework de testes natural para projetos Vite. Ele reutiliza a mesma configuração — TypeScript, aliases, plugins — e oferece uma API idêntica à do Jest, com o benefício de ser significativamente mais rápido. Para o blog React com Vite e TypeScript, praticamente não há configuração adicional.
+
+## Instalação e configuração
+
+```bash title="Instalar Vitest e adicionar o script de test."
+npm install -D vitest
+```
+
+```json title="package.json — adicionar o script test."
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "coverage": "vitest run --coverage"
+  }
+}
+```
+
+Para a maioria dos projetos Vite + TypeScript, isso é suficiente. Vitest lê o `vite.config.ts` automaticamente. Se você precisar de configuração específica para testes (como o ambiente `jsdom` para componentes React), adicione uma seção `test` no `vite.config.ts` ou crie um `vitest.config.ts` separado:
+
+```ts title="vite.config.ts — configuração mínima com jsdom para React."
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: "jsdom",          // simula o DOM do navegador
+    globals: true,                 // describe, test, expect sem import
+    setupFiles: ["./src/test/setup.ts"],  // arquivo de setup global
+  },
+});
+```
+
+```ts title="src/test/setup.ts — setup global dos testes."
+import "@testing-library/jest-dom"; // matchers adicionais de DOM (opcional, para lição 7)
+```
+
+## Estrutura de um arquivo de teste
+
+```ts title="utils.test.ts — estrutura básica de um arquivo de teste."
+import { describe, it, expect } from "vitest";
+import { formatarData, gerarSlug } from "./utils";
+
+// describe agrupa testes relacionados — geralmente uma função ou módulo
+describe("formatarData", () => {
+
+  // it (ou test) descreve um comportamento específico
+  it("retorna 'agora' para datas dos últimos 60 segundos", () => {
+    // Arrange — preparar o cenário
+    const agora = new Date();
+
+    // Act — executar
+    const resultado = formatarData(agora);
+
+    // Assert — verificar
+    expect(resultado).toBe("agora");
+  });
+
+  it("retorna data formatada para datas com mais de 7 dias", () => {
+    const dataAntiga = new Date("2024-01-15");
+    expect(formatarData(dataAntiga)).toBe("15 de jan. de 2024");
+  });
+});
+```
+
+**Convenções de nomes de arquivo:**
+- `utils.test.ts` — junto ao arquivo testado (padrão mais comum)
+- `utils.spec.ts` — equivalente, preferido em alguns projetos
+- `__tests__/utils.ts` — em pasta separada (comum em projetos maiores)
+
+## Matchers essenciais
+
+```ts title="Matchers mais usados no dia a dia."
+// .toBe() — igualdade estrita (===)
+// Use para primitivos: strings, números, booleans
+expect(2 + 2).toBe(4);
+expect("slug-gerado").toBe("slug-gerado");
+expect(true).toBe(true);
+
+// .toEqual() — igualdade profunda de conteúdo
+// Use para objetos e arrays — .toBe() falha com referências diferentes
+expect([1, 2, 3]).toEqual([1, 2, 3]);             // ✅
+expect({ id: 1 }).toEqual({ id: 1 });              // ✅
+expect([1, 2, 3]).toBe([1, 2, 3]);                // ❌ referências diferentes
+
+// .toBeTruthy() e .toBeFalsy()
+// Para verificar truthiness sem checar o valor exato
+expect("algum texto").toBeTruthy();
+expect(null).toBeFalsy();
+expect(0).toBeFalsy();
+
+// .toContain() — verifica que array contém item ou string contém substring
+expect(["css", "html", "js"]).toContain("css");
+expect("Introdução ao React").toContain("React");
+
+// .toHaveLength() — tamanho de array ou string
+expect([1, 2, 3]).toHaveLength(3);
+expect("abc").toHaveLength(3);
+
+// .toBeNull() e .toBeUndefined()
+expect(null).toBeNull();
+expect(undefined).toBeUndefined();
+
+// .toBeGreaterThan() e similares
+expect(5).toBeGreaterThan(3);
+expect(2).toBeLessThanOrEqual(2);
+
+// .toThrow() — verifica que uma função lança erro
+// Sempre passe a função como callback — não chame diretamente
+expect(() => gerarSlug(null as any)).toThrow();
+expect(() => dividir(10, 0)).toThrow("Divisão por zero");
+```
+
+## Primeiro teste real — `gerarSlug`
+
+```ts title="gerarSlug.test.ts — cobrindo casos normais e limite."
+import { describe, it, expect } from "vitest";
+import { gerarSlug } from "./utils";
+
+describe("gerarSlug", () => {
+  it("converte texto simples para slug", () => {
+    expect(gerarSlug("Introdução ao CSS")).toBe("introducao-ao-css");
+  });
+
+  it("converte para minúsculas", () => {
+    expect(gerarSlug("React e TypeScript")).toBe("react-e-typescript");
+  });
+
+  it("substitui espaços por hífens", () => {
+    expect(gerarSlug("como a web funciona")).toBe("como-a-web-funciona");
+  });
+
+  it("remove acentos e caracteres especiais", () => {
+    expect(gerarSlug("Flexbox: guia completo")).toBe("flexbox-guia-completo");
+  });
+
+  it("remove espaços extras nas bordas", () => {
+    expect(gerarSlug("  CSS Grid  ")).toBe("css-grid");
+  });
+
+  it("retorna string vazia para entrada vazia", () => {
+    expect(gerarSlug("")).toBe("");
+  });
+});
+```
+
+## Rodando os testes
+
+```bash title="Comandos para rodar os testes."
+# rodar uma vez — para CI ou verificação rápida
+npm test -- --run
+
+# modo watch — re-roda quando arquivos mudam (padrão de desenvolvimento)
+npm test
+
+# filtrar por nome — rodar apenas testes com "slug" no nome
+npm test -- --reporter=verbose gerarSlug
+
+# relatório de cobertura
+npm run coverage
+```
+
+O output de uma suite passando:
+
+```
+ ✓ src/utils.test.ts (6)
+   ✓ gerarSlug (6)
+     ✓ converte texto simples para slug
+     ✓ converte para minúsculas
+     ✓ substitui espaços por hífens
+     ✓ remove acentos e caracteres especiais
+     ✓ remove espaços extras nas bordas
+     ✓ retorna string vazia para entrada vazia
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Duration  187ms
+```
+
+E quando um teste falha — a mensagem mostra exatamente o que era esperado e o que chegou:
+
+```
+ FAIL src/utils.test.ts > gerarSlug > remove acentos e caracteres especiais
+AssertionError: expected 'flexbox:-guia-completo' to be 'flexbox-guia-completo'
+
+ - Expected: "flexbox-guia-completo"
+ + Received: "flexbox:-guia-completo"
+```
+
+## Resumo
+
+- **Instalação**: `npm install -D vitest` + script `"test": "vitest"` no `package.json`. Para React, adicione `environment: "jsdom"` na config.
+- **Estrutura**: `describe` agrupa, `it`/`test` descreve um comportamento, `expect` faz a asserção.
+- **Matchers essenciais**: `.toBe()` para igualdade estrita, `.toEqual()` para objetos/arrays, `.toContain()` para listas e strings, `.toThrow()` para erros esperados.
+- **`npm test`** roda em modo watch — re-roda automaticamente ao salvar. `npm test -- --run` roda uma vez.
+- Mensagens de falha mostram o valor esperado vs. o recebido — fácil de diagnosticar.

@@ -1,6 +1,173 @@
 ---
-title: "Acessibilidade básica"
-description: "Como escrever HTML que funcione para todo mundo. alt descritivo, labels associados, foco visível, contraste e roles ARIA."
-comingSoon: true
+title: "Acessibilidade básica em HTML"
+description: "Como escrever HTML que funcione para todo mundo. Alt descritivo, labels, navegação por teclado e ARIA."
 order: 9
+hero:
+  titleBefore: "Acessibilidade"
+  titleAccent: "básica"
+  titleAfter: "em HTML."
+quiz:
+  - question: "O que é acessibilidade web?"
+    options:
+      - "Fazer o site funcionar em conexões lentas"
+      - "Otimizar o site para mecanismos de busca"
+      - "Garantir que qualquer pessoa consiga usar o site, independente de limitações físicas, cognitivas ou situacionais"
+      - "Fazer o site funcionar sem JavaScript"
+    correct: 2
+  - question: "Um alt bem escrito para uma imagem deve:"
+    options:
+      - "Começar com 'imagem de' ou 'foto de'"
+      - "Ser o mesmo que o nome do arquivo"
+      - "Ter no máximo cinco palavras"
+      - "Descrever o conteúdo da imagem e o que ela comunica naquele contexto"
+    correct: 3
+  - question: "Qual é o papel do atributo aria-label?"
+    options:
+      - "Aplicar um label visual estilizado ao elemento"
+      - "Fornecer um nome acessível a elementos interativos quando o texto visível não é suficiente"
+      - "Associar um input a um label no formulário"
+      - "Ocultar o elemento de leitores de tela"
+    correct: 1
+  - question: "Por que nunca usar outline:none sem alternativa em elementos focáveis?"
+    options:
+      - "Porque remove o indicador visual de foco, tornando a navegação por teclado impossível"
+      - "Porque outline é necessário para o CSS funcionar"
+      - "Porque o navegador ignora CSS em elementos focáveis"
+      - "Porque afeta o desempenho de renderização"
+    correct: 0
 ---
+
+Acessibilidade não é uma feature opcional que você adiciona no final — é uma dimensão de qualidade que começa na primeira linha de HTML. Um documento bem estruturado, com elementos semânticos corretos e atributos cuidadosamente escolhidos, já é acessível em grande parte. O que esta lição cobre são os detalhes que fazem a diferença para quem depende de tecnologias assistivas ou tem limitações situacionais.
+
+## O que é acessibilidade e por que importa
+
+Acessibilidade web significa que qualquer pessoa consegue usar o site — independente de deficiência visual, motora, auditiva ou cognitiva. A estimativa da Organização Mundial da Saúde é que 15 a 20% da população mundial tem alguma deficiência. Mas o número de pessoas que se beneficia de um site acessível é maior ainda, porque muitas deficiências são situacionais: um braço imobilizado por lesão, tela ao sol impossibilitando contraste baixo, ambiente barulhento onde ver subtítulos é necessário.
+
+Acessibilidade e qualidade de código se sobrepõem consideravelmente. HTML semântico — que você já aprendeu — é a base da acessibilidade. Um `<h1>` correto permite que leitores de tela anunciem o título. Um `<nav>` permite pular a navegação. Um `<button>` recebe foco pelo teclado automaticamente e é ativado por Enter e Espaço. Grande parte do trabalho de acessibilidade é simplesmente usar o elemento certo.
+
+## `alt` em imagens
+
+A regra de `alt` é simples: imagens informativas precisam de `alt` que descreva o conteúdo; imagens decorativas precisam de `alt=""`. Mas escrever um bom `alt` requer pensar no contexto.
+
+Um bom `alt` descreve **o que a imagem mostra e por que importa naquele ponto do documento**. Não começa com "imagem de" ou "foto de" — o leitor de tela já anuncia que é uma imagem. Descreve o conteúdo concreto que um leitor precisa saber para não perder informação.
+
+```html title="Comparação de alt descritivo vs. alt genérico para imagens de artigo.html."
+<!-- ❌ genérico: não acrescenta informação -->
+<img src="/imagens/projeto.png" alt="imagem" />
+<img src="/imagens/projeto.png" alt="screenshot" />
+<img src="/imagens/projeto.png" alt="meu projeto" />
+
+<!-- ✅ descritivo: transmite o que um leitor precisa saber -->
+<img
+  src="/imagens/projeto.png"
+  alt="Página inicial do projeto mostrando header azul, lista de três artigos e rodapé com links de contato"
+  width="960"
+  height="540"
+/>
+```
+
+Para imagens decorativas — aquelas que existem apenas por efeito visual, como separadores ou fundos — o `alt` deve ser uma string vazia. Isso instrui o leitor de tela a ignorar a imagem completamente:
+
+```html title="Imagem decorativa com alt vazio — corretamente ignorada por leitores de tela."
+<!-- ✅ decorativa: alt vazio instrui o leitor de tela a pular -->
+<img src="/imagens/divisor.svg" alt="" />
+```
+
+A diferença entre `alt=""` e ausência do atributo `alt` é importante: sem o atributo, o leitor de tela pode anunciar o caminho do arquivo — `"/imagens/divisor.svg"` — o que é inútil e perturbador.
+
+## Labels e formulários acessíveis
+
+Lição 8 já tratou de labels, mas acessibilidade de formulários vai além da associação básica. Formulários inacessíveis são uma das barreiras mais comuns na web.
+
+Toda mensagem de erro deve estar associada ao campo correspondente. A forma correta é com `aria-describedby` — que aponta para o `id` de um elemento que contém a descrição de erro:
+
+```html title="Campo com mensagem de erro associada por aria-describedby."
+<div>
+  <label for="email-form">E-mail</label>
+  <input
+    type="email"
+    id="email-form"
+    name="email"
+    aria-describedby="email-erro"
+    required
+  />
+  <!-- a mensagem de erro está associada ao input por aria-describedby -->
+  <span id="email-erro" role="alert">
+    Digite um endereço de e-mail válido.
+  </span>
+</div>
+```
+
+O atributo `role="alert"` faz o leitor de tela anunciar o texto imediatamente quando ele aparecer na página — sem precisar que o usuário navegue até ele. Isso é essencial para feedback de validação.
+
+O foco deve permanecer visível. O `outline` azul (ou colorido) que aparece ao redor de elementos ao navegar pelo teclado é o indicador de foco — é o que permite saber onde você está na página. Nunca use `outline: none` sem fornecer um indicador alternativo:
+
+```html title="CSS que mantém foco visível — nunca remova sem alternativa."
+<!-- ❌ remove o indicador de foco — torna teclado inutilizável -->
+<!-- input:focus { outline: none; } -->
+
+<!-- ✅ personaliza o foco mas mantém visível -->
+<!-- input:focus { outline: 2px solid #4c6ef5; outline-offset: 2px; } -->
+```
+
+## Foco e navegação por teclado
+
+Toda funcionalidade da página deve ser acessível apenas com o teclado — sem depender do mouse. Essa é uma das diretrizes mais fundamentais da WCAG (Web Content Accessibility Guidelines).
+
+**Tab** avança o foco para o próximo elemento focável. **Shift+Tab** volta. **Enter** ativa links e botões. **Espaço** ativa botões e checkboxes. **Setas** navegam dentro de componentes como selects e grupos de radio.
+
+Elementos focáveis nativamente — sem nenhum atributo extra — são: `<a>` com `href`, `<button>`, `<input>`, `<select>`, `<textarea>`. Eles já recebem foco na ordem em que aparecem no HTML.
+
+A ordem de foco deve corresponder à ordem visual. Em geral, isso acontece naturalmente se a estrutura do HTML espelha a estrutura visual. Problemas surgem quando CSS reordena visualmente elementos sem reordenar o HTML — o usuário de teclado segue a ordem do HTML, não a visual.
+
+O atributo `tabindex` controla a ordem de foco manualmente. `tabindex="0"` adiciona foco a um elemento que normalmente não seria focável. `tabindex="-1"` remove o elemento da sequência de Tab mas permite foco programático via JavaScript. Evite valores positivos como `tabindex="3"` — eles criam uma ordem de foco separada do fluxo natural, o que confunde usuários de teclado.
+
+Para testar navegação por teclado em `artigo.html`, abra o arquivo no navegador, clique em algum lugar da página e então use Tab para navegar:
+
+- O foco deve começar na navegação principal
+- Tab deve avançar por todos os links e campos de formulário
+- Shift+Tab deve voltar na ordem inversa
+- Enter deve ativar links e botões
+- Cada elemento focado deve ter um indicador visual claro
+
+## Quando usar ARIA
+
+ARIA (*Accessible Rich Internet Applications*) é um conjunto de atributos HTML que fornece informações de acessibilidade que o HTML nativo não cobre. O princípio fundamental é: **primeiro HTML semântico, ARIA só quando o HTML não chega lá**.
+
+Usar ARIA incorretamente pode piorar a experiência de acessibilidade — um `role` errado ou um estado desatualizado confunde mais do que a ausência de ARIA. A maioria dos casos de uso do dia a dia é coberta por HTML semântico.
+
+**`aria-label`** fornece um nome acessível quando o texto visível não é suficiente — por exemplo, um botão com apenas um ícone ou um link que não tem texto visível:
+
+```html title="aria-label em elementos sem texto visível suficiente."
+<!-- botão de fechar com apenas um símbolo visual -->
+<button type="button" aria-label="Fechar">×</button>
+
+<!-- ícone de busca sem texto ao lado -->
+<button type="button" aria-label="Buscar artigos">
+  <img src="/icones/busca.svg" alt="" />
+</button>
+```
+
+**`aria-describedby`** associa uma descrição a um elemento — diferente do `aria-label` (que substitui o nome), `aria-describedby` adiciona informação complementar. Muito usado em mensagens de erro de formulário, como vimos acima.
+
+**`aria-label` em elementos `<nav>`** diferencia múltiplas navegações na mesma página — já visto na lição de semântica:
+
+```html title="aria-label em nav diferencia múltiplas navegações para leitores de tela."
+<nav aria-label="Navegação principal">
+  <!-- links do menu do site -->
+</nav>
+
+<nav aria-label="Índice do artigo">
+  <!-- links para seções do artigo -->
+</nav>
+```
+
+**`role`** define o papel de um elemento quando o HTML nativo não tem o elemento certo. É raro precisar disso com HTML5 moderno — `<button>` já tem `role="button"`, `<nav>` já tem `role="navigation"`. Mas às vezes, em componentes de UI personalizados, `role` é necessário. Se você criar um componente de tabs com `<div>`, por exemplo, precisará de `role="tablist"`, `role="tab"` e `role="tabpanel"` para transmitir a estrutura aos leitores de tela.
+
+## Resumo
+
+- Acessibilidade começa pelo HTML semântico — usar o elemento correto já resolve grande parte dos problemas.
+- Imagens informativas precisam de `alt` que descreva o conteúdo e o contexto; imagens decorativas precisam de `alt=""` para serem ignoradas por leitores de tela.
+- Formulários acessíveis têm labels visíveis e associados, mensagens de erro ligadas ao campo por `aria-describedby` e indicador de foco visível.
+- Toda funcionalidade deve ser acessível por teclado — Tab avança o foco, Shift+Tab volta, Enter e Espaço ativam; nunca remova o indicador de foco sem alternativa.
+- ARIA complementa o HTML quando ele não chega — `aria-label` para nomes, `aria-describedby` para descrições, `role` para papéis não cobertos pelo HTML nativo. Primeiro HTML semântico; ARIA só quando necessário.

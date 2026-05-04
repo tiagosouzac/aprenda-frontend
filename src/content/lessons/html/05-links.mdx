@@ -1,6 +1,176 @@
 ---
 title: "Links"
-description: "A âncora a e o atributo href. Links relativos vs. absolutos, links para âncoras na própria página, abrir em nova aba e rel=noopener."
-comingSoon: true
+description: "A âncora e o atributo href. Links relativos vs. absolutos, âncoras internas, abrir em nova aba e boas práticas de texto de link."
 order: 5
+hero:
+  titleBefore: "Links e"
+  titleAccent: "navegação"
+  titleAfter: "na web."
+quiz:
+  - question: "O que é uma URL relativa?"
+    options:
+      - "Uma URL que usa o protocolo https"
+      - "Uma URL que muda dependendo do usuário"
+      - "Uma URL definida em relação ao documento atual, sem incluir protocolo ou domínio"
+      - "Uma URL temporária que expira após um tempo"
+    correct: 2
+  - question: "Por que usar rel='noopener noreferrer' junto com target='_blank'?"
+    options:
+      - "Para melhorar a velocidade de carregamento da nova aba"
+      - "Para garantir que a nova aba herda os estilos CSS da página original"
+      - "Para que o link funcione em navegadores mais antigos"
+      - "Para proteger contra tab-napping — impedir que a nova aba acesse a página que a abriu"
+    correct: 3
+  - question: "Como funciona um link âncora como href='#aprendizados'?"
+    options:
+      - "Abre uma nova página chamada aprendizados"
+      - "Rola a página até o elemento com id='aprendizados' na mesma página"
+      - "Cria um marcador no navegador"
+      - "Aplica um estilo especial ao elemento de destino"
+    correct: 1
+  - question: "Por que 'clique aqui' é um texto de link problemático?"
+    options:
+      - "Porque não descreve o destino e é inútil para leitores de tela que listam links fora de contexto"
+      - "Porque é muito curto para o navegador processar"
+      - "Porque não funciona com target='_blank'"
+      - "Porque mecanismos de busca ignoram links com esse texto"
+    correct: 0
 ---
+
+O HyperText do HTML existe por causa dos links. É o elemento `<a>` — âncora — que conecta documentos entre si e torna a web navegável. Sem links, cada página seria uma ilha; com eles, qualquer documento pode referenciar qualquer outro em qualquer lugar do mundo.
+
+O `<a>` parece simples, mas tem nuances importantes: a diferença entre URLs relativas e absolutas afeta portabilidade, abrir links em nova aba sem cuidado cria vulnerabilidade de segurança, e texto de link mal escolhido torna a página inacessível. Esta lição cobre tudo isso com exemplos do `artigo.html`.
+
+## A âncora `<a>` e o atributo `href`
+
+O elemento `<a>` cria um link. O atributo `href` (*hypertext reference*) define o destino — para onde o link leva quando clicado. O conteúdo entre as tags é o que o usuário vê e clica.
+
+```html title="Links de navegação no header de artigo.html."
+<nav>
+  <a href="/">Home</a>
+  <a href="/artigos">Artigos</a>
+  <a href="/sobre">Sobre</a>
+</nav>
+```
+
+O conteúdo de um `<a>` pode ser texto, uma imagem ou qualquer combinação — o que estiver dentro se torna clicável. Um `<a>` sem `href` é um placeholder: visualmente parecido com um link, mas sem comportamento de link, sem foco pelo teclado e sem cursor de ponteiro.
+
+O `href` aceita qualquer tipo de URL: endereços web completos, caminhos relativos dentro do mesmo site, links para seções da mesma página, endereços de e-mail e até números de telefone:
+
+```html title="Diferentes tipos de href — web, email e telefone."
+<!-- URL completa para outro site -->
+<a href="https://developer.mozilla.org">MDN Web Docs</a>
+
+<!-- e-mail: abre o cliente de e-mail do usuário -->
+<a href="mailto:ola@artigo.dev">ola@artigo.dev</a>
+
+<!-- telefone: em celulares, inicia a ligação -->
+<a href="tel:+5511999999999">+55 (11) 99999-9999</a>
+```
+
+## URLs relativas vs. absolutas
+
+Uma **URL absoluta** inclui o protocolo e o domínio — ela funciona de qualquer lugar, porque é completa:
+
+```html title="URL absoluta — funciona de qualquer contexto."
+<a href="https://artigo.dev/sobre">Sobre o projeto</a>
+```
+
+Uma **URL relativa** é definida em relação ao documento atual. Ela não inclui protocolo nem domínio — apenas o caminho a partir de um ponto de referência:
+
+```html title="URLs relativas — caminhos a partir do documento atual ou da raiz do site."
+<!-- barra inicial: relativa à raiz do site -->
+<a href="/artigos">Todos os artigos</a>
+
+<!-- ponto e barra: relativa ao diretório do documento atual -->
+<a href="./imagens/projeto.png">Ver imagem</a>
+
+<!-- dois pontos e barra: sobe um nível de diretório -->
+<a href="../sobre/index.html">Sobre</a>
+```
+
+Para links internos — que levam a outras páginas do mesmo site — URLs relativas à raiz (começando com `/`) são geralmente a melhor escolha. Elas funcionam independente de onde o arquivo está no sistema de diretórios e não quebram se você mover o arquivo. Para links para outros sites, use URL absoluta — não há alternativa.
+
+## Links para âncoras na mesma página
+
+Um link com `href="#id-do-elemento"` não navega para outra página — ele rola a tela até o elemento com aquele `id` na mesma página. É o mecanismo por trás de índices de conteúdo, botões "voltar ao topo" e links de referência em artigos longos.
+
+Para funcionar, o elemento de destino precisa ter um `id` correspondente:
+
+```html title="Índice de seções no topo do artigo com links âncora."
+<!-- índice no topo do artigo -->
+<nav aria-label="Índice do artigo">
+  <a href="#o-que-eu-construi">O que eu construí</a>
+  <a href="#aprendizados">O que aprendi</a>
+  <a href="#proximo-passo">Próximo passo</a>
+</nav>
+
+<!-- seções com id correspondente ao href -->
+<section id="o-que-eu-construi">
+  <h2>O que eu construí</h2>
+  <!-- conteúdo da seção -->
+</section>
+
+<section id="aprendizados">
+  <h2>O que aprendi</h2>
+  <!-- conteúdo da seção -->
+</section>
+```
+
+Quando o usuário clica em "O que aprendi", o navegador rola suavemente (ou imediatamente, dependendo do CSS) até a seção com `id="aprendizados"`. O `id` também aparece na URL como fragmento: `artigo.dev/meu-primeiro-projeto#aprendizados` — o que significa que você pode compartilhar um link para exatamente aquela seção do artigo.
+
+## Abrir em nova aba — e quando não fazer
+
+O atributo `target="_blank"` faz o link abrir em uma nova aba do navegador. Parece útil, mas há dois problemas que você precisa conhecer.
+
+O primeiro é de **segurança**: quando `target="_blank"` é usado sem precauções, a nova página aberta tem acesso à página que a abriu através do objeto `window.opener`. Em sites maliciosos, isso pode ser explorado para redirecionar a página original. A solução é sempre acompanhar `target="_blank"` com `rel="noopener noreferrer"`:
+
+```html title="Link externo seguro — target='_blank' sempre com rel='noopener noreferrer'."
+<!-- referência bibliográfica que abre em nova aba com segurança -->
+<a
+  href="https://developer.mozilla.org/pt-BR/docs/Web/HTML"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Referência HTML no MDN
+</a>
+```
+
+O segundo problema é de **experiência do usuário**: forçar nova aba retira do usuário o controle de como ele quer abrir o link. Quem quiser nova aba pode usar Ctrl+clique (ou Cmd+clique no Mac) — você não precisa decidir isso por ele. A regra é: use `target="_blank"` apenas em links para fora do site ou para arquivos para download. Nunca para navegação interna.
+
+## Links acessíveis
+
+O texto de um link deve descrever o destino — o que o usuário vai encontrar ao clicar. Isso importa por duas razões:
+
+Primeiro, leitores de tela podem listar todos os links de uma página e anunciá-los fora do contexto do texto ao redor. Se todos os links dizem "clique aqui" ou "saiba mais", a lista é inútil — o usuário não sabe aonde cada link leva.
+
+Segundo, usuários que navegam rapidamente pela página varrem os links visualmente para decidir o que clicar. Texto vago como "leia mais" ou "aqui" não ajuda nessa decisão.
+
+```html title="Links vagos vs. links descritivos — os descritivos são acessíveis e claros."
+<!-- ❌ vago: não diz nada sobre o destino -->
+<p>Para ver o projeto, <a href="https://github.com/usuario/projeto">clique aqui</a>.</p>
+<p>Saiba mais sobre acessibilidade <a href="/acessibilidade">aqui</a>.</p>
+
+<!-- ✅ descritivo: o texto do link já é a descrição do destino -->
+<p>O código fonte está disponível no <a href="https://github.com/usuario/projeto">GitHub do projeto</a>.</p>
+<p>Leia mais sobre <a href="/acessibilidade">acessibilidade em HTML</a>.</p>
+```
+
+Quando o contexto visual não é suficiente — por exemplo, um ícone clicável sem texto — use `aria-label` para fornecer o nome acessível:
+
+```html title="aria-label fornece texto acessível quando o link não tem texto visível."
+<!-- ícone de GitHub sem texto ao lado — aria-label descreve o destino -->
+<a href="https://github.com/usuario" aria-label="Perfil no GitHub">
+  <img src="/icones/github.svg" alt="" />
+</a>
+```
+
+Note que a `<img>` tem `alt=""` — ela é decorativa neste contexto, porque o `aria-label` do `<a>` já descreve o link. O leitor de tela anuncia "link: Perfil no GitHub", e não precisa também anunciar a imagem.
+
+## Resumo
+
+- `<a href="...">` cria um link; o conteúdo entre as tags é o que o usuário vê e clica; sem `href`, o link não tem comportamento.
+- URLs absolutas incluem protocolo e domínio; URLs relativas são definidas em relação ao documento atual ou à raiz do site.
+- Links âncora (`href="#id"`) rolam a página até o elemento com aquele `id` — úteis para índices e navegação interna em artigos longos.
+- `target="_blank"` deve sempre ser acompanhado de `rel="noopener noreferrer"` por segurança, e deve ser usado apenas para links externos ou arquivos para download.
+- O texto do link deve descrever o destino — "clique aqui" e "saiba mais" são inacessíveis; use `aria-label` quando o link não tem texto visível.

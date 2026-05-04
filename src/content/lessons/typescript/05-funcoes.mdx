@@ -1,6 +1,249 @@
 ---
 title: "Funções tipadas"
 description: "Parâmetros, retornos, parâmetros opcionais, valores padrão, rest. void e never em retornos. Sobrecargas em alto nível."
-comingSoon: true
 order: 5
+hero:
+  titleBefore: "Funções"
+  titleAccent: "tipadas"
+  titleAfter: "— parâmetros e retornos."
+quiz:
+  - question: "Qual é a diferença entre um parâmetro opcional (x?: string) e um com valor padrão (x: string = 'padrão')?"
+    options:
+      - "Não há diferença prática — são equivalentes"
+      - "Parâmetro opcional é para strings; valor padrão é para numbers"
+      - "Parâmetro com valor padrão não pode ser omitido na chamada"
+      - "x?: string tem tipo string | undefined e pode ser omitido; x: string = 'padrão' também pode ser omitido, mas dentro da função sempre terá tipo string (o padrão é usado quando omitido)"
+    correct: 3
+  - question: "O que é um tipo de função em TypeScript?"
+    options:
+      - "O tipo de retorno de uma função"
+      - "Uma descrição do formato de uma função — seus parâmetros e tipo de retorno. Usado para tipar variáveis que guardam funções ou parâmetros que recebem funções"
+      - "Uma função que recebe tipos como argumento"
+      - "Uma função definida com type em vez de function"
+    correct: 1
+  - question: "Quando o retorno de uma função é never em vez de void?"
+    options:
+      - "Quando a função NUNCA completa — sempre lança um erro ou entra em loop infinito. void é para funções que retornam undefined; never é para funções que não retornam de forma alguma"
+      - "Quando a função não retorna um valor útil"
+      - "Quando a função retorna null"
+      - "never e void são intercambiáveis"
+    correct: 0
+  - question: "Por que desestruturar os parâmetros de uma função e anotar com uma interface é preferível a listar cada parâmetro individualmente?"
+    options:
+      - "Porque interfaces compilam mais rápido"
+      - "Porque TypeScript não suporta mais de 4 parâmetros"
+      - "Porque quando a função recebe muitos campos de um mesmo objeto, a desestruturação com interface é mais legível e reutilizável — a interface descreve a forma uma vez e pode ser usada em outros lugares"
+      - "Porque desestruturação é obrigatória com strict mode"
+    correct: 2
 ---
+
+Funções são o principal ponto onde TypeScript requer anotações explícitas — os parâmetros não são inferidos pelo compilador. Entender como tipar parâmetros, retornos e as variações (opcionais, padrão, rest) é o que permite converter as funções do blog de JavaScript para TypeScript com segurança.
+
+## Parâmetros e retorno
+
+A anotação básica: dois-pontos após o parâmetro para o tipo, e dois-pontos após a lista de parâmetros para o retorno:
+
+```ts title="utils.ts — funções do blog com parâmetros e retornos tipados."
+// parâmetro: palavras: number — retorno: number
+function calcularTempoLeitura(palavras: number): number {
+  return Math.ceil(palavras / 238);
+}
+
+// parâmetro: dateString: string — retorno: string
+function formatarData(dateString: string): string {
+  return new Intl.DateTimeFormat("pt-BR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(new Date(dateString));
+}
+
+// parâmetro: titulo: string — retorno: string
+function gerarSlug(titulo: string): string {
+  return titulo
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+}
+
+// dois parâmetros — retorno: string
+function truncar(texto: string, max: number = 160): string {
+  if (texto.length <= max) return texto;
+  return texto.slice(0, max).trimEnd() + "…";
+}
+```
+
+O tipo de retorno é opcional — TypeScript infere do `return`. Mas em funções exportadas, anotar o retorno serve como contrato: se a implementação mudar de forma que o tipo de retorno mude, o compilador avisa antes de os chamadores quebrarem.
+
+## Parâmetros opcionais e valores padrão
+
+Dois mecanismos para parâmetros que podem ser omitidos na chamada:
+
+```ts title="Opcional vs. padrão — comportamento diferente dentro da função."
+// parâmetro opcional: x?: string
+// dentro da função, x tem tipo string | undefined
+// você precisa verificar antes de usar
+function exibirNotificacao(mensagem: string, tipo?: string): void {
+  const classe = tipo ?? "info"; // tipo pode ser undefined — usar ?? como fallback
+  console.log(`[${classe}] ${mensagem}`);
+}
+
+exibirNotificacao("Artigo salvo");          // ok — tipo é omitido
+exibirNotificacao("Erro ao salvar", "erro"); // ok — tipo é "erro"
+
+// parâmetro com valor padrão: x: string = "padrão"
+// dentro da função, x SEMPRE tem tipo string — o padrão é usado quando omitido
+function truncar(texto: string, max: number = 160): string {
+  // max é sempre number — não precisa de ?? aqui
+  if (texto.length <= max) return texto;
+  return texto.slice(0, max).trimEnd() + "…";
+}
+
+truncar("texto longo...");     // ok — max é 160
+truncar("texto longo...", 80); // ok — max é 80
+```
+
+A diferença: com `x?: string`, o tipo dentro da função é `string | undefined` — você precisa lidar com a possibilidade de não ter sido passado. Com `x: string = "padrão"`, o padrão já cobre o caso de omissão e o tipo dentro da função é sempre `string`.
+
+## Rest parameters tipados
+
+Rest parameters (`...args`) agrupam argumentos extras em um array — o tipo é sempre um array:
+
+```ts title="Rest parameters — múltiplos argumentos do mesmo tipo."
+// ...tags: string[] — aceita qualquer número de strings
+function criarArtigo(titulo: string, ...tags: string[]): Artigo {
+  return {
+    id: Math.random(),
+    titulo,
+    tags,
+    curtidas: 0,
+    publicado: false,
+    publicadoEm: null,
+    descricao: "",
+  };
+}
+
+criarArtigo("CSS em geral");                         // tags é []
+criarArtigo("Flexbox", "css", "layout");             // tags é ["css", "layout"]
+criarArtigo("Grid", "css", "layout", "avançado");    // tags é ["css", "layout", "avançado"]
+```
+
+## Desestruturação tipada nos parâmetros
+
+Quando uma função recebe um objeto com vários campos, desestruturar no parâmetro é mais limpo que acessar `artigo.titulo`, `artigo.descricao` dentro do corpo:
+
+```ts title="Desestruturação nos parâmetros com interface."
+interface Artigo {
+  id: number;
+  titulo: string;
+  descricao: string;
+  tags: string[];
+  curtidas: number;
+  publicado: boolean;
+  publicadoEm: string | null;
+}
+
+// desestruturar diretamente no parâmetro — a interface descreve a forma
+function renderizarCard({ titulo, descricao, tags, curtidas }: Artigo): string {
+  return `
+    <article>
+      <h2>${titulo}</h2>
+      <p>${truncar(descricao)}</p>
+      <div>${tags.map(t => `<span>${t}</span>`).join("")}</div>
+      <span>${curtidas} curtidas</span>
+    </article>
+  `;
+}
+
+// alternativa inline — menos reutilizável
+function renderizarCard({
+  titulo,
+  descricao,
+}: { titulo: string; descricao: string }): string {
+  // ...
+}
+```
+
+Quando a forma do objeto é usada em mais de um lugar, extrai para uma `interface` — é mais reutilizável e mantém um único ponto para alterar.
+
+## Tipos de função
+
+Funções são valores em JavaScript. Em TypeScript, o tipo de uma função descreve seus parâmetros e retorno. Isso é necessário quando você precisa tipar uma variável que guarda uma função, ou um parâmetro que recebe uma função como callback:
+
+```ts title="Tipos de função — tipar callbacks e handlers."
+// type alias para um tipo de função
+type Handler = (event: MouseEvent) => void;
+type Transformador<T, U> = (item: T) => U;
+type Predicado<T> = (item: T) => boolean;
+
+// usar o tipo em um parâmetro
+function aoClicar(elemento: HTMLElement, handler: Handler): void {
+  elemento.addEventListener("click", handler);
+}
+
+// função que aceita um transformador genérico
+function mapear<T, U>(array: T[], fn: Transformador<T, U>): U[] {
+  return array.map(fn);
+}
+
+// na prática — tipar o handler de eventos do blog
+type HandlerClick = (event: MouseEvent) => void;
+
+function registrarToggleTema(handler: HandlerClick): void {
+  const botao = document.getElementById("botao-tema");
+  botao?.addEventListener("click", handler);
+}
+```
+
+A sintaxe de tipo de função é `(param: Tipo) => RetornoTipo`. Para múltiplos parâmetros: `(a: TipoA, b: TipoB) => RetornoTipo`.
+
+## `void` e `never`
+
+Dois tipos de retorno especiais que representam situações distintas:
+
+**`void`**: a função não retorna um valor utilizável. Ela pode retornar `undefined` implicitamente (sem `return`, ou com `return;`), mas o chamador não deve depender desse valor. A maioria dos event handlers tem retorno `void`.
+
+**`never`**: a função nunca retorna. Isso acontece quando a função sempre lança uma exceção ou entra em loop infinito. `never` é diferente de `void` — `void` significa "retorna undefined"; `never` significa "nunca chega ao fim":
+
+```ts title="void vs never — quando a função termina vs. quando não termina."
+// void: a função termina mas não retorna valor útil
+function exibirNotificacao(mensagem: string): void {
+  const el = document.getElementById("notificacao");
+  if (el) el.textContent = mensagem;
+  // return implícito — retorna undefined
+}
+
+// never: a função NUNCA retorna
+function falharCom(mensagem: string): never {
+  throw new Error(mensagem);
+  // TypeScript sabe que o código depois disso é inatingível
+}
+
+// never em exhaustive check — garantir que todos os casos de um union foram tratados
+type Tema = "claro" | "escuro";
+
+function aplicarTema(tema: Tema): void {
+  if (tema === "claro") {
+    document.documentElement.removeAttribute("data-theme");
+  } else if (tema === "escuro") {
+    document.documentElement.setAttribute("data-theme", "escuro");
+  } else {
+    // TypeScript sabe que tema é never aqui — todos os casos foram cobertos
+    // se Tema ganhar um terceiro valor, isso vira erro de compilação
+    const _exaustivo: never = tema;
+    throw new Error(`Tema não tratado: ${_exaustivo}`);
+  }
+}
+```
+
+O padrão de `exhaustive check` com `never` é valioso: se você adicionar `"sistema"` ao tipo `Tema`, o compilador vai apontar o erro no `else` — você é forçado a tratar o novo caso.
+
+## Resumo
+
+- **Parâmetros** sempre precisam de anotação de tipo. **Retornos** são opcionais mas recomendados em funções exportadas como contrato.
+- **Parâmetro opcional** (`x?: string`) tem tipo `string | undefined` dentro da função — precisa de verificação. **Valor padrão** (`x: string = "padrão"`) tem tipo `string` — o padrão cobre o caso de omissão.
+- **Rest parameters** (`...args: string[]`) agrupam argumentos extras em um array tipado.
+- **Desestruturação nos parâmetros** com uma interface é mais limpa que receber o objeto inteiro e acessar propriedades individualmente.
+- **Tipos de função** (`type Handler = (event: MouseEvent) => void`) descrevem callbacks e são usados para tipar parâmetros que recebem funções.
+- **`void`**: função que termina sem retornar valor útil. **`never`**: função que nunca termina (sempre lança erro). `never` em `else` serve para verificar exaustividade de unions.

@@ -1,6 +1,243 @@
 ---
 title: "Linting, formatação e tipagem estrita"
 description: "ESLint, Biome, Prettier. Configurações que valem a pena adotar do dia 1 em qualquer projeto."
-comingSoon: true
 order: 7
+hero:
+  titleBefore: "Lint,"
+  titleAccent: "formatação"
+  titleAfter: "e tipos estritos."
+quiz:
+  - question: "Qual é a diferença entre linting e formatação?"
+    options:
+      - "Linting analisa o código em busca de padrões problemáticos (variáveis não usadas, hooks chamados condicionalmente, uso de == em vez de ===). Formatação ajusta a aparência visual (espaços, ponto-e-vírgula, aspas) sem mudar o comportamento"
+      - "São a mesma coisa — dois nomes para o mesmo processo"
+      - "Linting é para TypeScript; formatação é para CSS"
+      - "Formatação é mais lenta que linting"
+    correct: 0
+  - question: "Por que vale configurar o strict mode do TypeScript em projetos novos?"
+    options:
+      - "Para que o TypeScript aceite mais sintaxes de JavaScript"
+      - "Para acelerar a compilação do TypeScript"
+      - "strict: true ativa um conjunto de verificações mais rigorosas — noImplicitAny (proíbe any implícito), strictNullChecks (null e undefined precisam ser tratados explicitamente), e outras. Detecta mais erros em tempo de desenvolvimento, reduzindo bugs em produção"
+      - "Para que o TypeScript funcione com React"
+    correct: 2
+  - question: "O que o Biome faz que ESLint + Prettier juntos fazem, mas em uma única ferramenta?"
+    options:
+      - "Apenas formatação — Biome não faz linting"
+      - "Biome faz bundle além de lint e formatação"
+      - "Biome só funciona com TypeScript"
+      - "Lint e formatação em um único binário escrito em Rust — significativamente mais rápido que ESLint + Prettier separados, com configuração menor e sem os conflitos que podem surgir entre as duas ferramentas quando mal configuradas"
+    correct: 3
+  - question: "Por que é importante integrar ESLint/Biome ao CI além de ao editor?"
+    options:
+      - "Porque o editor pode não ter a extensão instalada"
+      - "Porque a integração com o editor depende do desenvolvedor ter configurado corretamente. O CI garante que código que viola as regras não passe para a branch principal — independentemente de como o editor de cada pessoa está configurado"
+      - "Porque o CI é mais rápido que o editor"
+      - "Não é necessário — editor é suficiente"
+    correct: 1
 ---
+
+Código que funciona é o mínimo. Código que funciona, é legível, e segue convenções consistentes é o que permite que equipes colaborem sem atritos. ESLint detecta padrões problemáticos antes de você executar o código. Prettier e Biome garantem que todo o código tem a mesma aparência, independentemente de quem escreveu. TypeScript em modo estrito fecha as brechas que o compilador deixa abertas por padrão.
+
+## ESLint — análise estática de código
+
+ESLint analisa o código em busca de padrões que causam bugs ou problemas de manutenção — sem executar o código. Para um projeto React com TypeScript:
+
+```bash title="Instalar ESLint com plugins para React e TypeScript."
+npm install -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks
+```
+
+```js title="eslint.config.js — configuração moderna (flat config)."
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+import reactHooks from "eslint-plugin-react-hooks";
+
+export default tseslint.config(
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    plugins: {
+      "react-hooks": reactHooks,
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      // erros frequentes em React + TS
+      "@typescript-eslint/no-unused-vars": "error",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
+    },
+  }
+);
+```
+
+**Regras que valem a pena ativar:**
+
+- `react-hooks/rules-of-hooks` — detecta hooks chamados em condicionais ou loops
+- `react-hooks/exhaustive-deps` — avisa quando dependências do `useEffect` estão faltando
+- `@typescript-eslint/no-unused-vars` — variáveis declaradas mas não usadas
+- `@typescript-eslint/no-explicit-any` — uso de `any` que anula a tipagem
+
+```bash title="Rodar ESLint no projeto."
+npx eslint src/              # verificar a pasta src
+npx eslint src/ --fix        # corrigir automaticamente o que for possível
+```
+
+## Prettier — formatação consistente
+
+Prettier reformata o código automaticamente — sem discussões de estilo no code review. Aspas simples ou duplas? Ponto-e-vírgula ou não? Vírgula no fim de objetos? Prettier decide e aplica para todos:
+
+```bash title="Instalar Prettier."
+npm install -D prettier
+```
+
+```json title=".prettierrc — configuração mínima."
+{
+  "semi": true,
+  "singleQuote": false,
+  "trailingComma": "es5",
+  "printWidth": 100,
+  "tabWidth": 2
+}
+```
+
+```bash title="Formatar o projeto."
+npx prettier src/ --write      # formatar e salvar
+npx prettier src/ --check      # verificar sem modificar (para CI)
+```
+
+**Integração com ESLint:** ESLint e Prettier podem conflitar — ESLint tem regras de estilo que Prettier pode desfazer. Use `eslint-config-prettier` para desativar as regras de estilo do ESLint que conflitam com Prettier:
+
+```bash
+npm install -D eslint-config-prettier
+```
+
+```js title="eslint.config.js — adicionar prettier no fim para sobrescrever regras de estilo."
+import prettier from "eslint-config-prettier";
+
+export default tseslint.config(
+  // ... outras configs
+  prettier, // deve ser o último — desativa regras que conflitam
+);
+```
+
+## Biome — lint e formatação em uma ferramenta
+
+Biome é escrito em Rust e é **10–100× mais rápido** que ESLint + Prettier. Oferece lint e formatação em um único binário, com configuração mínima e sem o problema de conflitos entre as duas ferramentas:
+
+```bash title="Instalar e inicializar o Biome."
+npm install -D @biomejs/biome
+npx @biomejs/biome init
+```
+
+```json title="biome.json — configuração equivalente ao setup ESLint + Prettier."
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "suspicious": {
+        "noExplicitAny": "warn"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "trailingCommas": "es5",
+      "semicolons": "always"
+    }
+  }
+}
+```
+
+```bash title="Rodar Biome."
+npx @biomejs/biome check src/           # lint + format check
+npx @biomejs/biome check src/ --write   # corrigir automaticamente
+```
+
+**Quando escolher Biome:** projetos novos onde você tem liberdade para escolher o tooling. **Quando manter ESLint + Prettier:** projetos existentes com plugins específicos do ESLint que o Biome ainda não suporta.
+
+## TypeScript com `strict: true`
+
+O TypeScript tem um modo "relaxado" e um modo estrito. `strict: true` ativa várias verificações adicionais:
+
+```json title="tsconfig.json — configuração recomendada para projetos novos."
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+
+    // tipagem estrita
+    "strict": true,              // ativa: noImplicitAny, strictNullChecks, e mais
+    "noUnusedLocals": true,      // variáveis locais não usadas → erro
+    "noUnusedParameters": true,  // parâmetros não usados → erro
+    "noFallthroughCasesInSwitch": true, // switch sem break → erro
+
+    // módulos
+    "esModuleInterop": true,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+
+    // output
+    "noEmit": true,              // Vite cuida do transpile — TS só verifica tipos
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}
+```
+
+**O que `strict: true` ativa:**
+
+- `noImplicitAny` — parâmetros sem tipo explícito são um erro (não viram `any` silenciosamente)
+- `strictNullChecks` — `null` e `undefined` precisam ser tratados explicitamente: `artigo?.titulo` em vez de `artigo.titulo` quando `artigo` pode ser `null`
+- `strictFunctionTypes` — verificação de compatibilidade de tipos de função mais rigorosa
+- `strictPropertyInitialization` — propriedades de classe precisam ser inicializadas
+
+Em projetos existentes sem strict, ativar pode revelar dezenas de erros acumulados — o que é bom, mas pode ser avassalador. A estratégia: ativar flag por flag, começando por `noImplicitAny`.
+
+## Integrar ao editor e ao CI
+
+**No editor (VS Code):** instale as extensões ESLint e Prettier. Adicione ao `settings.json`:
+
+```json title=".vscode/settings.json — formatar ao salvar."
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  }
+}
+```
+
+**No CI:** verificar que código que passa no PR não viola regras:
+
+```yaml title=".github/workflows/ci.yml — lint e typecheck no CI."
+- name: Lint
+  run: npx eslint src/
+
+- name: Type check
+  run: npx tsc --noEmit
+
+- name: Format check
+  run: npx prettier src/ --check
+```
+
+## Resumo
+
+- **ESLint** detecta padrões problemáticos — hooks em condicionais, variáveis não usadas, `any` explícito. Plugins essenciais: `react-hooks`, `@typescript-eslint`.
+- **Prettier** formata automaticamente — sem discussões de estilo. Use `eslint-config-prettier` para evitar conflitos.
+- **Biome** faz os dois em um, escrito em Rust, muito mais rápido. Boa escolha para projetos novos.
+- **`strict: true`** no `tsconfig.json` detecta mais erros: `noImplicitAny`, `strictNullChecks`, variáveis não usadas.
+- Integre ao editor (formatar ao salvar) e ao CI (verificar em cada PR) — sem depender de cada pessoa ter configurado o editor corretamente.

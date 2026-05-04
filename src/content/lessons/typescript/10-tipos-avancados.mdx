@@ -1,6 +1,168 @@
 ---
 title: "Tipos avançados"
 description: "Mapped types, conditional types, template literal types em alto nível. Quando faz sentido se aprofundar."
-comingSoon: true
 order: 10
+hero:
+  titleBefore: "Tipos"
+  titleAccent: "avançados"
+  titleAfter: "— quando você precisar."
+quiz:
+  - question: "O que um mapped type faz?"
+    options:
+      - "Transforma cada item de um array"
+      - "Mapeia strings para números"
+      - "Cria um Record automaticamente"
+      - "Itera sobre as chaves de um tipo e cria um novo tipo transformando cada propriedade — é como map() para tipos, não para valores"
+    correct: 3
+  - question: "Quando um conditional type T extends U ? X : Y é avaliado?"
+    options:
+      - "Em runtime, quando o código executa"
+      - "Em tempo de compilação — o compilador verifica se T é compatível com U e escolhe X ou Y. O resultado é um tipo, não um valor"
+      - "Apenas quando T é uma union"
+      - "Conditional types nunca são avaliados automaticamente"
+    correct: 1
+  - question: "O que `type Evento = `on${string}`` representa?"
+    options:
+      - "Qualquer string que comece com 'on' — como 'onClick', 'onSubmit', 'onChange'. Template literal types criam padrões de string no sistema de tipos"
+      - "A string literal 'onstring'"
+      - "Uma concatenação de strings em runtime"
+      - "Um tipo de array"
+    correct: 0
+  - question: "Quando faz sentido usar tipos avançados (mapped, conditional, template literal)?"
+    options:
+      - "Sempre que possível — mais tipos é melhor"
+      - "Apenas em projetos grandes"
+      - "Quando você está construindo bibliotecas ou utilitários reutilizáveis — para código de aplicação, interfaces e unions normalmente são suficientes e mais legíveis"
+      - "Apenas quando strict: true está ativado"
+    correct: 2
 ---
+
+Além das interfaces, unions e generics das lições anteriores, TypeScript tem mecanismos para transformar tipos de forma programática — **mapped types** (iterar sobre propriedades), **conditional types** (escolher um tipo com base em condições) e **template literal types** (padrões de string no sistema de tipos). Esses recursos são avançados: você os encontrará em bibliotecas e utilitários, mas raramente precisará criar os seus próprios no código de uma aplicação. Esta lição apresenta os conceitos em alto nível — suficiente para entender o que você vê, e para saber quando vale ir além.
+
+## Mapped types
+
+Um mapped type itera sobre as chaves de um tipo e cria um novo tipo transformando cada propriedade. É como o `map()` de arrays, mas operando sobre tipos:
+
+```ts title="Mapped type — a mecânica básica."
+// Partial<T> é implementado como mapped type:
+type MeuPartial<T> = {
+  [K in keyof T]?: T[K]; // para cada chave K em T, a propriedade é opcional
+};
+
+// Readonly<T> também:
+type MeuReadonly<T> = {
+  readonly [K in keyof T]: T[K]; // para cada chave K em T, a propriedade é readonly
+};
+
+// um mapped type personalizado — adicionar prefixo "get" nas chaves
+type Getters<T> = {
+  [K in keyof T as `get${Capitalize<string & K>}`]: () => T[K];
+};
+
+// aplicar ao Artigo:
+type ArtigoGetters = Getters<{ titulo: string; curtidas: number }>;
+// resulta em: { getTitulo: () => string; getCurtidas: () => number }
+```
+
+A sintaxe `[K in keyof T]` é o loop — `keyof T` retorna as chaves de `T` como um union de literais, e `K in ...` itera sobre elas. O `as` dentro do colchete permite renomear a chave durante a iteração.
+
+Você raramente escreve mapped types em código de aplicação — mas entender a mecânica explica como `Partial`, `Required`, `Readonly`, `Pick` e `Omit` funcionam por dentro. Todos eles são mapped types na biblioteca padrão do TypeScript.
+
+## Conditional types
+
+Conditional types escolhem um tipo com base em uma condição — a sintaxe é `T extends U ? X : Y`:
+
+```ts title="Conditional type — escolher um tipo com base em condição."
+// tipo que extrai o tipo do item de um array (ou retorna T se não for array)
+type ItemArray<T> = T extends Array<infer U> ? U : T;
+
+type TipoItem1 = ItemArray<string[]>;  // string
+type TipoItem2 = ItemArray<Artigo[]>;  // Artigo
+type TipoItem3 = ItemArray<string>;    // string (não é array, retorna o próprio tipo)
+
+// NonNullable<T> — remove null e undefined de um union:
+type MeuNonNullable<T> = T extends null | undefined ? never : T;
+type TipoLimpo = MeuNonNullable<string | null | undefined>; // string
+```
+
+A palavra-chave `infer` é especial — ela declara uma variável de tipo dentro da condição que TypeScript infere durante a avaliação. Em `T extends Array<infer U>`, TypeScript verifica se `T` é um array e, se for, `U` é o tipo do item.
+
+**Distributed conditional types**: quando `T` é um union, o conditional type se distribui sobre cada membro:
+
+```ts title="Distribuição — o conditional type é aplicado a cada membro do union."
+type SemNull<T> = T extends null ? never : T;
+
+// com union, a distribuição acontece automaticamente:
+type Resultado = SemNull<string | null | number>;
+// = SemNull<string> | SemNull<null> | SemNull<number>
+// = string         | never         | number
+// = string | number (never é apagado de unions)
+```
+
+## Template literal types
+
+Template literal types criam padrões de string no sistema de tipos — a mesma sintaxe dos template literals de JavaScript, mas operando sobre tipos:
+
+```ts title="Template literal types — padrões de string como tipos."
+// qualquer string que começa com "on"
+type Evento = `on${string}`; // "onClick", "onSubmit", "onChange", etc.
+
+// combinar unions com template literals
+type Lado = "top" | "right" | "bottom" | "left";
+type PropBorda = `border-${Lado}`;
+// = "border-top" | "border-right" | "border-bottom" | "border-left"
+
+// usar para tipar data-attributes do DOM
+type DataAttribute<K extends string> = `data-${K}`;
+type DataId = DataAttribute<"id">;    // "data-id"
+type DataSlug = DataAttribute<"slug">; // "data-slug"
+
+// combinado com mapped type — criar eventos a partir de uma interface
+type Handlers<T> = {
+  [K in keyof T as `on${Capitalize<string & K>}`]?: (valor: T[K]) => void;
+};
+
+type EventosTema = Handlers<{ tema: Tema; curtidas: number }>;
+// { onTema?: (valor: Tema) => void; onCurtidas?: (valor: number) => void }
+```
+
+Template literal types são mais comuns em bibliotecas de CSS-in-JS, sistemas de roteamento tipado e APIs de eventos — lugares onde os valores de string têm padrões estruturados.
+
+## Quando usar tipos avançados
+
+A resposta honesta: raramente, em código de aplicação.
+
+Interfaces, unions, generics e tipos utilitários cobrem 95% das situações do dia a dia. Mapped types, conditional types e template literal types brilham em dois contextos específicos:
+
+**Bibliotecas e utilitários**: quando você está construindo algo que outros vão usar, tipos avançados permitem criar APIs com tipagem precisa que se adapta ao que o usuário passa. `React.FC`, `ReturnType`, `Awaited`, `Parameters` — todos usam esses mecanismos por baixo.
+
+**Tipos derivados de dados reais**: quando a estrutura de um tipo deriva de outro de forma programática. Em vez de duplicar ou sincronizar manualmente, um mapped type garante que a derivação é automática e sempre correta.
+
+```ts title="Quando vale usar — tipo derivado automaticamente."
+// em vez de manter duas listas sincronizadas manualmente...
+const ROTAS = {
+  home: "/",
+  artigos: "/artigos",
+  sobre: "/sobre",
+} as const;
+
+// ...derive o tipo das chaves automaticamente
+type NomeRota = keyof typeof ROTAS;        // "home" | "artigos" | "sobre"
+type CaminhoRota = typeof ROTAS[NomeRota]; // "/" | "/artigos" | "/sobre"
+
+function navegar(rota: NomeRota): void {
+  window.location.href = ROTAS[rota]; // TypeScript garante que rota existe
+}
+
+navegar("home");        // ok
+navegar("contato");     // TS erro: não é uma rota válida
+```
+
+Para o blog, esse nível de abstração não é necessário. As interfaces `Artigo`, `Autor`, `Tag` e os tipos utilitários da lição anterior são suficientes — e mais legíveis. Quando você precisar de tipos avançados, a situação deixará claro que chegou a hora.
+
+## Resumo
+
+- **Mapped types** (`[K in keyof T]: ...`) iteram sobre as chaves de um tipo e criam um novo tipo — é como `map()` para tipos. A maioria dos tipos utilitários (`Partial`, `Readonly`, `Pick`) é implementada assim.
+- **Conditional types** (`T extends U ? X : Y`) escolhem um tipo com base em uma condição avaliada em compilação. `infer` declara uma variável de tipo dentro da condição. Com unions, o conditional type se distribui sobre cada membro.
+- **Template literal types** (`` `on${string}` ``) criam padrões de string no sistema de tipos — combinados com unions e mapped types, geram conjuntos de strings tipadas.
+- **Use com parcimônia**: em código de aplicação, interfaces e unions são mais legíveis. Tipos avançados fazem sentido em bibliotecas, utilitários e quando você deriva tipos programaticamente de dados existentes.

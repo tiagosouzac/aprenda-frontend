@@ -1,6 +1,255 @@
 ---
 title: "Custom properties"
-description: "Variáveis CSS (--cor-primaria), escopo, herança, fallback. Uso prático em design tokens, tematização e modo escuro."
-comingSoon: true
+description: "Variáveis CSS nativas: sintaxe, escopo e herança. Design tokens em :root. Alternância de tema claro e escuro com data-theme e prefers-color-scheme."
 order: 11
+hero:
+  titleBefore: "Custom properties:"
+  titleAccent: "variáveis"
+  titleAfter: "que pertencem ao CSS."
+quiz:
+  - question: "Qual é a sintaxe correta para definir e usar uma custom property em CSS?"
+    options:
+      - "Definir com --cor-primaria: blue; e usar com color: var(--cor-primaria);"
+      - "Definir com $cor-primaria: blue; e usar com color: $cor-primaria;"
+      - "Definir com @cor-primaria: blue; e usar com color: @cor-primaria;"
+      - "Definir com cor-primaria: blue; e usar com color: var(cor-primaria);"
+    correct: 0
+  - question: "Por que definir custom properties em :root é recomendado para design tokens?"
+    options:
+      - "Porque :root tem especificidade mais alta que outros seletores"
+      - "Porque apenas :root pode conter custom properties"
+      - "Porque :root é o elemento de nível mais alto — custom properties definidas lá são acessíveis em qualquer elemento do documento"
+      - "Porque :root é necessário para o JavaScript acessar as variáveis"
+    correct: 2
+  - question: "O que acontece quando você redefine uma custom property dentro de um seletor filho?"
+    options:
+      - "Causa um erro — custom properties não podem ser redefinidas"
+      - "A redefinição substitui o valor original em toda a página"
+      - "A redefinição é ignorada se a propriedade já foi definida em :root"
+      - "A redefinição afeta apenas aquele elemento e seus descendentes — o restante da página continua usando o valor de :root"
+    correct: 3
+  - question: "Qual é a vantagem de usar custom properties para implementar tema escuro, em vez de redeclarar todas as propriedades de cor?"
+    options:
+      - "Custom properties são mais rápidas de processar em modo escuro"
+      - "A variável continua a mesma; apenas o valor muda. Todas as regras que usam var(--cor-fundo) atualizam automaticamente sem precisar de nenhum seletor extra"
+      - "É a única forma de implementar modo escuro sem JavaScript"
+      - "Reduz o número de media queries necessárias"
+    correct: 1
 ---
+
+Ao longo deste módulo, você foi adicionando valores diretamente nas declarações CSS — `color: #0a0a0b`, `font-family: system-ui`, `border-radius: 8px`. Isso funciona, mas cria um problema de manutenção: quando você quer mudar a cor primária do blog, precisa encontrar e substituir `#2563eb` em cada lugar onde ele aparece. Custom properties resolvem exatamente esse problema.
+
+## O que são custom properties
+
+Custom properties são variáveis definidas pelo próprio CSS — sem pré-processadores como Sass ou Less. Elas são propriedades CSS reais: cascadeiam, são herdadas, podem ser animadas e são acessíveis por JavaScript.
+
+A sintaxe tem duas partes. **Definição**: o nome começa obrigatoriamente com dois hífens `--`. **Uso**: a função `var()` lê o valor.
+
+```css title="Definindo e usando custom properties no estilos.css."
+/* definição — qualquer seletor funciona, mas :root é o mais comum */
+:root {
+  --cor-primaria: #2563eb;
+  --cor-texto: #0a0a0b;
+  --fonte-base: system-ui, -apple-system, sans-serif;
+  --raio-borda: 8px;
+}
+
+/* uso — var() em qualquer declaração */
+.botao {
+  background-color: var(--cor-primaria);
+  color: white;
+  border-radius: var(--raio-borda);
+}
+
+.artigo-corpo {
+  font-family: var(--fonte-base);
+  color: var(--cor-texto);
+}
+```
+
+`var()` aceita um segundo argumento opcional — o valor de fallback, usado quando a variável não está definida:
+
+```css title="Valor de fallback em var() — usado quando a variável não está definida."
+/* se --cor-destaque não estiver definida, usa #2563eb */
+.elemento {
+  color: var(--cor-destaque, #2563eb);
+}
+
+/* fallback pode ser outra variável */
+.elemento {
+  color: var(--cor-destaque, var(--cor-primaria, blue));
+}
+```
+
+## Escopo e herança
+
+Custom properties respeitam as mesmas regras de cascata e herança que qualquer outra propriedade CSS. Uma variável definida em um seletor está disponível naquele elemento e em **todos os seus descendentes**.
+
+`:root` é o seletor que seleciona o elemento raiz do documento — o `<html>`. Como todo elemento da página é descendente do `<html>`, variáveis definidas em `:root` são acessíveis em qualquer lugar do documento. Por isso, `:root` é o lugar padrão para design tokens globais.
+
+Quando você redefine uma custom property em um seletor mais específico, a redefinição cria um escopo local — afeta aquele elemento e seus filhos, sem mudar o valor global.
+
+```css title="Escopo local de custom properties — redefinição dentro de aside."
+:root {
+  --cor-fundo-card: #ffffff;
+  --cor-borda-card: #e5e7eb;
+}
+
+/* cards normais usam os valores de :root */
+.card {
+  background-color: var(--cor-fundo-card);
+  border: 1px solid var(--cor-borda-card);
+}
+
+/* dentro do aside, redefinir as variáveis — apenas o aside e seus filhos mudam */
+aside {
+  --cor-fundo-card: #f4f2ed;    /* fundo mais quente */
+  --cor-borda-card: #d1ccc2;    /* borda combinando */
+}
+
+/* este card dentro do aside usa os valores redefinidos automaticamente */
+/* sem nenhum seletor extra como aside .card { } */
+aside .card {
+  /* herda var(--cor-fundo-card) = #f4f2ed */
+  /* herda var(--cor-borda-card) = #d1ccc2 */
+}
+```
+
+Esse comportamento de redefinição local é poderoso para componentes: você pode ter um componente que usa `--cor-fundo` globalmente, mas dentro de uma seção específica você redefine `--cor-fundo` e todos os componentes naquela seção se adaptam automaticamente.
+
+## Design tokens na prática
+
+Design tokens são os valores de design reutilizáveis de um projeto — cores, espaçamentos, raios de borda, sombras, fontes. Centralizar esses valores como custom properties em `:root` transforma o `estilos.css` em um sistema: mudar `--cor-primaria` uma vez atualiza botões, links, bordas, ícones — qualquer lugar que use `var(--cor-primaria)`.
+
+A nomenclatura importa. Nomes **semânticos** (`--cor-texto-principal`, `--espacamento-secao`) são melhores do que nomes **descritivos** (`--cinza-escuro`, `--48px`). A razão: quando você implementa tema escuro, `--cor-texto-principal` ainda faz sentido com qualquer valor. Mas `--cinza-escuro` com valor claro em tema escuro é confuso.
+
+```css title="Design tokens do blog em :root — cores, tipografia, espaçamentos."
+:root {
+  /* cores — semânticas */
+  --cor-fundo: #ffffff;
+  --cor-texto: #0a0a0b;
+  --cor-texto-muted: #6b6b72;
+  --cor-primaria: #2563eb;
+  --cor-primaria-hover: #1d4ed8;
+  --cor-borda: #e5e7eb;
+  --cor-fundo-destaque: #f4f2ed;
+
+  /* tipografia */
+  --fonte-base: system-ui, -apple-system, sans-serif;
+  --fonte-mono: "JetBrains Mono", Consolas, monospace;
+  --tamanho-base: 1rem;
+  --altura-linha: 1.72;
+
+  /* espaçamento */
+  --espaco-xs: 4px;
+  --espaco-sm: 8px;
+  --espaco-md: 16px;
+  --espaco-lg: 24px;
+  --espaco-xl: 48px;
+
+  /* bordas */
+  --raio-sm: 4px;
+  --raio-md: 8px;
+  --raio-pill: 9999px;
+
+  /* layout */
+  --largura-conteudo: 720px;
+  --largura-pagina: 1200px;
+}
+
+/* usando os tokens em todo o arquivo */
+body {
+  background-color: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-base);
+  line-height: var(--altura-linha);
+}
+
+.artigo-corpo {
+  max-width: var(--largura-conteudo);
+  margin-inline: auto;
+  padding: var(--espaco-lg);
+}
+
+.botao-primario {
+  background-color: var(--cor-primaria);
+  color: white;
+  padding: var(--espaco-sm) var(--espaco-md);
+  border-radius: var(--raio-md);
+  border: none;
+  cursor: pointer;
+}
+
+.botao-primario:hover {
+  background-color: var(--cor-primaria-hover);
+}
+```
+
+## Temas com custom properties
+
+Custom properties são a ferramenta ideal para alternância de tema porque o mecanismo é elegante: **a variável permanece a mesma, apenas o valor muda**. Cada declaração que usa `var(--cor-fundo)` se atualiza automaticamente quando o valor de `--cor-fundo` muda — sem precisar reescrever os seletores.
+
+Há duas formas de implementar tema escuro: via media query (automático, baseado na preferência do sistema) e via atributo `data-theme` (controlado pelo usuário via JavaScript).
+
+A combinação dos dois oferece a melhor experiência: o tema segue a preferência do sistema por padrão, mas o usuário pode sobrescrever com um botão.
+
+```css title="Tema claro e escuro — media query e data-theme attribute."
+/* tema claro — valores base em :root */
+:root {
+  --cor-fundo: #ffffff;
+  --cor-texto: #0a0a0b;
+  --cor-texto-muted: #6b6b72;
+  --cor-borda: #e5e7eb;
+  --cor-fundo-destaque: #f4f2ed;
+  --cor-primaria: #2563eb;
+}
+
+/* tema escuro automático — segue preferência do sistema */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cor-fundo: #0f0f10;
+    --cor-texto: #f0f0f1;
+    --cor-texto-muted: #9ca3af;
+    --cor-borda: #27272a;
+    --cor-fundo-destaque: #1c1c1e;
+    --cor-primaria: #60a5fa; /* azul mais claro para contraste no escuro */
+  }
+}
+
+/* tema escuro manual — atributo no <html> via JavaScript */
+[data-theme="dark"] {
+  --cor-fundo: #0f0f10;
+  --cor-texto: #f0f0f1;
+  --cor-texto-muted: #9ca3af;
+  --cor-borda: #27272a;
+  --cor-fundo-destaque: #1c1c1e;
+  --cor-primaria: #60a5fa;
+}
+```
+
+O JavaScript que alterna o tema é simples — ele apenas adiciona ou remove o atributo `data-theme` no elemento `<html>`:
+
+```js title="Toggle de tema — alterna o atributo data-theme no elemento html."
+const botaoTema = document.querySelector("#botao-tema");
+
+botaoTema.addEventListener("click", () => {
+  const html = document.documentElement;
+  const temaAtual = html.getAttribute("data-theme");
+
+  if (temaAtual === "dark") {
+    html.removeAttribute("data-theme"); /* volta ao padrão do sistema */
+  } else {
+    html.setAttribute("data-theme", "dark");
+  }
+});
+```
+
+Todo o CSS que usa `var(--cor-fundo)`, `var(--cor-texto)` e as demais variáveis se atualiza instantaneamente quando o atributo muda — sem nenhuma lógica extra de estilo no JavaScript. O CSS faz o trabalho.
+
+## Resumo
+
+- **Custom properties** são variáveis CSS nativas: `--nome: valor` para definir, `var(--nome)` para usar. `var()` aceita um segundo argumento de fallback.
+- Definidas em `:root`, ficam disponíveis em todo o documento. Redefinidas em um seletor filho, criam um escopo local que afeta apenas aquela subárvore.
+- **Design tokens**: centralize cores, espaçamentos, fontes e bordas como custom properties em `:root`. Use nomes semânticos (o que representa) em vez de descritivos (o valor em si).
+- Para **tema escuro**: defina tokens no `:root` (tema claro), sobrescreva em `@media (prefers-color-scheme: dark)` (automático) e em `[data-theme="dark"]` (manual via JavaScript). A variável permanece a mesma — apenas o valor muda, e todos os elementos se atualizam automaticamente.

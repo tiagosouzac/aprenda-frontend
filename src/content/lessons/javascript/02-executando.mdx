@@ -1,6 +1,189 @@
 ---
-title: "Como rodar JavaScript"
-description: "Console do navegador, script em uma página HTML (defer, async, módulos), e Node.js para rodar fora do navegador."
-comingSoon: true
+title: "Como executar JavaScript"
+description: "O console do navegador como ambiente de execução imediata. A tag script com defer. Arquivo externo vs inline e por que onclick no HTML deve ser evitado."
 order: 2
+hero:
+  titleBefore: "Executando"
+  titleAccent: "JavaScript:"
+  titleAfter: "console e script."
+quiz:
+  - question: "Qual é a diferença entre defer e async em uma tag script?"
+    options:
+      - "defer é para scripts externos; async é para scripts inline"
+      - "defer é mais rápido que async"
+      - "defer baixa o script em paralelo e executa após o HTML estar completamente parseado; async baixa em paralelo e executa assim que o download termina, sem garantia de ordem"
+      - "Não há diferença prática entre os dois"
+    correct: 2
+  - question: "Por que scripts colocados no head sem defer ou async bloqueiam a renderização?"
+    options:
+      - "Porque o CSS precisa carregar primeiro"
+      - "Porque o navegador espera o DOM estar completo antes de executar qualquer script"
+      - "Porque head não suporta execução de código"
+      - "Porque o parser HTML pausa completamente enquanto o script é baixado e executado — nenhum elemento do body é processado até o script terminar"
+    correct: 3
+  - question: "O que type='module' em uma tag script habilita?"
+    options:
+      - "Compatibilidade com Internet Explorer"
+      - "ES Modules (import/export), escopo de módulo isolado e strict mode ativado automaticamente"
+      - "Execução de código TypeScript diretamente"
+      - "Carregamento de arquivos CSS pelo JavaScript"
+    correct: 1
+  - question: "Por que onclick='...' diretamente no HTML deve ser evitado?"
+    options:
+      - "Porque mistura comportamento com estrutura, dificulta manutenção e não permite registrar múltiplos handlers"
+      - "Porque onclick não funciona em todos os navegadores"
+      - "Porque onclick executa mais lentamente que addEventListener"
+      - "Porque onClick (com maiúscula) é a forma correta"
+    correct: 0
 ---
+
+JavaScript pode ser executado de várias formas — no console do navegador, em um arquivo externo linkado ao HTML, ou inline no próprio HTML. Cada uma tem seu lugar. Entender como o navegador carrega e executa scripts é essencial para evitar um dos erros mais comuns em JavaScript: tentar manipular elementos do DOM antes que eles existam.
+
+## O console do navegador
+
+O console do navegador é o ambiente mais imediato para experimentar JavaScript. Abra com **F12** (Windows/Linux) ou **Cmd + Option + J** (Mac), ou clique com o botão direito em qualquer página e escolha "Inspecionar". O DevTools abre — a aba "Console" é onde você digita código.
+
+O console é um REPL (*Read-Eval-Print Loop*): você digita uma expressão, o navegador a avalia e exibe o resultado imediatamente. É o ambiente ideal para testar ideias, verificar valores e depurar.
+
+```js title="Primeiros comandos no console — expressões avaliadas imediatamente."
+// expressões aritméticas
+1 + 1
+// → 2
+
+// strings
+"Olá, mundo"
+// → 'Olá, mundo'
+
+// acessar o DOM da página atual
+document.title
+// → o título da aba atual
+
+// explorar o objeto window
+window.location.href
+// → a URL da página atual
+```
+
+Para depuração durante o desenvolvimento, `console.log()` é a ferramenta mais usada — imprime qualquer valor no console. Mas há variações com comportamentos visuais diferentes:
+
+```js title="Variações de console — log, error, warn e table."
+// log genérico — o mais comum
+console.log("script carregado");
+console.log("artigo:", artigo); // inspecionar um objeto
+
+// erro — aparece em vermelho, com stack trace
+console.error("falha ao carregar artigos:", err);
+
+// aviso — aparece em amarelo
+console.warn("localStorage não disponível, usando padrão");
+
+// tabela — ótimo para arrays de objetos
+console.table(artigos); // cada artigo em uma linha da tabela
+```
+
+O console tem acesso completo ao DOM e às variáveis da página. Se você abrir o console em `artigo.html`, pode selecionar elementos, ler propriedades e alterar estilos em tempo real — sem precisar editar arquivos.
+
+## A tag `<script>`
+
+Para adicionar JavaScript a uma página HTML, use a tag `<script>`. Com o atributo `src`, ela carrega um arquivo externo:
+
+```html title="Linkando script.js em artigo.html — com defer."
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meu primeiro projeto web — artigo.dev</title>
+    <link rel="stylesheet" href="estilos.css" />
+
+    <!-- defer: baixa em paralelo, executa após o HTML estar completamente parseado -->
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <!-- o HTML inteiro é parseado antes do script executar -->
+    <button id="botao-tema" type="button">Alternar tema</button>
+  </body>
+</html>
+```
+
+A posição do `<script>` e os atributos `defer`/`async` determinam quando o script é baixado e quando executa — e isso afeta diretamente o que o script pode fazer:
+
+**Sem atributos, no `<head>`**: o parser HTML pausa completamente enquanto o script é baixado e executado. Nenhum elemento do `<body>` foi processado ainda — `document.getElementById("botao-tema")` retornaria `null` porque o botão não existe no DOM ainda. A página parece travar durante o carregamento.
+
+**`defer`**: o arquivo é baixado em paralelo com o parsing do HTML, mas só executa depois que o HTML inteiro foi parseado. Scripts com `defer` executam na ordem em que aparecem no HTML. É o comportamento correto para a maioria dos scripts que manipulam o DOM. Coloque no `<head>` com `defer` — combina o download antecipado com a execução segura.
+
+**`async`**: o arquivo é baixado em paralelo, mas executa imediatamente quando o download termina — interrompendo o parsing do HTML naquele momento. A ordem de execução não é garantida se houver múltiplos scripts com `async`. Raramente é o que você quer para scripts que dependem do DOM ou uns dos outros.
+
+**`type="module"`**: habilita ES Modules — `import`/`export` funcionam, o escopo do arquivo é isolado (variáveis não vazam para o global) e `strict mode` é ativado automaticamente. Módulos têm `defer` implícito.
+
+```html title="Comportamentos de carregamento — comparação prática."
+<!-- ❌ bloqueia o parser — evite no head sem atributo -->
+<script src="script.js"></script>
+
+<!-- ✅ baixa em paralelo, executa quando HTML está pronto -->
+<script src="script.js" defer></script>
+
+<!-- ⚠️ baixa em paralelo, executa imediatamente — ordem não garantida -->
+<script src="analytics.js" async></script>
+
+<!-- ✅ habilita import/export, defer implícito -->
+<script type="module" src="main.js"></script>
+```
+
+## Arquivo externo vs. inline
+
+Um script pode ser externo (arquivo `.js` separado) ou inline (código dentro da tag `<script>`):
+
+```html title="Script inline — código diretamente no HTML."
+<head>
+  <!-- inline: útil para snippets críticos de inicialização -->
+  <script>
+    // ler o tema antes de renderizar — evita flash de tema errado
+    const temaSalvo = localStorage.getItem("tema");
+    if (temaSalvo === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  </script>
+</head>
+```
+
+Scripts externos têm vantagens claras sobre scripts inline: o arquivo pode ser cacheado pelo navegador (não é baixado novamente em cada visita), o código é reutilizável em múltiplas páginas, e a separação entre HTML e JavaScript facilita a manutenção.
+
+Scripts inline têm um caso de uso legítimo: código de inicialização que precisa rodar antes da renderização — como ler o tema salvo em `localStorage` antes de o `<body>` aparecer na tela, para evitar o flash de tema errado. Nesse caso, o script **não** deve ter `defer` (precisa bloquear intencionalmente).
+
+## Atributos de evento no HTML e por que evitar
+
+A tag `<button onclick="alternarTema()">` existe, funciona — e deve ser evitada. Colocar JavaScript diretamente em atributos HTML mistura responsabilidades: o HTML passa a depender de que exista uma função global com aquele nome exato.
+
+Os problemas:
+- Você só pode registrar uma função por evento por atributo — `onclick` aceita um valor
+- A função precisa estar no escopo global — o que polui o `window` e cria risco de colisão de nomes
+- Separar estrutura de comportamento facilita manutenção, teste e reutilização
+
+A alternativa é `addEventListener` no JavaScript, selecionando o elemento por id ou por classe:
+
+```js title="Migrando de onclick no HTML para addEventListener no script.js."
+// ❌ no HTML: <button onclick="alternarTema()">Alternar tema</button>
+// requer função global, mistura HTML e JS
+
+// ✅ no script.js: selecionado pelo HTML e registrado via JS
+const botaoTema = document.getElementById("botao-tema");
+
+function alternarTema() {
+  document.documentElement.classList.toggle("dark");
+}
+
+botaoTema.addEventListener("click", alternarTema);
+// pode registrar múltiplos handlers para o mesmo evento
+// botaoTema.addEventListener("click", salvarPreferencia);
+```
+
+Com `addEventListener`, o HTML descreve a estrutura (um botão com `id="botao-tema"`) e o JavaScript descreve o comportamento. A referência de um para o outro é o `id` — uma ligação mínima e documentada.
+
+## Resumo
+
+- O **console do navegador** (F12 → Console) é um REPL onde você testa código imediatamente. `console.log()` imprime valores; `console.error()`, `console.warn()` e `console.table()` têm comportamentos visuais específicos.
+- **`<script src="..." defer>`** no `<head>` é o padrão para a maioria dos scripts: baixa em paralelo com o HTML e executa após o parsing completo — o DOM está pronto quando o script rodar.
+- **`async`** executa assim que o download termina, sem garantia de ordem — use apenas para scripts independentes como analytics.
+- **`type="module"`** habilita `import`/`export`, escopo isolado e strict mode. Tem `defer` implícito.
+- Scripts **externos** (arquivo `.js`) são preferíveis a inline pela separação de responsabilidades e cacheamento. Inline é legítimo apenas para inicializações críticas antes da renderização.
+- **`addEventListener`** no JavaScript é preferível a `onclick="..."` no HTML — separa estrutura de comportamento e permite múltiplos handlers.

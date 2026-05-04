@@ -1,6 +1,154 @@
 ---
 title: "HTTP — pedido e resposta"
-description: "A linguagem que cliente e servidor usam para conversar: estrutura da requisição e da resposta, métodos, status codes e cabeçalhos."
-comingSoon: true
+description: "A linguagem que cliente e servidor usam para conversar. Estrutura de uma requisição e de uma resposta, métodos (GET, POST, PUT, DELETE), códigos de status (2xx, 3xx, 4xx, 5xx) e cabeçalhos importantes."
 order: 3
+hero:
+  titleBefore: "HTTP:"
+  titleAccent: "a linguagem"
+  titleAfter: "da web."
+quiz:
+  - question: "Qual é o método HTTP usado por padrão ao clicar em um link?"
+    options:
+      - "POST"
+      - "PUT"
+      - "GET"
+      - "DELETE"
+    correct: 2
+  - question: "O que significa o código de status 404?"
+    options:
+      - "Servidor não encontrado"
+      - "Acesso proibido"
+      - "Erro interno do servidor"
+      - "Recurso não encontrado"
+    correct: 3
+  - question: "Qual header HTTP você usaria para indicar o tipo de conteúdo que está enviando?"
+    options:
+      - "Accept"
+      - "Content-Type"
+      - "Authorization"
+      - "User-Agent"
+    correct: 1
+  - question: "Um código de status 2xx indica o quê?"
+    options:
+      - "Sucesso na requisição"
+      - "Erro no cliente"
+      - "Redirecionamento"
+      - "Erro no servidor"
+    correct: 0
 ---
+
+Com o DNS resolvido e a conexão estabelecida, o navegador precisa de uma linguagem para conversar com o servidor. Essa linguagem é o **HTTP** — *HyperText Transfer Protocol*. Ele define exatamente como as mensagens entre cliente e servidor devem ser formatadas: o que vai na primeira linha, como os cabeçalhos são declarados, quando o corpo da mensagem começa. Sem um protocolo comum, navegadores e servidores escritos por equipes diferentes em países diferentes não conseguiriam se entender.
+
+O HTTP é o protocolo que move a web. Todo link que você clica, todo formulário que você envia, toda imagem que carrega em uma página — tudo isso é uma transação HTTP. Entender como ele funciona não é só curiosidade técnica: é o que vai permitir que você leia mensagens de erro com precisão, entenda o que o devtools está mostrando e escreva código que se comunica corretamente com servidores.
+
+## O que é HTTP e o modelo requisição-resposta
+
+O HTTP funciona em um modelo simples e assimétrico: o cliente sempre inicia a conversa fazendo uma **requisição**, e o servidor sempre responde com uma **resposta**. Não existe comunicação espontânea do servidor para o cliente — pelo menos não no HTTP tradicional. Se o servidor quiser enviar algo, o cliente precisou ter pedido antes.
+
+Uma consequência importante desse modelo é que o HTTP é **stateless** — sem estado. Cada requisição é tratada como se fosse a primeira: o servidor não tem memória automática das requisições anteriores. Quando você acessa `artigo.dev/introducao` e depois clica para ir para `artigo.dev/dns`, o servidor recebe dois pedidos independentes. Ele não "sabe" que você esteve na introdução — a não ser que algum mecanismo externo, como cookies ou um cabeçalho de autenticação, carregue essa informação explicitamente em cada requisição.
+
+Esse design pode parecer limitação, mas tem vantagens claras: o servidor pode ser reiniciado, escalado horizontalmente em múltiplas máquinas ou substituído sem que o cliente perceba, porque não há estado compartilhado implícito que precisaria ser preservado.
+
+## Métodos HTTP
+
+O método HTTP é o verbo da requisição — ele indica o que o cliente quer fazer com o recurso identificado pelo caminho. O protocolo define vários métodos, cada um com uma semântica específica.
+
+O **GET** é o método mais comum. Ele pede ao servidor que devolva um recurso, sem modificar nada. Toda vez que você digita uma URL e pressiona Enter, ou clica em um link, o navegador faz um GET. O GET é *idempotente* — você pode fazer a mesma requisição várias vezes e o resultado é sempre o mesmo. O servidor não altera nada por causa de um GET.
+
+O **POST** envia dados para o servidor com a intenção de criar algo. Quando você preenche um formulário e clica em "enviar", o navegador geralmente faz um POST, colocando os dados do formulário no corpo da requisição. Ao contrário do GET, o POST não é idempotente: enviar o mesmo formulário duas vezes pode criar dois registros no banco de dados, o que explica o aviso que alguns navegadores mostram quando você tenta recarregar uma página após um envio.
+
+O **PUT** substitui um recurso existente no servidor com o conteúdo que o cliente está enviando. Se você fizer um PUT em `/artigos/1` com um novo texto, o artigo de id 1 é completamente substituído pelo que veio no corpo da requisição.
+
+O **PATCH** é uma variação mais cirúrgica do PUT: em vez de substituir o recurso inteiro, ele aplica uma modificação parcial. Útil quando você quer atualizar só o título de um artigo sem ter que reenviar todo o conteúdo.
+
+O **DELETE** remove o recurso identificado pelo caminho. Um DELETE para `/artigos/1` pede que o servidor exclua o artigo de id 1.
+
+```http title="Exemplos de métodos HTTP para diferentes operações em artigo.dev."
+GET /artigos/introducao HTTP/1.1
+Host: artigo.dev
+
+POST /comentarios HTTP/1.1
+Host: artigo.dev
+Content-Type: application/json
+
+{"artigo_id": 1, "texto": "Ótimo artigo!"}
+
+DELETE /rascunhos/42 HTTP/1.1
+Host: artigo.dev
+```
+
+Na prática, a maior parte do que acontece na web é GET e POST. PUT, PATCH e DELETE aparecem principalmente em APIs REST — o padrão que a maioria das aplicações web usa para estruturar a comunicação entre frontend e backend.
+
+## Headers HTTP
+
+Além do método e do caminho, as requisições e respostas HTTP carregam **cabeçalhos** (*headers*) — pares de chave e valor que fornecem metadados sobre a mensagem. São informações que ficam fora do corpo principal, mas que o servidor (ou o cliente) precisa para processar a mensagem corretamente.
+
+Alguns cabeçalhos de requisição aparecem em praticamente toda troca. O `Host` informa qual domínio o cliente está acessando — essencial porque um único servidor pode hospedar vários sites em um mesmo endereço IP, e o `Host` é o que diz qual deles deve responder. O `User-Agent` identifica o navegador ou programa que está fazendo a requisição. O `Accept` diz ao servidor quais formatos o cliente consegue processar — um navegador que aceita HTML, JSON e imagens pode informar isso aqui. O `Authorization` carrega credenciais de autenticação, como um token de acesso, quando o recurso pedido é protegido. O `Content-Type` aparece em requisições que têm corpo (como POST e PUT) e informa o formato dos dados enviados.
+
+```http title="Requisição com cabeçalhos comuns, acessando um endpoint autenticado."
+GET /api/meus-artigos HTTP/1.1
+Host: artigo.dev
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+```
+
+As respostas também têm cabeçalhos importantes. O `Content-Type` na resposta informa o formato do corpo — `text/html` para páginas, `application/json` para dados de API, `image/png` para imagens. O `Cache-Control` diz ao navegador por quanto tempo ele pode reutilizar aquela resposta sem precisar pedir de novo. O `Set-Cookie` instrui o navegador a armazenar um cookie — o mecanismo pelo qual sessões de usuário persistem entre requisições mesmo com o HTTP sendo stateless. O `Location` aparece em respostas de redirecionamento (3xx) e indica para onde o cliente deve ir.
+
+```http title="Resposta com cabeçalhos indicando formato, cache e um redirecionamento."
+HTTP/1.1 301 Moved Permanently
+Location: https://artigo.dev/blog/introducao
+Cache-Control: max-age=31536000
+
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Cache-Control: no-cache
+
+{"artigos": [...]}
+```
+
+## Códigos de status
+
+O código de status é a primeira coisa na linha de status de uma resposta HTTP — três dígitos que resumem o que aconteceu com a requisição. Esses códigos são organizados em cinco famílias, cada uma com um significado geral definido pelo primeiro dígito.
+
+Os códigos **2xx** indicam sucesso. `200 OK` é o mais comum: a requisição foi processada e o recurso está no corpo da resposta. `201 Created` indica que algo foi criado com sucesso — comum em resposta a um POST. `204 No Content` significa que o servidor processou a requisição mas não tem nada para retornar no corpo, comum em respostas a DELETE.
+
+Os códigos **3xx** indicam redirecionamento — o recurso foi movido e o cliente deve ir para outro lugar. `301 Moved Permanently` diz que a mudança é permanente; navegadores e mecanismos de busca guardam essa informação e atualizam seus registros. `302 Found` é um redirecionamento temporário — o cliente deve ir para o novo endereço, mas guardar o original. `304 Not Modified` é especial: o servidor está dizendo que o conteúdo não mudou desde a última vez que o cliente pegou, então o cliente pode usar a versão em cache sem precisar baixar de novo.
+
+Os códigos **4xx** indicam que o erro partiu do cliente. `400 Bad Request` significa que a requisição estava malformada ou continha dados inválidos. `401 Unauthorized` indica que o recurso exige autenticação e o cliente não se identificou. `403 Forbidden` significa que o servidor entendeu a requisição, mas se recusa a atendê-la — o cliente está autenticado, mas não tem permissão. `404 Not Found` é provavelmente o código mais famoso: o servidor não encontrou nenhum recurso no caminho pedido.
+
+Os códigos **5xx** indicam que o erro está no servidor. `500 Internal Server Error` é o mais genérico: algo deu errado no processamento da requisição, mas o servidor não consegue (ou não quer) especificar o quê. `503 Service Unavailable` significa que o servidor está temporariamente indisponível — por sobrecarga ou por manutenção.
+
+```http title="Exemplos de códigos de status em respostas a diferentes situações."
+HTTP/1.1 200 OK          ← recurso encontrado e retornado com sucesso
+HTTP/1.1 201 Created     ← novo recurso criado com sucesso
+HTTP/1.1 301 Moved Permanently  ← endereço mudou permanentemente
+HTTP/1.1 401 Unauthorized  ← requer autenticação
+HTTP/1.1 404 Not Found     ← recurso não existe neste caminho
+HTTP/1.1 500 Internal Server Error  ← erro interno no servidor
+```
+
+## Inspecionando requisições no devtools
+
+Tudo que foi descrito até aqui — métodos, cabeçalhos, status codes — é visível diretamente no navegador, sem nenhuma ferramenta extra. A aba **Network** do devtools registra cada requisição HTTP que a página faz, com todos os detalhes.
+
+Para abrir o devtools, pressione `F12` no Windows e Linux, ou `Cmd + Option + I` no Mac. Vá para a aba "Network" e recarregue a página. Você verá uma lista de requisições — uma para o HTML principal, outras para cada arquivo CSS, JavaScript, imagem e fonte que a página carregou. Clique em qualquer item para ver os detalhes: o método, o status code, os cabeçalhos completos da requisição e da resposta, e o corpo.
+
+O filtro na parte superior da aba permite focar em tipos específicos: "Doc" mostra o documento HTML principal, "XHR/Fetch" mostra chamadas de API feitas pelo JavaScript, "JS" e "CSS" filtram pelos respectivos recursos. A coluna "Status" é onde você vai ver 200, 404, 500 e os outros — e quando algo não carrega, é o primeiro lugar para olhar.
+
+```http title="Requisição de uma imagem vista na aba Network do devtools."
+GET /imagens/capa-artigo.png HTTP/1.1
+Host: artigo.dev
+Accept: image/webp,image/png,*/*
+Referer: https://artigo.dev/introducao
+```
+
+Aprender a ler a aba Network é uma habilidade que você vai usar constantemente ao desenvolver. Quando um recurso não carrega, quando uma chamada de API falha, quando a página está lenta — o Network é o ponto de partida da investigação.
+
+## Resumo
+
+- HTTP é o protocolo de requisição-resposta que define como cliente e servidor conversam; cada requisição é independente (stateless).
+- O método da requisição indica a intenção: GET para ler, POST para criar, PUT para substituir, PATCH para atualizar parcialmente, DELETE para remover.
+- Cabeçalhos carregam metadados em requisições e respostas: `Content-Type`, `Authorization`, `Cache-Control` e `Set-Cookie` são os mais comuns.
+- O status code resume o resultado: 2xx sucesso, 3xx redirecionamento, 4xx erro do cliente, 5xx erro do servidor.
+- A aba Network do devtools mostra todas as requisições HTTP da página, com método, status, cabeçalhos e corpo — é a principal ferramenta de diagnóstico de problemas de rede.

@@ -1,6 +1,248 @@
 ---
 title: "Grid"
-description: "Layout em duas dimensões. display: grid, definição de linhas e colunas, grid-template-areas, gap e posicionamento explícito."
-comingSoon: true
+description: "O sistema de layout para duas dimensões. Colunas e linhas, a unidade fr, grid-template-areas, grid implícito e quando usar Grid em vez de Flexbox."
 order: 8
+hero:
+  titleBefore: "Grid:"
+  titleAccent: "layout"
+  titleAfter: "em duas dimensões."
+quiz:
+  - question: "O que a declaração grid-template-columns: repeat(3, 1fr) cria?"
+    options:
+      - "Três colunas que dividem igualmente o espaço disponível"
+      - "Três linhas de altura igual"
+      - "Uma coluna com três trilhas"
+      - "Um grid de nove células"
+    correct: 0
+  - question: "O que é a unidade fr em CSS Grid?"
+    options:
+      - "Um pixel fracionário"
+      - "A frequência de atualização do grid"
+      - "Uma fração do espaço restante após descontar itens de tamanho fixo"
+      - "Um alias para flex: 1"
+    correct: 2
+  - question: "Qual é a principal diferença entre Grid e Flexbox?"
+    options:
+      - "Grid usa JavaScript; Flexbox usa CSS puro"
+      - "Grid é mais rápido que Flexbox"
+      - "Flexbox suporta mais navegadores que Grid"
+      - "Grid trabalha em duas dimensões (linhas e colunas simultaneamente); Flexbox trabalha em uma dimensão por vez"
+    correct: 3
+  - question: "O que acontece com um grid item que não cabe nas colunas definidas por grid-template-columns?"
+    options:
+      - "Ele é removido do layout"
+      - "Ele vai para o grid implícito — linhas criadas automaticamente com tamanho definido por grid-auto-rows"
+      - "Ele cria uma nova coluna automática"
+      - "Ele herda o tamanho da última coluna definida"
+    correct: 1
 ---
+
+Flexbox é excelente para layout em uma dimensão. Mas quando você precisa controlar simultaneamente linhas e colunas — o layout da página inteira, uma grade de cards com alinhamento preciso entre linhas — você precisa de Grid.
+
+CSS Grid é o sistema de layout bidimensional do CSS. Enquanto Flexbox pensa em "como distribuir items nesta linha", Grid pensa em "que estrutura de linhas e colunas eu quero, e onde cada item vai nessa estrutura".
+
+## O modelo mental do Grid
+
+`display: grid` no container transforma os filhos diretos em **grid items** e cria uma grade de linhas e colunas. A grade tem **trilhas** (*tracks*) — espaços entre as linhas de grade. As trilhas de coluna são os espaços verticais; as trilhas de linha são os espaços horizontais. A interseção de uma trilha de linha e uma de coluna é uma **célula**.
+
+O que diferencia Grid de Flexbox no modelo mental é que você define a estrutura primeiro — quantas colunas, que tamanhos — e depois os items preenchem essa estrutura. Com Flexbox, os items definem o layout pelo seu tamanho; com Grid, a estrutura é definida independentemente.
+
+```css title="Ativando Grid — três colunas para o layout do artigo.html."
+/* layout da página: sidebar esquerda | conteúdo | aside direita */
+.layout-pagina {
+  display: grid;
+  grid-template-columns: 220px 1fr 200px;
+  gap: 48px;
+}
+```
+
+Ao ativar `display: grid`, os três filhos diretos preenchem automaticamente as três colunas: o primeiro vai para a primeira trilha, o segundo para a segunda, o terceiro para a terceira.
+
+## Definindo colunas e linhas
+
+`grid-template-columns` define o número e o tamanho das colunas. Cada valor separado por espaço é uma trilha.
+
+A unidade `fr` é a mais importante do Grid. Ela representa uma **fração do espaço disponível** — após descontar espaços fixos como colunas em `px`. `1fr 2fr` cria duas colunas onde a segunda tem o dobro da largura da primeira. `1fr 1fr 1fr` cria três colunas iguais.
+
+`repeat(3, 1fr)` é o shorthand para `1fr 1fr 1fr` — repetir três vezes o mesmo tamanho. `repeat(auto-fill, minmax(280px, 1fr))` é uma das combinações mais poderosas: cria tantas colunas de pelo menos 280px quantas couberem, expandindo cada uma até `1fr`. É um layout responsivo sem media queries.
+
+`minmax(min, max)` define um intervalo de tamanho para uma trilha — pelo menos `min`, no máximo `max`. Permite que trilhas sejam fluidas mas com limites.
+
+`grid-template-rows` funciona analogamente para linhas. Em muitos layouts, as linhas são deixadas em `auto` (o padrão) — elas crescem para acomodar o conteúdo.
+
+```css title="Combinações de grid-template-columns — fixo, fr, repeat e minmax."
+/* três colunas: sidebar fixa | conteúdo fluido | aside fixa */
+.layout-artigo {
+  display: grid;
+  grid-template-columns: 220px 1fr 200px;
+  gap: 48px;
+  align-items: start; /* items alinhados ao topo, sem esticar */
+}
+
+/* grade de cards responsiva sem media queries */
+.grade-artigos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+/* grade de dois tamanhos alternados */
+.grade-destaque {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+```
+
+## Posicionando grid items
+
+Por padrão, os grid items preenchem as células da esquerda para a direita, linha por linha — o algoritmo de posicionamento automático. Mas você pode posicionar items em células específicas usando `grid-column` e `grid-row`.
+
+CSS Grid usa um sistema de numeração de linhas — não de colunas, mas das linhas que separam as colunas. Uma grade de três colunas tem quatro linhas verticais: a linha 1 está à esquerda da primeira coluna, a linha 4 está à direita da última coluna. O valor `-1` referencia a última linha.
+
+`grid-column: 1 / 3` faz o item começar na linha 1 e terminar na linha 3 — ocupando as duas primeiras colunas. `grid-column: span 2` é equivalente: "ocupe 2 colunas a partir da posição atual". `grid-column: 1 / -1` ocupa todas as colunas disponíveis.
+
+```css title="Posicionando grid items com grid-column e grid-row."
+/* o header do artigo ocupa todas as três colunas */
+.artigo-header {
+  grid-column: 1 / -1;
+}
+
+/* o rodapé também ocupa toda a largura */
+.site-footer {
+  grid-column: 1 / -1;
+}
+
+/* item de destaque ocupa as duas primeiras colunas */
+.artigo-destaque {
+  grid-column: span 2;
+}
+```
+
+## Grid template areas
+
+`grid-template-areas` é a forma mais legível de definir layout com Grid. Você escreve o layout como um "mapa ASCII" — cada string representa uma linha, cada palavra representa uma área nomeada.
+
+```css title="grid-template-areas — layout completo do artigo como mapa visual."
+.layout-pagina {
+  display: grid;
+  grid-template-columns: 220px 1fr 200px;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "header  header  header"
+    "sidebar main    aside"
+    "footer  footer  footer";
+  min-height: 100vh;
+  gap: 0;
+}
+
+/* cada filho recebe seu nome de área */
+.site-header  { grid-area: header;  }
+.sidebar      { grid-area: sidebar; }
+.conteudo     { grid-area: main;    }
+.aside        { grid-area: aside;   }
+.site-footer  { grid-area: footer;  }
+```
+
+O layout fica legível no próprio CSS — você consegue visualizar a estrutura de colunas e linhas sem precisar contar índices. Áreas com o mesmo nome formam uma área retangular maior. Um ponto `.` representa uma célula vazia.
+
+Para adaptar o layout em mobile, você redefine `grid-template-areas` em uma media query — mudando o mapa para uma coluna única:
+
+```css title="Layout responsivo com grid-template-areas — mobile first."
+/* mobile: tudo em coluna única */
+.layout-pagina {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "header"
+    "main"
+    "aside"
+    "sidebar"
+    "footer";
+}
+
+/* desktop: layout de três colunas */
+@media (min-width: 1024px) {
+  .layout-pagina {
+    grid-template-columns: 220px 1fr 200px;
+    grid-template-areas:
+      "header  header  header"
+      "sidebar main    aside"
+      "footer  footer  footer";
+  }
+}
+```
+
+## Grid implícito
+
+Quando você tem mais items do que células definidas em `grid-template-columns` e `grid-template-rows`, o CSS Grid cria trilhas automaticamente no **grid implícito**. Por padrão, novas linhas são criadas com tamanho `auto` — suficiente para o conteúdo.
+
+`grid-auto-rows` define o tamanho das linhas implícitas. `grid-auto-columns` faz o mesmo para colunas implícitas. `grid-auto-flow` controla a direção do preenchimento automático — `row` (padrão) ou `column`.
+
+```css title="Grid implícito — linhas criadas automaticamente com altura mínima definida."
+/* grade de artigos onde o número de cards não é fixo */
+.grade-artigos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: minmax(200px, auto); /* linhas implícitas com pelo menos 200px */
+  gap: 24px;
+}
+
+/* o algoritmo dense preenche buracos quando items têm tamanhos diferentes */
+.grade-masonry {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 100px;
+  grid-auto-flow: dense; /* tenta preencher buracos com items menores */
+  gap: 16px;
+}
+```
+
+## Quando Grid, quando Flexbox
+
+A decisão entre Grid e Flexbox é sobre dimensões:
+
+**Use Flexbox** quando você está organizando items em **uma direção** — uma linha de botões, uma lista de tags, um menu de navegação horizontal, uma lista de artigos em coluna. Flexbox deixa os items decidir seu tamanho baseado no conteúdo e nas regras de `flex-grow/shrink`.
+
+**Use Grid** quando você precisa controlar **linhas e colunas simultaneamente** — o layout da página completa, uma grade de cards onde você quer que a segunda linha comece exatamente alinhada com a primeira, um formulário com labels e inputs em colunas.
+
+Eles trabalham bem juntos: Grid para a estrutura macro da página, Flexbox para os componentes internos.
+
+```css title="Grid e Flexbox juntos — Grid para o layout, Flexbox para os componentes."
+/* Grid: estrutura da página */
+.layout-pagina {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 48px;
+}
+
+/* Flexbox: header dentro da página — uma dimensão */
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Flexbox: card individual — uma dimensão */
+.card-artigo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Flexbox: metadados do card — uma dimensão */
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+```
+
+## Resumo
+
+- Grid organiza items em **duas dimensões** (linhas e colunas simultaneamente). `display: grid` no container; filhos diretos são grid items.
+- `grid-template-columns` define as colunas. A unidade `fr` representa fração do espaço disponível. `repeat(n, tamanho)` repete uma trilha. `minmax(min, max)` cria trilhas fluidas com limites.
+- Items se posicionam automaticamente, mas você pode especificar com `grid-column: início / fim` ou `grid-column: span n`. O valor `-1` referencia a última linha.
+- `grid-template-areas` define o layout como um mapa ASCII nomeado — a forma mais legível de descrever layouts complexos.
+- O **grid implícito** cria trilhas automaticamente para items extras. `grid-auto-rows` define o tamanho dessas linhas.
+- **Flexbox para uma dimensão, Grid para duas.** Podem ser aninhados — Grid para a estrutura da página, Flexbox para componentes internos.

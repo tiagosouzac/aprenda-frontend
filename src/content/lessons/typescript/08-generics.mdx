@@ -1,6 +1,207 @@
 ---
 title: "Generics"
 description: "Por que existem e quando aparecem. Sintaxe <T>, restrições com extends, generics em funções, tipos e classes."
-comingSoon: true
 order: 8
+hero:
+  titleBefore: "Generics:"
+  titleAccent: "reutilizar"
+  titleAfter: "código com tipos."
+quiz:
+  - question: "Por que generics existem?"
+    options:
+      - "Para substituir interfaces"
+      - "Para criar tipos dinâmicos em runtime"
+      - "Para substituir unions"
+      - "Para escrever código que funciona para qualquer tipo sem perder a informação de tipo — sem generics, você escolheria entre duplicar código ou usar any (que perde a tipagem)"
+    correct: 3
+  - question: "O que T extends { id: number } significa em uma restrição?"
+    options:
+      - "T deve ser exatamente o tipo { id: number }"
+      - "T deve ter pelo menos a propriedade id do tipo number — T pode ter outras propriedades além de id"
+      - "T não pode ter outras propriedades além de id"
+      - "T deve ser um subtipo de number"
+    correct: 1
+  - question: "Quando TypeScript infere o parâmetro de tipo automaticamente?"
+    options:
+      - "Quando o parâmetro de tipo pode ser deduzido dos argumentos passados — primeiro<string>(['a', 'b']) pode ser escrito como primeiro(['a', 'b']) porque o array é string[]"
+      - "Nunca — sempre precisa ser passado explicitamente"
+      - "Apenas em funções arrow"
+      - "Apenas quando há um único parâmetro de tipo"
+    correct: 0
+  - question: "Qual é a diferença entre uma função genérica e uma função que aceita any?"
+    options:
+      - "Não há diferença prática"
+      - "any é mais rápido em runtime"
+      - "Com any, você perde a informação de tipo — a função aceita tudo e retorna any. Com generic, o tipo é preservado — se você passa string[], o retorno também é tipado como string (ou outro tipo derivado)"
+      - "Funções genéricas só funcionam com arrays"
+    correct: 2
 ---
+
+Generics são funções e tipos parametrizados por tipo. Em vez de escrever uma função que opera em `string[]` e outra que opera em `number[]`, você escreve uma função que opera em `T[]` — e TypeScript descobre o `T` pelo argumento passado. O resultado é código reutilizável sem perder nenhuma informação de tipo.
+
+## Por que generics existem
+
+O problema que generics resolvem é concreto: sem eles, você tem duas opções para código reutilizável — duplicar para cada tipo, ou usar `any` e perder a tipagem:
+
+```ts title="O problema sem generics — duplicar ou usar any."
+// opção 1: duplicar para cada tipo — não escala
+function primeiroString(array: string[]): string | undefined {
+  return array[0];
+}
+function primeiroNumber(array: number[]): number | undefined {
+  return array[0];
+}
+function primeiroArtigo(array: Artigo[]): Artigo | undefined {
+  return array[0];
+}
+
+// opção 2: usar any — perde a tipagem
+function primeiro(array: any[]): any {
+  return array[0];
+}
+const titulo = primeiro(["CSS", "HTML"]); // título tem tipo any — sem autocomplete
+titulo.toUpperCase(); // sem erro de compilação — mas se for undefined, vai quebrar
+
+// com generics: uma função, tipagem preservada
+function primeiro<T>(array: T[]): T | undefined {
+  return array[0];
+}
+const titulo = primeiro(["CSS", "HTML"]);  // título tem tipo string
+const curtidas = primeiro([42, 87, 13]);   // curtidas tem tipo number
+const artigo = primeiro(artigos);          // artigo tem tipo Artigo
+```
+
+`<T>` é o parâmetro de tipo — como um parâmetro normal da função, mas para tipos. TypeScript infere `T` pelo argumento: quando você passa `string[]`, `T` é `string`. Quando passa `Artigo[]`, `T` é `Artigo`.
+
+## Sintaxe básica
+
+```ts title="Funções genéricas — parâmetro de tipo T."
+// função genérica simples
+function identidade<T>(valor: T): T {
+  return valor;
+}
+
+// TypeScript infere T automaticamente
+const x = identidade("CSS");    // T = string
+const y = identidade(42);       // T = number
+const z = identidade(true);     // T = boolean
+
+// passar o tipo explicitamente — quando inferência não é suficiente
+const w = identidade<string>("CSS"); // explícito — geralmente desnecessário
+
+// múltiplos parâmetros de tipo
+function par<K, V>(chave: K, valor: V): [K, V] {
+  return [chave, valor];
+}
+
+const entrada = par("titulo", "CSS em geral"); // [string, string]
+const registro = par(1, { titulo: "CSS" });    // [number, { titulo: string }]
+```
+
+## Restrições com `extends`
+
+Sem restrições, um parâmetro de tipo `T` pode ser qualquer coisa — você não pode acessar propriedades nele (o TypeScript não sabe o que `T` tem). Restrições com `extends` limitam o que `T` pode ser, e permitem acessar as propriedades da restrição:
+
+```ts title="Restrições — T deve ter pelo menos certas propriedades."
+// sem restrição: T pode ser qualquer coisa
+function buscarPorId<T>(lista: T[], id: number): T | undefined {
+  // TS erro: Property 'id' does not exist on type 'T'
+  // return lista.find(item => item.id === id);
+  return lista[0]; // não há como acessar .id sem restrição
+}
+
+// com restrição: T deve ter pelo menos { id: number }
+function buscarPorId<T extends { id: number }>(lista: T[], id: number): T | undefined {
+  return lista.find(item => item.id === id); // ok — id existe em T
+}
+
+// funciona para qualquer objeto com id: number
+const artigo = buscarPorId(artigos, 1);         // T = Artigo
+const autor = buscarPorId(autores, 5);           // T = Autor
+// T preserva o tipo original — não perde para o tipo base { id: number }
+
+// restrição com string — T deve ser um subtipo de string
+function capitalizar<T extends string>(texto: T): string {
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+```
+
+A restrição `T extends X` não significa que `T` deve ser exatamente `X` — significa que `T` deve ser compatível com `X`. Um `Artigo` (que tem `id`, `titulo`, e muito mais) satisfaz `{ id: number }`.
+
+## Generics em tipos e interfaces
+
+Generics não são exclusivos de funções — tipos e interfaces também podem ser parametrizados:
+
+```ts title="Interface genérica — descrever a forma de uma resposta de API."
+// interface genérica — T é o tipo dos dados
+interface RespostaAPI<T> {
+  dados: T;
+  erro: string | null;
+  carregando: boolean;
+}
+
+// usar com tipos concretos
+type RespostaArtigos = RespostaAPI<Artigo[]>;
+type RespostaAutor = RespostaAPI<Autor>;
+
+// função que usa a interface genérica
+async function buscar<T>(url: string): Promise<RespostaAPI<T>> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      return { dados: null as T, erro: `Erro ${response.status}`, carregando: false };
+    }
+    const dados: T = await response.json();
+    return { dados, erro: null, carregando: false };
+  } catch (e) {
+    const mensagem = e instanceof Error ? e.message : "Erro desconhecido";
+    return { dados: null as T, erro: mensagem, carregando: false };
+  }
+}
+
+// usar — T é inferido pelo tipo esperado
+const resultado = await buscar<Artigo[]>("/artigos.json");
+if (!resultado.erro) {
+  const artigos = resultado.dados; // tipo: Artigo[]
+}
+```
+
+## Generics no blog — localStorage tipado
+
+Um exemplo prático: uma função genérica para ler e escrever no `localStorage` com tipos:
+
+```ts title="localStorage tipado com generics."
+// sem generics: retorna string | null — você faria o parse e cast manualmente
+const raw = localStorage.getItem("curtidos");
+const curtidos = raw ? JSON.parse(raw) as number[] : [];
+
+// com generics: encapsula o parse e o tipo
+function lerStorage<T>(chave: string, fallback: T): T {
+  const raw = localStorage.getItem(chave);
+  if (raw === null) return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function salvarStorage<T>(chave: string, valor: T): void {
+  localStorage.setItem(chave, JSON.stringify(valor));
+}
+
+// usar — T é inferido pelo fallback e pelo uso
+const curtidos = lerStorage<number[]>("curtidos", []);    // tipo: number[]
+const tema = lerStorage<Tema>("tema", "claro");           // tipo: Tema
+
+salvarStorage("curtidos", [1, 2, 3]);                    // T = number[]
+salvarStorage("tema", "escuro" satisfies Tema);          // T = Tema
+```
+
+## Resumo
+
+- **Generics** parametrizam funções e tipos por tipo. Em vez de duplicar código ou usar `any`, você escreve uma vez e TypeScript adapta para cada tipo concreto.
+- A sintaxe é `<T>` após o nome da função — TypeScript infere `T` dos argumentos na maioria dos casos.
+- **Restrições** (`T extends X`) limitam o que `T` pode ser e permitem acessar as propriedades de `X`. A restrição é satisfeita por qualquer tipo compatível com `X`, não apenas `X` exato.
+- **Interfaces e types** também aceitam parâmetros de tipo: `interface RespostaAPI<T> { dados: T; ... }`.
+- O uso mais frequente no blog: `buscar<T>(url)` para chamar APIs com tipo de retorno, `lerStorage<T>(chave, fallback)` para `localStorage` tipado.

@@ -1,6 +1,150 @@
 ---
 title: "JavaScript em geral"
-description: "O que é JS, onde ele roda, breve história e por que se tornou a linguagem da web. Modelo mental: HTML estrutura, CSS pinta, JS faz acontecer."
-comingSoon: true
+description: "O que é JavaScript, onde roda, por que é a única linguagem nativa dos navegadores e o que o módulo vai construir sobre o blog."
 order: 1
+hero:
+  titleBefore: "JavaScript:"
+  titleAccent: "comportamento"
+  titleAfter: "no navegador."
+quiz:
+  - question: "Qual é a principal diferença entre JavaScript e HTML/CSS?"
+    options:
+      - "JavaScript é mais recente que HTML e CSS"
+      - "JavaScript só roda no servidor, não no navegador"
+      - "JavaScript executa — ele tem estado, controle de fluxo e pode produzir resultados diferentes dependendo de quando é chamado"
+      - "JavaScript substitui o HTML para descrever a estrutura da página"
+    correct: 2
+  - question: "O que é Node.js?"
+    options:
+      - "Um navegador baseado em JavaScript"
+      - "Uma versão mais rápida do JavaScript"
+      - "Uma biblioteca JavaScript para interfaces gráficas"
+      - "Um ambiente que permite executar JavaScript fora do navegador — no servidor, na linha de comando"
+    correct: 3
+  - question: "Por que typeof null retorna 'object' em JavaScript?"
+    options:
+      - "Porque null é um tipo de objeto especial na especificação"
+      - "É um bug histórico dos primeiros dias da linguagem que não pode ser corrigido sem quebrar código existente"
+      - "Porque null herda de Object no protótipo"
+      - "Porque todos os tipos primitivos retornam 'object'"
+    correct: 1
+  - question: "O que foi ES6/ES2015?"
+    options:
+      - "A maior modernização do JavaScript até hoje — trouxe const/let, arrow functions, Promises, classes e módulos"
+      - "A primeira versão do JavaScript, lançada em 1995"
+      - "A versão do JavaScript que adicionou Node.js"
+      - "Uma biblioteca JavaScript para manipulação do DOM"
+    correct: 0
 ---
+
+`artigo.html` tem estrutura. `estilos.css` tem aparência. O que falta é comportamento — o que acontece quando o usuário clica no botão de tema, quando ele rola a página, quando o formulário é submetido. Isso é o que JavaScript faz.
+
+Nos dois módulos anteriores, você escreveu declarações: "este parágrafo é um parágrafo", "este elemento tem esta cor". JavaScript é diferente — é uma linguagem de **programação** de verdade. Você escreve instruções que o navegador executa, e a ordem, o estado atual e os dados recebidos podem mudar o resultado.
+
+## O que é JavaScript
+
+JavaScript é a única linguagem de programação que roda nativamente em todos os navegadores — sem instalação, sem configuração, sem compilação. Todo site que você visita pode executar JavaScript no seu computador. Não é opcional: a web moderna depende dele.
+
+Linguagem de programação significa: variáveis que guardam estado, condicionais que tomam decisões, loops que repetem operações, funções que encapsulam lógica, objetos que agrupam dados e comportamento. HTML e CSS são linguagens declarativas — você descreve *o que* quer. JavaScript é imperativo — você diz *como* fazer.
+
+A diferença mais concreta: um `<button>` em HTML existe. Um `button.style.display = 'none'` em JavaScript o esconde. Um `addEventListener('click', handler)` reage ao clique. O estado da página pode ser completamente diferente do HTML original depois que o JavaScript roda.
+
+```html title="O que cada camada faz ao mesmo elemento."
+<!-- HTML: estrutura — o botão existe -->
+<button id="botao-tema" type="button">Alternar tema</button>
+
+<!-- CSS: aparência — como o botão parece -->
+<style>
+  #botao-tema {
+    padding: 8px 16px;
+    background-color: var(--cor-primaria);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+</style>
+
+<!-- JavaScript: comportamento — o que o botão faz -->
+<script>
+  const botao = document.getElementById("botao-tema");
+
+  botao.addEventListener("click", () => {
+    document.documentElement.classList.toggle("dark");
+  });
+</script>
+```
+
+## Onde JavaScript roda
+
+O ambiente principal deste módulo é o **navegador**. No navegador, o JavaScript tem acesso a APIs específicas que não existem em outros ambientes: `window` (a janela do navegador), `document` (o DOM da página), `fetch` (requisições HTTP), `localStorage` (armazenamento no navegador), `navigator` (informações do dispositivo).
+
+**Node.js** é um ambiente que permite executar JavaScript fora do navegador — no servidor, em scripts de linha de comando, em ferramentas de build. Usa o mesmo motor de JavaScript do Chrome (V8), mas com APIs completamente diferentes: `fs` para sistema de arquivos, `http` para criar servidores, `path` para caminhos de arquivo. `window` e `document` não existem no Node.
+
+Essa distinção importa porque você vai encontrar código JavaScript que funciona em um ambiente mas não no outro. A forma de verificar em qual ambiente você está é checar uma variável que só existe naquele ambiente:
+
+```js title="Detectando o ambiente — navegador vs Node.js."
+// no navegador: typeof window === "object"
+// no Node.js:   typeof window === "undefined"
+if (typeof window !== "undefined") {
+  console.log("rodando no navegador");
+} else {
+  console.log("rodando no Node.js");
+}
+```
+
+Deno e Bun são alternativas mais recentes ao Node.js — mesma ideia, diferentes APIs e abordagens de segurança. Você vai cruzar com eles conforme avança, mas o núcleo da linguagem é o mesmo.
+
+## Breve história — por que JS é assim
+
+JavaScript foi criado em 10 dias em 1995 por Brendan Eich para o Netscape Navigator. Esse fato explica muito sobre a linguagem: decisões tomadas em 10 dias, sob pressão de um prazo de lançamento, para uma web que ninguém sabia ainda como seria, ainda estão conosco hoje.
+
+A linguagem foi padronizada como **ECMAScript** pela ECMA International. Durante anos, as versões do padrão eram numeradas: ES3, ES5. Em 2015, o comitê mudou para numeração anual — **ES2015** (também chamado ES6) foi a maior modernização desde o início: introduziu `const` e `let`, arrow functions, classes, Promises, módulos, desestruturação, template literals e muito mais. Hoje, ES2024 é o padrão mais recente.
+
+O princípio fundamental que guia a evolução do JavaScript é **"não quebrar a web"**. Uma vez que uma feature existe, ela não pode ser removida — sites escritos há 20 anos ainda precisam funcionar. É por isso que `var` ainda existe (e ainda funciona), que `==` com coerção ainda funciona, que `typeof null === "object"` ainda é verdade — é um bug de 1995 que não pode ser corrigido.
+
+Isso também explica por que aprender JavaScript moderno requer saber distinguir o que é bom e o que é herança que você deve evitar. `var` foi substituído por `const` e `let`. `==` deve ser substituído por `===`. Funções construtoras com `new` foram simplificadas por classes. O módulo usa a sintaxe moderna.
+
+## O que JS vai fazer no blog
+
+Ao longo das lições, você vai construir quatro funcionalidades em `script.js`:
+
+**Toggle de tema** (lições 2–6): o botão de tema claro/escuro vai funcionar de verdade. Um clique alterna uma classe no elemento `<html>`. O tema escolhido é salvo em `localStorage` para persistir entre visitas.
+
+**Botão de curtir** (lições 7–12): cada artigo vai ter um contador de curtidas. Clicar incrementa o número, salva o estado em `localStorage` e atualiza o ícone do botão.
+
+**Barra de progresso de leitura** (lição 12): uma barra no topo da página avança conforme o usuário rola o artigo — calculada pela posição de scroll em relação ao tamanho do conteúdo.
+
+**Lista dinâmica de artigos** (lições 13–15): em vez de escrever os cards de artigos relacionados no HTML, o JavaScript vai buscar um arquivo `artigos.json` e inserir os cards no DOM dinamicamente.
+
+```js title="Esboço do script.js — quatro seções que serão construídas ao longo do módulo."
+// =============================================
+// 1. TOGGLE DE TEMA — claro / escuro
+// =============================================
+// (lições 2-6: variáveis, DOM, eventos)
+
+// =============================================
+// 2. CURTIDAS — contador persistido
+// =============================================
+// (lições 7-12: arrays, objetos, localStorage)
+
+// =============================================
+// 3. BARRA DE PROGRESSO DE LEITURA
+// =============================================
+// (lição 12: scroll events)
+
+// =============================================
+// 4. LISTA DE ARTIGOS — carregada de JSON
+// =============================================
+// (lições 13-15: Promises, async/await, fetch)
+```
+
+## Resumo
+
+- JavaScript é a única linguagem de programação nativa dos navegadores — executa instruções, tem estado e pode produzir resultados diferentes dependendo do momento e dos dados.
+- Roda no **navegador** (com acesso ao DOM, `window`, `fetch`, `localStorage`) e no **Node.js** (com acesso ao sistema de arquivos e APIs de servidor). O código deste módulo roda no navegador.
+- Foi criado em 1995, padronizado como ECMAScript. **ES6/ES2015** foi a maior modernização — trouxe `const`/`let`, arrow functions, Promises e módulos. A linguagem cresce anualmente sem remover o que já existe.
+- `typeof null === "object"` é um bug histórico de 1995. `var`, `==` e outras features antigas ainda existem por compatibilidade — este módulo usa a sintaxe moderna.
+- Ao longo do módulo: toggle de tema, curtidas com `localStorage`, barra de progresso de leitura e lista de artigos carregada de JSON.
+
+A próxima aula mostra como rodar JavaScript no navegador — o console como ambiente interativo, a tag `<script>` com `defer` e como conectar `script.js` ao `artigo.html`.

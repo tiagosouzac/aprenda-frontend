@@ -1,6 +1,122 @@
 ---
 title: "HTTPS — conversa criptografada"
-description: "O que muda quando aparece o s. TLS em alto nível, certificados, autoridades certificadoras e o que o HTTPS protege."
-comingSoon: true
+description: "O que muda quando aparece o s. TLS em alto nível, certificados, autoridades certificadoras, cadeia de confiança. O que HTTPS protege e o que ele não protege."
 order: 4
+hero:
+  titleBefore: "HTTPS e"
+  titleAccent: "segurança"
+  titleAfter: "na web."
+quiz:
+  - question: "Qual é a principal diferença entre HTTP e HTTPS?"
+    options:
+      - "HTTPS é mais rápido"
+      - "HTTPS funciona apenas em navegadores modernos"
+      - "HTTPS criptografa a comunicação entre cliente e servidor"
+      - "HTTPS não permite enviar formulários"
+    correct: 2
+  - question: "O que é um certificado TLS?"
+    options:
+      - "Um tipo de banco de dados"
+      - "Um plugin do navegador"
+      - "Uma versão anterior do HTTP"
+      - "Um arquivo que identifica o servidor e habilita a criptografia"
+    correct: 3
+  - question: "O que acontece durante o handshake TLS?"
+    options:
+      - "O navegador baixa a página inteira"
+      - "O cliente e servidor estabelecem uma conexão criptografada"
+      - "O DNS resolve o domínio"
+      - "O servidor envia um email de confirmação"
+    correct: 1
+  - question: "O que HTTPS NÃO protege?"
+    options:
+      - "O servidor contra invasões diretas"
+      - "Senhas digitadas em formulários"
+      - "O conteúdo dos dados em trânsito"
+      - "Informações de cartão de crédito durante o envio"
+    correct: 0
 ---
+
+Quando você digita sua senha em um site ou preenche os dados do cartão de crédito, esses caracteres precisam viajar do seu navegador até um servidor que pode estar do outro lado do mundo. Pelo caminho, passam por roteadores, cabos de fibra óptica, switches e provedores de internet — cada um deles, em tese, capaz de interceptar o que está trafegando.
+
+O HTTP simples não oferece nenhuma proteção contra isso. Tudo que o navegador envia vai em texto puro — legível por qualquer nó na rota. O HTTPS resolve esse problema adicionando uma camada de criptografia que torna os dados ilegíveis para qualquer intermediário que os intercepte. É o que diferencia uma conexão segura de uma conexão exposta.
+
+## O que muda com o S
+
+O "S" no final de HTTPS significa *Secure*. A diferença entre HTTP e HTTPS não está nos métodos, nos cabeçalhos ou nos status codes — esses continuam exatamente iguais. O que muda é a camada abaixo: com HTTPS, toda a comunicação HTTP é cifrada antes de sair do navegador e decifrada só quando chega ao servidor.
+
+Com HTTP simples, qualquer pessoa que consiga observar o tráfego na rede — alguém conectado ao mesmo Wi-Fi público, por exemplo, ou um provedor desonesto — consegue ler o conteúdo das requisições e respostas. Isso inclui senhas, tokens de sessão, dados pessoais e o conteúdo das páginas. É um ataque simples de executar em redes não criptografadas.
+
+Com HTTPS, o atacante que interceptar o tráfego verá apenas ruído cifrado — bytes que não fazem sentido sem a chave de decriptação. Mesmo que capture todos os pacotes, não conseguirá extrair nenhuma informação útil.
+
+```
+HTTP — dados em texto puro:
+Navegador → "senha=minha-senha-secreta" → Roteador → Servidor
+                      ↑
+               qualquer um aqui
+               consegue ler
+
+HTTPS — dados cifrados:
+Navegador → "x3kP9qR7mL..." → Roteador → Servidor
+                   ↑
+           apenas o servidor
+           consegue decifrar
+```
+
+A tecnologia por trás dessa criptografia chama-se **TLS** (*Transport Layer Security*). Ela é o protocolo que o HTTPS usa para estabelecer a comunicação segura.
+
+## TLS em alto nível
+
+Antes de qualquer dado HTTP ser trocado numa conexão HTTPS, o navegador e o servidor precisam resolver dois problemas: provar que estão falando com quem pensam que estão, e combinar como vão cifrar a conversa. Esse processo é o **handshake TLS**.
+
+O handshake acontece em milissegundos, de forma totalmente transparente para o usuário. Em linhas gerais, é uma troca de três etapas:
+
+Na primeira etapa, o **navegador inicia a conexão** e informa quais versões do TLS e quais algoritmos de criptografia ele suporta. É como dizer: "posso falar em qualquer um desses idiomas criptográficos — qual você prefere?"
+
+Na segunda etapa, o **servidor responde** escolhendo o algoritmo e enviando o seu **certificado** — um documento digital que prova a identidade do servidor. O certificado contém, entre outras coisas, o nome do domínio a que pertence, a sua **chave pública** e uma assinatura de uma autoridade confiável. O navegador verifica esse certificado: o domínio bate com o que foi digitado na barra de endereço? A assinatura é válida? O certificado não está vencido?
+
+Na terceira etapa, navegador e servidor usam a chave pública do certificado para **trocar os segredos necessários** e derivar uma **chave de sessão** — uma chave simétrica temporária que só os dois conhecem. A partir daí, toda a comunicação é cifrada com essa chave, de forma muito mais eficiente que a criptografia assimétrica usada no handshake.
+
+```
+1. Navegador → Servidor: "Olá. Suporto TLS 1.3, esses algoritmos..."
+                                            ↓
+2. Servidor → Navegador: "Aqui está meu certificado e chave pública."
+   Navegador verifica: domínio bate? assinatura válida? prazo ok?
+                                            ↓
+3. Navegador e servidor derivam uma chave de sessão compartilhada.
+   A partir daqui, toda comunicação é criptografada.
+```
+
+Uma distinção importante: o handshake usa **criptografia assimétrica** — dois pares de chaves, uma pública e uma privada. Qualquer coisa cifrada com a chave pública do servidor só pode ser decifrada com a chave privada que o servidor mantém em segredo. Esse mecanismo garante que apenas o servidor legítimo consegue participar da negociação. Mas a criptografia assimétrica é computacionalmente cara, então ela é usada apenas para estabelecer a chave de sessão. O restante da comunicação usa **criptografia simétrica** — mais rápida, com uma única chave compartilhada — sobre a qual os dois concordaram durante o handshake.
+
+## Certificados e autoridades certificadoras
+
+O certificado TLS é o que permite ao navegador verificar que está falando com o servidor real de `artigo.dev` e não com um impostor. Mas quem garante que o certificado é genuíno?
+
+Um certificado é um arquivo digital assinado por uma **autoridade certificadora** (*CA — Certificate Authority*). A CA é uma organização terceirizada cujo trabalho é verificar se a pessoa ou empresa que solicitou o certificado realmente controla o domínio em questão, e então emitir um certificado assinado com a chave privada da própria CA.
+
+O navegador vem com uma lista de CAs em que confia — esse conjunto de CAs raiz é mantido pelo sistema operacional e pelos fabricantes de navegadores. Quando o servidor apresenta seu certificado, o navegador verifica a assinatura: se ela foi feita por uma CA que está na lista de confiança, o certificado é aceito. Se não, o navegador mostra um aviso de segurança.
+
+Essa é a **cadeia de confiança**: você confia no seu sistema operacional, que confia em certas CAs, que assinaram o certificado do servidor. É uma cadeia que pode ter múltiplos elos — uma CA raiz pode assinar o certificado de uma CA intermediária, que então assina certificados para domínios. O navegador verifica a cadeia toda.
+
+Durante muito tempo, obter um certificado tinha um custo e exigia burocracia. O projeto **Let's Encrypt**, lançado em 2014 por uma fundação sem fins lucrativos, mudou isso: oferece certificados gratuitos e automatizados para qualquer domínio. Hoje, a grande maioria dos sites usa certificados do Let's Encrypt, e a maioria das plataformas de hospedagem moderna os emite automaticamente quando você conecta um domínio.
+
+## O que HTTPS protege — e o que não protege
+
+O HTTPS é uma ferramenta poderosa, mas tem um escopo bem definido. Entender o que ele garante — e o que ele não garante — evita uma falsa sensação de segurança.
+
+O que o HTTPS **protege**: os dados em trânsito entre o navegador e o servidor. Senhas, dados de formulários, tokens de sessão, o conteúdo das páginas — tudo isso fica ilegível para quem interceptar a conexão no caminho. Um atacante no meio da rede (o chamado *man-in-the-middle*) não consegue ler nem modificar o que trafega.
+
+O que o HTTPS **não protege**: o servidor em si. Se o servidor foi comprometido por uma invasão, o HTTPS não ajuda — os dados chegam decifrados ao servidor e então ficam expostos ao atacante que está lá dentro. HTTPS protege o canal, não o destino.
+
+O HTTPS também não oculta completamente a sua navegação. O nome do domínio que você acessou fica visível no DNS (a não ser que você use DNS over HTTPS, que é outro mecanismo) e em parte do próprio handshake TLS — durante a negociação, o navegador precisa dizer qual domínio está acessando para que o servidor saiba qual certificado apresentar. Isso é o **SNI** (*Server Name Indication*), e é visível para quem observar o tráfego de rede.
+
+Por último, HTTPS não garante que o site é legítimo ou seguro para usar — garante apenas que a conexão com aquele servidor é criptografada. Um site de phishing pode ter um certificado TLS válido e mostrar o cadeado no navegador. O cadeado significa "a conexão está criptografada", não "este site é confiável".
+
+## Resumo
+
+- HTTPS adiciona criptografia TLS ao HTTP, tornando os dados ilegíveis para qualquer intermediário que intercepte a conexão.
+- O handshake TLS é uma negociação em três etapas: o cliente se apresenta, o servidor apresenta o certificado, e os dois derivam uma chave de sessão compartilhada.
+- Um certificado TLS é um documento digital assinado por uma autoridade certificadora (CA), que o navegador verifica antes de aceitar a conexão.
+- A cadeia de confiança vai do sistema operacional às CAs raiz, às CAs intermediárias e finalmente ao certificado do domínio.
+- HTTPS protege dados em trânsito entre navegador e servidor; não protege o servidor contra invasões, não oculta completamente a navegação e não garante que o site é legítimo.

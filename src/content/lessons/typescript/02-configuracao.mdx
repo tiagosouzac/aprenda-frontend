@@ -1,6 +1,175 @@
 ---
 title: "Configurando TypeScript"
 description: "tsconfig.json essencial, compilação com tsc, strict mode, integração com VS Code e com bundlers como Vite."
-comingSoon: true
 order: 2
+hero:
+  titleBefore: "Configurando"
+  titleAccent: "TypeScript"
+  titleAfter: "no projeto."
+quiz:
+  - question: "O que strict: true no tsconfig.json habilita?"
+    options:
+      - "Apenas strictNullChecks"
+      - "Apenas noImplicitAny"
+      - "Verificações de performance em runtime"
+      - "Um conjunto de verificações rigorosas incluindo strictNullChecks, noImplicitAny e outras — é o modo recomendado para projetos novos"
+    correct: 3
+  - question: "Por que noEmitOnError é recomendado?"
+    options:
+      - "Para compilar mais rápido"
+      - "Para evitar que o compilador gere arquivos JavaScript quando há erros de tipo — evita implantar código com bugs conhecidos"
+      - "Para compatibilidade com Node.js"
+      - "Para reduzir o tamanho dos arquivos gerados"
+    correct: 1
+  - question: "Qual é a diferença entre target e module no tsconfig.json?"
+    options:
+      - "target define para qual versão de JavaScript o código TypeScript é compilado; module define qual sistema de módulos é usado (CommonJS, ESM)"
+      - "São sinônimos — qualquer um pode ser usado"
+      - "target é para o navegador; module é para Node.js"
+      - "target afeta os tipos; module afeta a sintaxe"
+    correct: 0
+  - question: "Por que usar tsc --noEmit no lugar de tsc para verificar tipos?"
+    options:
+      - "tsc --noEmit é mais rápido"
+      - "tsc --noEmit é a única forma de compilar TypeScript"
+      - "tsc --noEmit verifica tipos sem gerar arquivos JavaScript — útil em CI ou quando um bundler (Vite, esbuild) já cuida da transpilação"
+      - "tsc --noEmit funciona sem tsconfig.json"
+    correct: 2
 ---
+
+TypeScript é instalado como uma ferramenta de desenvolvimento e configurado via `tsconfig.json`. A configuração define como o compilador analisa o código, para qual versão de JavaScript ele compila, onde os arquivos de saída ficam, e quão rigorosas são as verificações. Esta lição cobre a configuração mínima para o blog e o que cada opção relevante faz.
+
+## Instalação
+
+TypeScript é uma devDependency — só existe durante o desenvolvimento, não vai para produção:
+
+```bash title="Instalar TypeScript e inicializar a configuração."
+# instalar como dependência de desenvolvimento
+npm install -D typescript
+
+# gerar tsconfig.json com configurações comentadas
+npx tsc --init
+
+# compilar todos os arquivos .ts do projeto
+npx tsc
+
+# recompilar automaticamente ao salvar
+npx tsc --watch
+
+# verificar tipos sem gerar arquivos (útil em CI)
+npx tsc --noEmit
+```
+
+O `npx tsc --init` gera um `tsconfig.json` com dezenas de opções comentadas. Na prática, a maioria dos projetos usa apenas um subconjunto delas. Para o blog, a configuração mínima é:
+
+```json title="tsconfig.json — configuração essencial para o blog."
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "moduleResolution": "bundler",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "noEmitOnError": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+## As opções essenciais
+
+Cada opção do `tsconfig.json` faz uma coisa específica. Entender o que cada uma faz evita configurar às cegas:
+
+**`target`** define para qual versão de JavaScript o TypeScript compila. `ES2020` cobre `async/await`, `Promise.allSettled`, optional chaining (`?.`), nullish coalescing (`??`) — tudo que o módulo de JavaScript usou. Navegadores modernos entendem ES2020 diretamente.
+
+**`module`** define o sistema de módulos do output. `ES2020` gera `import`/`export` nativos — ESM, o mesmo sistema da lição 16 do módulo JavaScript. Use `CommonJS` apenas se o output for para Node.js sem suporte a ESM.
+
+**`moduleResolution`** define como o compilador resolve caminhos de `import`. `"bundler"` é a opção moderna para projetos que usam Vite, esbuild ou outro bundler — permite importar sem a extensão `.js` nos caminhos.
+
+**`outDir`** e **`rootDir`** definem onde ficam os arquivos TypeScript (`rootDir`) e onde ficam os JavaScript gerados (`outDir`). Com `rootDir: "./src"` e `outDir: "./dist"`, o arquivo `src/utils.ts` compila para `dist/utils.js`.
+
+**`strict`** é a opção mais importante — veja a próxima seção.
+
+**`noEmitOnError`** impede que o compilador gere arquivos `.js` quando há erros de tipo. Sem essa opção, `tsc` compila o JavaScript mesmo com erros — o que significa que você poderia implantar código com bugs de tipo conhecidos. Com `noEmitOnError: true`, o compilador recusa a gerar output até que todos os erros sejam resolvidos.
+
+**`skipLibCheck`** ignora erros em arquivos de declaração de tipo de bibliotecas externas (`.d.ts`). Útil quando pacotes de terceiros têm inconsistências de tipo que não são sua responsabilidade resolver.
+
+## `strict` mode
+
+`strict: true` é um atalho para habilitar um conjunto de verificações que, individualmente, teriam nomes separados. As mais importantes:
+
+**`strictNullChecks`**: o impacto mais visível. Com ele, `null` e `undefined` não são automaticamente atribuíveis a qualquer tipo. Uma variável do tipo `string` não pode ser `null` — para aceitar `null`, o tipo precisa ser `string | null` explicitamente.
+
+```ts title="strictNullChecks — o comportamento muda radicalmente."
+// sem strictNullChecks (evitar)
+function formatarData(dateString: string): string {
+  return new Intl.DateTimeFormat("pt-BR").format(new Date(dateString));
+}
+formatarData(null); // sem erro — null é atribuível a string sem strict
+
+// com strictNullChecks (correto)
+function formatarData(dateString: string): string {
+  return new Intl.DateTimeFormat("pt-BR").format(new Date(dateString));
+}
+formatarData(null);
+// TS erro: Argument of type 'null' is not assignable to parameter of type 'string'.
+// você é forçado a tratar o caso antes de chamar
+```
+
+**`noImplicitAny`**: variáveis cujo tipo não pode ser inferido e não foi anotado explicitamente viram erro (em vez de silenciosamente receber o tipo `any`). Isso obriga a anotar parâmetros de função.
+
+```ts title="noImplicitAny — parâmetros sem tipo viram erro."
+// sem noImplicitAny — x silenciosamente recebe tipo any
+function dobrar(x) {
+  return x * 2;
+}
+
+// com noImplicitAny — precisa anotar
+function dobrar(x: number): number {
+  return x * 2;
+}
+```
+
+**`strictFunctionTypes`**: verificação de tipos em callbacks é mais rigorosa — garante que funções passadas como argumento correspondam exatamente ao tipo esperado.
+
+Sempre ative `strict: true` em projetos novos. Projetos que migraram de JavaScript para TypeScript podem ativar as verificações gradualmente, mas projetos que começam em TypeScript devem usar `strict` desde o início.
+
+## Integração com VS Code
+
+VS Code tem suporte nativo a TypeScript — o editor usa o TypeScript Language Server internamente mesmo sem configuração. Com um `tsconfig.json` na raiz do projeto, o editor entende a estrutura e oferece:
+
+- **Sublinhas vermelhas** em tempo real para erros de tipo — sem precisar compilar
+- **Autocompletar** com as propriedades corretas de cada objeto
+- **Hover** sobre qualquer variável mostra o tipo inferido
+- **Ir para definição** (F12) navega até onde a interface ou função é declarada
+- **Rename Symbol** (F2) renomeia em todos os arquivos do projeto
+
+O Language Server do VS Code usa o TypeScript instalado no projeto (o `node_modules/.bin/tsc`) — se você atualizar o TypeScript no `package.json`, o editor usa a versão nova automaticamente.
+
+## Com bundlers (Vite)
+
+Projetos modernos frequentemente usam um bundler como Vite em vez de `tsc` diretamente. Vite (e esbuild por baixo) transpila TypeScript para JavaScript muito mais rápido que `tsc`, mas **não verifica tipos** — ele apenas remove as anotações. A verificação de tipos fica para o `tsc --noEmit`:
+
+```bash title="Dois comandos para projetos com Vite."
+# verificar tipos (CI, antes de commit)
+npx tsc --noEmit
+
+# servir/compilar com Vite (muito mais rápido, sem checagem de tipo)
+npm run dev
+npm run build
+```
+
+Essa separação é intencional: verificar tipos é uma operação de análise semântica que exige entender todo o projeto. Transpilar é uma operação de texto que pode ser feita arquivo a arquivo, em paralelo. Vite usa a segunda abordagem para ser rápido.
+
+## Resumo
+
+- **`npm install -D typescript`** instala o compilador. **`npx tsc --init`** gera o `tsconfig.json`.
+- As opções essenciais: `target` (versão de JS do output), `module` (sistema de módulos), `outDir`/`rootDir` (onde ficam os arquivos), `strict: true` (verificações rigorosas), `noEmitOnError: true` (não gerar JS com erros).
+- **`strict: true`** habilita `strictNullChecks` (null não é atribuível a string sem declaração explícita) e `noImplicitAny` (parâmetros sem tipo viram erro).
+- VS Code usa o TypeScript Language Server nativamente — erros em tempo real, autocompletar preciso, rename seguro.
+- Com bundlers (Vite): use `tsc --noEmit` para verificar tipos e o bundler para transpilar — cada um faz o que faz melhor.
+
+Com o projeto configurado, a próxima aula apresenta os tipos básicos — `string`, `number`, `boolean`, `null`, `undefined`, `any` e `unknown` — e quando usar cada um.

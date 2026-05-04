@@ -1,6 +1,157 @@
 ---
 title: "Tipos de teste"
 description: "Pirâmide de testes: unitário, integração, end-to-end. Tradeoffs de velocidade, custo de manutenção e fidelidade."
-comingSoon: true
 order: 2
+hero:
+  titleBefore: "Tipos"
+  titleAccent: "de teste"
+  titleAfter: "— pirâmide e tradeoffs."
+quiz:
+  - question: "Por que a pirâmide de testes recomenda mais testes unitários e poucos E2E?"
+    options:
+      - "Porque testes E2E são mais difíceis de escrever"
+      - "Testes unitários são rápidos, baratos de manter e dão feedback imediato. Testes E2E são lentos, frágeis a mudanças de UI e caros de depurar. A pirâmide equilibra cobertura com velocidade de feedback"
+      - "Porque frameworks E2E como Playwright são pagos"
+      - "Porque testes unitários cobrem mais linhas de código"
+    correct: 1
+  - question: "O que diferencia um teste de integração de um teste unitário?"
+    options:
+      - "Testes unitários verificam uma única função ou componente isolado. Testes de integração verificam múltiplas peças funcionando juntas — um componente com seu hook, um formulário com validação e envio, um fluxo completo de interação"
+      - "Testes de integração usam um banco de dados real; unitários usam mocks"
+      - "Testes de integração são mais rápidos que unitários"
+      - "Testes unitários só testam funções; integração testa componentes"
+    correct: 0
+  - question: "Qual é a principal vantagem do teste E2E sobre os demais?"
+    options:
+      - "É mais rápido de executar"
+      - "É mais fácil de manter quando o código muda"
+      - "Roda o navegador real com a aplicação completa — verifica que todas as peças (frontend, fetch, localStorage, DOM) funcionam juntas como o usuário experimenta, não apenas como o código funciona isolado"
+      - "Detecta bugs de lógica mais precisamente que unitários"
+    correct: 2
+  - question: "Qual teste seria mais adequado para verificar que 'filtrar artigos por tag retorna apenas artigos com aquela tag'?"
+    options:
+      - "E2E — porque envolve a UI"
+      - "Integração — porque filtro é uma funcionalidade de negócio"
+      - "Não precisa de teste — é óbvio"
+      - "Unitário — a função de filtro é pura, sem dependências externas. Entrada de array + tag, saída de array filtrado. Rápido de escrever e sem nenhuma dependência a mockar"
+    correct: 3
 ---
+
+Existem três tipos principais de teste, cada um com um escopo, velocidade e custo de manutenção diferentes. Entender esses tradeoffs é o que permite montar uma suite eficiente — uma que cobre o que importa sem ficar lenta ou frágil.
+
+## A pirâmide de testes
+
+A pirâmide de testes é um modelo para distribuir os tipos de teste:
+
+```
+        /‾‾‾‾‾‾‾\
+       /   E2E    \        ← poucos, lentos, caros, alta fidelidade
+      /‾‾‾‾‾‾‾‾‾‾‾\
+     / Integração   \     ← alguns, velocidade média
+    /‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
+   /    Unitários     \   ← muitos, rápidos, baratos
+  /‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
+```
+
+A proporção recomendada — muitos unitários, alguns de integração, poucos E2E — não é uma regra rígida. É uma consequência dos tradeoffs de cada nível: velocidade, custo de manutenção e fidelidade ao ambiente real do usuário.
+
+## Testes unitários — isolados e rápidos
+
+Um teste unitário verifica **uma única unidade** — uma função ou um componente — em isolamento. Dependências externas (rede, banco de dados, outras funções) são substituídas por mocks quando necessário.
+
+**O que testar no blog:**
+
+```ts title="Exemplos de testes unitários para o blog."
+// funções puras — ideal para unitários
+calcularTempoLeitura("texto com 400 palavras") === 2
+gerarSlug("Introdução ao CSS") === "introducao-ao-css"
+formatarData(new Date("2024-01-15")) === "15 de jan. de 2024"
+filtrarPorTag(artigos, "css") === [artigosCss]
+
+// componente em isolamento
+// ArticleCard renderiza título, autor e tags do artigo passado como prop
+// LikeButton mostra ❤️ quando curtido=true e 🤍 quando curtido=false
+```
+
+**Características:** rodam em milissegundos, dão feedback imediato, são fáceis de depurar quando falham — você sabe exatamente qual função ou componente está errado.
+
+**Quando não usar unitário:** quando o comportamento que você quer verificar só faz sentido com múltiplas peças juntas.
+
+## Testes de integração — múltiplas peças juntas
+
+Um teste de integração verifica que duas ou mais peças funcionam corretamente em conjunto. É mais lento que unitário, mas testa comportamentos que unitários não conseguem capturar.
+
+**O que testar no blog:**
+
+```ts title="Exemplos de testes de integração para o blog."
+// componente + estado + efeito
+// ArticleList com fetch mockado:
+//   → renderiza loading enquanto o fetch está pendente
+//   → renderiza os cards quando os dados chegam
+//   → renderiza mensagem de erro se o fetch falhar
+
+// componente + localStorage
+// LikeButton:
+//   → clicar curte e salva no localStorage
+//   → remontar o componente carrega o estado salvo
+
+// formulário + validação + callback
+// NewsletterForm:
+//   → botão desabilitado com email inválido
+//   → submeter com email válido chama onSubmit com o email
+```
+
+**Características:** mais lentos que unitários (precisam renderizar o componente e às vezes simular interações), mas ainda muito mais rápidos que E2E. Dão mais confiança que os unitários porque verificam a integração entre as peças.
+
+## Testes E2E — o fluxo real no navegador
+
+Um teste E2E (End-to-End) abre um navegador real e simula o usuário usando a aplicação. Verifica que o sistema inteiro funciona — frontend, requisições de rede, localStorage, DOM — da forma que o usuário experimenta.
+
+**O que testar no blog:**
+
+```ts title="Fluxos do blog que merecem E2E."
+// fluxo principal — o caminho que a maioria dos usuários faz
+// 1. abrir o blog → ver lista de artigos
+// 2. filtrar por tag "css" → ver só artigos de CSS
+// 3. clicar em um artigo → ver o artigo completo
+// 4. curtir → ver o ícone mudar para ❤️
+// 5. recarregar a página → curtida ainda está lá (localStorage)
+
+// fluxo de busca
+// 1. digitar "flexbox" no campo de busca
+// 2. ver apenas artigos com "flexbox" no título ou descrição
+```
+
+**O que não testar com E2E:**
+
+```ts title="Fluxos que não precisam de E2E."
+// ❌ cada caso de formatarData — unitário é suficiente e 100x mais rápido
+// ❌ cada estado do LikeButton — integração já cobre
+// ❌ cada mensagem de erro de validação — integração já cobre
+```
+
+**Características:** lentos (segundos por teste), podem ser frágeis se usarem seletores instáveis (classes CSS, posição de elementos), e difíceis de depurar quando falham. Use com moderação — nos fluxos críticos que, se quebrarem, travam o uso do produto.
+
+## Qual tipo usar para cada caso?
+
+A pergunta prática é: qual o tipo de teste mais barato que ainda me dá a confiança que preciso?
+
+| O que verificar | Tipo ideal |
+|---|---|
+| `gerarSlug("Olá, Mundo!")` retorna `"ola-mundo"` | Unitário |
+| `formatarData` para 6 entradas diferentes | Unitário com `test.each` |
+| `ArticleCard` renderiza título e autor | Unitário (componente) |
+| `LikeButton` salva no localStorage ao clicar | Integração |
+| `ArticleList` mostra loading e depois artigos | Integração |
+| Filtrar artigos na `HomePage` e ver a lista atualizar | Integração |
+| Abrir o blog, ler um artigo, curtir, recarregar | E2E |
+
+A regra prática: **vá pelo mais barato que cobre o caso**. Se um unitário cobre, não use integração. Se integração cobre, não use E2E.
+
+## Resumo
+
+- **Unitário**: uma função ou componente em isolamento. Rápido, barato, muito deles. Ideal para funções puras e componentes simples.
+- **Integração**: múltiplas peças juntas — componente + estado, componente + API mockada. Velocidade e custo intermediários. Captura o que unitários não conseguem.
+- **E2E**: navegador real, aplicação completa. Lento, frágil, poucos deles. Reservar para fluxos críticos de negócio.
+- A **pirâmide** é uma consequência dos tradeoffs: quanto mais alto o nível, mais lento, mais frágil e mais caro de manter.
+- Escolha o tipo mais barato que ainda dá a confiança necessária para o caso específico.

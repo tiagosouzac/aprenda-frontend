@@ -1,6 +1,135 @@
 ---
 title: "Resumo do módulo"
-description: "Checklist final: pirâmide saudável, testes que sobrevivem a refactor, mocks com parcimônia, E2E nos fluxos críticos."
-comingSoon: true
+description: "A suite de testes do blog revisitada. Checklist de boas práticas: pirâmide saudável, testes que sobrevivem a refactor, mocks com parcimônia, E2E nos fluxos críticos."
 order: 11
+hero:
+  titleBefore: "Fim do módulo"
+  titleAccent: "de testes"
+  titleAfter: "— o que você aprendeu."
+quiz:
+  - question: "Qual é a proporção ideal na pirâmide de testes?"
+    options:
+      - "Igual para os três tipos — equilíbrio é sempre melhor"
+      - "Muitos unitários (baratos, rápidos), alguns de integração (cobertura de fluxos), poucos E2E (apenas fluxos críticos). A proporção reflete o custo de manutenção e a velocidade de feedback de cada nível"
+      - "Apenas E2E — é o mais completo"
+      - "Apenas unitários — são os mais rápidos"
+    correct: 1
+  - question: "O que o módulo de testes cobre que o de React não cobria?"
+    options:
+      - "Verificação automatizada e repetível do comportamento do blog — formatarData retorna o valor certo, ArticleCard renderiza os dados corretos, curtir salva no localStorage, e o fluxo completo funciona no browser real"
+      - "Como usar React com TypeScript"
+      - "Como estruturar componentes React"
+      - "Como usar Context API"
+    correct: 0
+  - question: "Qual é o próximo passo natural após completar esse curso de fundamentos?"
+    options:
+      - "Aprender outra linguagem de programação"
+      - "Aprofundar apenas em testes avançados"
+      - "Colocar o conhecimento em prática com projetos reais, explorar frameworks como Next.js ou Astro, aprender sobre backend e banco de dados, e seguir o módulo de Próximos Passos do curso"
+      - "Começar a estudar mobile com React Native imediatamente"
+    correct: 2
 ---
+
+O módulo de testes fechou o ciclo do curso: você construiu o blog do zero — HTML, CSS, JavaScript, TypeScript, React — e agora tem uma suite automatizada que verifica que ele funciona. Não apenas que funciona hoje, mas que vai continuar funcionando quando você mudar o código amanhã.
+
+## A suite de testes do blog
+
+A suite completa que você construiu ao longo do módulo:
+
+**Unitários — `utils.test.ts`**
+
+```ts title="utils.test.ts — funções puras do blog."
+describe("gerarSlug")         // 6 casos — minúsculas, hífens, acentos, bordas
+describe("calcularTempoLeitura") // 5 casos — 1min, 2min, arredondamento, vazio
+describe("truncar")           // 6 casos — maior, menor, igual, vazio, zero, negativo
+describe("formatarData")      // 4 casos — agora, minutos, dias, extenso
+describe("filtrarPorTag")     // 4 casos — match, null, sem match, lista vazia
+```
+
+**Componentes — Testing Library**
+
+```tsx title="Testes de componentes."
+// ArticleCard.test.tsx
+describe("ArticleCard")       // título, autor, tags, badge novo vs. antigo, curtido vs. não curtido
+
+// LikeButton.test.tsx
+describe("LikeButton")        // aria-pressed, texto ❤️/🤍, callback onCurtir
+```
+
+**Integração**
+
+```tsx title="Testes de integração."
+// ArticleList.test.tsx
+describe("ArticleList")       // loading, sucesso, erro de fetch
+
+// LikeButtonPersistente.test.tsx
+describe("persistência")      // salvar, carregar, remover do localStorage
+
+// NewsletterForm.test.tsx
+describe("NewsletterForm")    // validação, submit, limpeza pós-envio
+
+// HomePage.test.tsx
+describe("filtro de busca")   // digitar → lista filtra → limpar → lista volta
+```
+
+**E2E — Playwright**
+
+```ts title="tests/blog.spec.ts — fluxos críticos."
+test("fluxo principal — ler artigo e curtir")
+test("persistência — curtida persiste após reload")
+test("filtro por tag — exibe apenas artigos da tag")
+test("busca — filtra artigos pelo texto")
+```
+
+## Checklist de boas práticas
+
+Antes de considerar a suite de testes saudável, passe por este checklist:
+
+**Pirâmide correta.** Muitos unitários, alguns de integração, poucos E2E. Se você tem mais testes E2E do que unitários, a suite vai ficar lenta e frágil.
+
+**Testes nomeados como comportamento.** `"exibe ❤️ quando curtido"` e não `"test LikeButton"`. Quando falhar, o nome diz o que o sistema deveria fazer.
+
+**Cada teste limpa seus efeitos.** `localStorage.clear()` no `beforeEach` quando o teste usa localStorage. `vi.clearAllMocks()` ou `vi.restoreAllMocks()` no `afterEach` quando usa mocks. Sem isolamento, os testes passam em uma ordem e falham em outra.
+
+**Queries por papel e texto, não por classes CSS.** `getByRole("button", { name: "Curtir" })` sobrevive a refactors de estilo. `getByTestId("btn-curtir")` precisa de `data-testid` no HTML e quebra quando o `data-testid` muda.
+
+**Comportamento, não implementação.** Se renomear uma variável de estado quebra o teste, ele está testando a implementação. Testes de comportamento sobrevivem a refactors internos.
+
+**Mocks com parcimônia.** Mockar dependências externas (rede, tempo, serviços externos). Não mockar lógica interna da sua aplicação — isso testa o mock, não o código.
+
+**E2E nos fluxos críticos apenas.** Abrir o blog, ler artigo, curtir, verificar persistência. Não testar validação de formulário com E2E — integração cobre mais rápido.
+
+## O que o módulo fechou
+
+Antes dos testes, o blog era verificado manualmente — abrir o browser, interagir, verificar visualmente. Isso não escala: à medida que o código cresce, testar tudo manualmente a cada mudança fica inviável.
+
+Com a suite construída neste módulo:
+
+- `npm test` verifica em segundos que `formatarData` ainda funciona com todos os casos
+- `npm test` verifica que `ArticleCard` ainda renderiza o título, autor e tags
+- `npm test` verifica que curtir salva no `localStorage` e persiste após remontar
+- `npx playwright test` verifica que o fluxo real no browser ainda funciona
+
+Uma mudança em `utils.ts` que quebra o filtro da `HomePage` aparece imediatamente — não quando um usuário reportar.
+
+## O que vem a seguir
+
+O blog está completo: HTML, CSS, JavaScript, TypeScript, React, testes. Você aprendeu os fundamentos da pilha de frontend mais usada no mercado.
+
+O **módulo de Próximos Passos** cobre para onde ir a partir daqui:
+
+- **Frameworks**: Next.js para aplicações com SSR/SSG, Astro para sites de conteúdo, Remix para full-stack com React
+- **Backend e full-stack**: Node.js, APIs REST e GraphQL, banco de dados com Prisma
+- **Tooling**: ESLint, Prettier, CI/CD com GitHub Actions, deploy na Vercel
+- **Carreira**: onde estudar, comunidades, portfólio, o que contratos de frontend exigem
+
+O maior salto acontece quando você coloca o conhecimento em prática com projetos reais — não existe substituto para isso.
+
+## Resumo
+
+- A suite do blog cobre: unitários para `utils.ts`, componentes com Testing Library, integração para `ArticleList` e `HomePage`, E2E para o fluxo principal.
+- **Pirâmide saudável**: muitos unitários → alguns de integração → poucos E2E.
+- **Testes que sobrevivem a refactor**: comportamento (o que o sistema faz) em vez de implementação (como faz).
+- **Mocks com parcimônia**: dependências externas sim, lógica interna não.
+- **Cobertura como guia**: use para encontrar pontos não testados, não como KPI.
+- O próximo passo é a prática em projetos reais — e o módulo de Próximos Passos aponta os caminhos.

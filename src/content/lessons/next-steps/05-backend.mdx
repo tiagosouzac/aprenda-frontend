@@ -1,6 +1,229 @@
 ---
 title: "Backend para devs frontend"
 description: "Node.js, APIs REST, GraphQL, BFF, banco de dados (SQL vs. NoSQL). Quanto saber para conversar com quem cuida do servidor."
-comingSoon: true
 order: 5
+hero:
+  titleBefore: "Backend"
+  titleAccent: "para frontend"
+  titleAfter: "— o outro lado da requisição."
+quiz:
+  - question: "O que o backend faz que o frontend não pode fazer?"
+    options:
+      - "Acessar banco de dados, gerenciar autenticação e segredos (senhas de banco, chaves de API), processar lógica que não deve ser exposta ao cliente, e servir dados para múltiplos clientes (browser, mobile, outros serviços)"
+      - "Exibir HTML no browser"
+      - "Executar JavaScript"
+      - "Fazer requisições HTTP"
+    correct: 0
+  - question: "Qual é a diferença entre REST e GraphQL?"
+    options:
+      - "REST usa JSON; GraphQL usa XML"
+      - "REST é mais seguro que GraphQL"
+      - "REST define um endpoint por recurso (GET /artigos, GET /artigos/:id). GraphQL tem um único endpoint e o cliente especifica exatamente os campos que precisa — eliminando over-fetching (dados desnecessários) e under-fetching (precisar de múltiplos requests)"
+      - "GraphQL é mais rápido que REST em todos os casos"
+    correct: 2
+  - question: "Para que serve um ORM como Prisma?"
+    options:
+      - "Para criar interfaces de usuário"
+      - "Para gerar APIs REST automaticamente"
+      - "Para conectar o frontend ao backend"
+      - "Para acessar o banco de dados usando JavaScript/TypeScript em vez de SQL puro — o ORM traduz chamadas de código para queries SQL, valida tipos, e gera migrações de schema"
+    correct: 3
+  - question: "O que é um BFF (Backend for Frontend)?"
+    options:
+      - "Uma biblioteca para construir backends em React"
+      - "Uma camada de backend dedicada a servir um frontend específico — agrega dados de múltiplas APIs internas, formata os dados no shape exato que o cliente precisa, e evita que o frontend faça múltiplas requisições para obter os dados de uma tela"
+      - "Um banco de dados otimizado para aplicações React"
+      - "O mesmo que uma API REST convencional"
+    correct: 1
 ---
+
+O blog do curso tem um `artigos.json` estático. Em produção, esses dados viriam de um banco de dados — alguém escreveu uma API que serve os artigos, gerencia as curtidas, e controla quem pode editar o quê. Essa é a responsabilidade do backend. Dev frontend não precisa ser especialista em backend, mas precisa entender o suficiente para trabalhar com APIs, depurar problemas de integração, e colaborar com quem cuida do servidor.
+
+## O que é o backend
+
+Backend é qualquer código que roda no servidor — não no browser do usuário. O browser não pode acessar banco de dados diretamente (seria um risco de segurança enorme). O backend recebe requisições HTTP, executa lógica de negócio, acessa o banco, e devolve dados:
+
+```
+Browser (seu React)
+  → requisição HTTP: GET /api/artigos
+    → Backend (Node.js, Python, Go...)
+      → banco de dados: SELECT * FROM artigos
+      → resposta: [{ id, titulo, ... }, ...]
+    ← resposta HTTP: 200 OK com JSON
+  ← ArticleList renderiza os artigos
+```
+
+O backend também gerencia coisas que não podem ficar no browser: segredos (senha do banco de dados, chaves de API), autenticação (verificar que o usuário está logado), e regras de negócio que não devem ser visíveis ao cliente.
+
+## Node.js — JavaScript no servidor
+
+Node.js é um runtime para JavaScript fora do browser. O mesmo JavaScript que você escreveu no módulo 3 pode rodar no servidor com Node.js. Isso permite que devs frontend escrevam backend sem aprender uma nova linguagem.
+
+Um servidor HTTP mínimo com Node.js puro:
+
+```ts title="servidor básico em Node.js — o que está por baixo de qualquer framework."
+import { createServer } from "node:http";
+import { readFileSync } from "node:fs";
+
+const artigos = JSON.parse(readFileSync("./artigos.json", "utf-8"));
+
+const servidor = createServer((req, res) => {
+  if (req.url === "/api/artigos" && req.method === "GET") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(artigos));
+  } else {
+    res.writeHead(404);
+    res.end("Não encontrado");
+  }
+});
+
+servidor.listen(3000, () => {
+  console.log("servidor rodando em http://localhost:3000");
+});
+```
+
+Na prática, ninguém escreve servidores assim. Frameworks como **Express** e **Fastify** abstraem o roteamento:
+
+```ts title="Servidor Express — o framework de backend mais usado com Node.js."
+import express from "express";
+import { readFileSync } from "node:fs";
+
+const app = express();
+const artigos = JSON.parse(readFileSync("./artigos.json", "utf-8"));
+
+// GET /api/artigos → lista de artigos
+app.get("/api/artigos", (req, res) => {
+  res.json(artigos);
+});
+
+// GET /api/artigos/:slug → artigo específico
+app.get("/api/artigos/:slug", (req, res) => {
+  const artigo = artigos.find(a => a.slug === req.params.slug);
+  if (!artigo) return res.status(404).json({ erro: "Artigo não encontrado" });
+  res.json(artigo);
+});
+
+app.listen(3000);
+```
+
+**Fastify** é uma alternativa mais moderna e rápida que Express, com TypeScript nativo e validação de schema integrada. **Hono** é outra opção recente, extremamente leve e com suporte a edge environments (Cloudflare Workers, Vercel Edge).
+
+## APIs REST
+
+REST (Representational State Transfer) é a convenção mais usada para APIs HTTP. Define como endpoints são nomeados e quais métodos HTTP usar:
+
+```
+GET    /api/artigos          → listar todos os artigos
+GET    /api/artigos/:slug    → buscar artigo por slug
+POST   /api/artigos          → criar novo artigo (requer autenticação)
+PUT    /api/artigos/:slug    → atualizar artigo completo
+PATCH  /api/artigos/:slug    → atualizar campos específicos
+DELETE /api/artigos/:slug    → deletar artigo
+
+GET    /api/artigos/:slug/curtidas → número de curtidas
+POST   /api/artigos/:slug/curtidas → registrar curtida do usuário atual
+```
+
+Cada endpoint retorna JSON com um status HTTP adequado: `200 OK`, `201 Created`, `404 Not Found`, `401 Unauthorized`, `422 Unprocessable Entity`.
+
+## GraphQL — o cliente especifica o que quer
+
+GraphQL resolve um problema frequente de REST: **over-fetching** (o servidor devolve mais dados que o cliente precisa) e **under-fetching** (o cliente precisa de múltiplos requests para montar uma tela).
+
+Com GraphQL, há um único endpoint e o cliente especifica exatamente os campos que quer:
+
+```graphql title="Query GraphQL — o cliente define o shape da resposta."
+# o cliente pede apenas os campos que precisa
+query {
+  artigos {
+    id
+    titulo
+    descricao
+    tags
+    autor {
+      nome
+    }
+    # curtidas não foi pedido — não vai na resposta
+  }
+}
+```
+
+```graphql title="Mutation GraphQL — criar ou modificar dados."
+mutation {
+  curtirArtigo(slug: "css-grid") {
+    curtidas
+  }
+}
+```
+
+**Quando GraphQL faz sentido**: aplicações com muitos tipos de dados relacionados, múltiplos clientes (browser e mobile) com necessidades diferentes, ou quando over-fetching é um problema real de performance.
+
+**Quando REST é suficiente**: APIs simples, equipes pequenas, ou quando a complexidade de GraphQL (schema, resolvers, cliente) não é justificada pelo problema.
+
+## Banco de dados — o básico
+
+Dados precisam ser persistidos em algum lugar. Os dois grandes modelos:
+
+**SQL (relacional):** dados estruturados em tabelas com relações. `artigos`, `autores`, e `tags` são tabelas separadas com chaves estrangeiras conectando-as. **PostgreSQL** é a escolha padrão para projetos novos — open source, robusto, com suporte a JSON nativo para dados semiestruturados.
+
+**NoSQL:** documentos JSON (MongoDB), chave-valor (Redis), grafos (Neo4j). Mais flexível em schema, mas menos garantias de consistência em relações. Redis é muito usado como cache — armazenar dados temporariamente para evitar queries repetidas ao banco principal.
+
+Para o blog, um schema SQL faria sentido:
+
+```prisma title="schema.prisma — modelo de dados do blog com Prisma."
+model Artigo {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique
+  titulo      String
+  descricao   String
+  conteudo    String
+  publicadoEm DateTime?
+  curtidas    Int      @default(0)
+  autor       Autor    @relation(fields: [autorId], references: [id])
+  autorId     Int
+  tags        Tag[]    @relation("ArtigoTags")
+  criadoEm    DateTime @default(now())
+}
+
+model Autor {
+  id      Int      @id @default(autoincrement())
+  nome    String
+  email   String   @unique
+  artigos Artigo[]
+}
+
+model Tag {
+  id      Int      @id @default(autoincrement())
+  nome    String   @unique
+  artigos Artigo[] @relation("ArtigoTags")
+}
+```
+
+**Prisma** é um ORM TypeScript-first — você define o schema, e o Prisma gera os tipos e as queries. `prisma.artigo.findMany({ where: { tags: { some: { nome: "css" } } } })` em vez de SQL bruto.
+
+## BFF — Backend for Frontend
+
+Em empresas maiores, existe um padrão chamado **BFF (Backend for Frontend)**: uma camada de backend dedicada a servir um cliente específico — geralmente o browser ou o app mobile.
+
+O BFF fica entre o frontend e os microserviços internos. Ele agrega dados de múltiplas APIs, formata no shape que o cliente precisa, e evita que o browser faça 5 requisições para montar uma única tela.
+
+É um padrão que você verá em entrevistas e documentações de empresas de médio e grande porte.
+
+## Quanto saber como dev frontend
+
+Você não precisa ser especialista em backend para trabalhar como frontend. Mas precisa:
+
+- Entender o contrato de uma API (endpoint, método, formato de request e response)
+- Saber depurar uma requisição no painel Network do DevTools
+- Saber o que `401 Unauthorized`, `403 Forbidden`, `422 Unprocessable Entity` significam
+- Saber como variáveis de ambiente funcionam (não commitar segredos)
+- Para full-stack: escrever endpoints simples com Express ou Fastify, integrar Prisma com PostgreSQL
+
+## Resumo
+
+- **Backend** é qualquer código que roda no servidor — banco de dados, autenticação, segredos, lógica de negócio crítica.
+- **Node.js** executa JavaScript no servidor. **Express** e **Fastify** são os frameworks mais usados.
+- **REST**: um endpoint por recurso, métodos HTTP (GET, POST, PUT, DELETE). A convenção mais comum.
+- **GraphQL**: um endpoint, cliente especifica os campos. Resolve over-fetching e under-fetching. Mais complexidade.
+- **Banco de dados**: SQL (PostgreSQL) para dados relacionais. NoSQL (MongoDB, Redis) para casos específicos. **Prisma** como ORM TypeScript-first.
+- **BFF**: camada de backend dedicada ao frontend, agrega dados de múltiplas APIs.

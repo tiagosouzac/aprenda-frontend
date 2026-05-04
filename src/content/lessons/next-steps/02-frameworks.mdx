@@ -1,6 +1,181 @@
 ---
 title: "Frameworks frontend"
 description: "Quando subir um nível além do React puro: Next.js, Astro, Remix, SvelteKit. O que cada um traz."
-comingSoon: true
 order: 2
+hero:
+  titleBefore: "Frameworks"
+  titleAccent: "frontend"
+  titleAfter: "— além do React puro."
+quiz:
+  - question: "Qual é o principal problema do React puro como SPA para sites com conteúdo como o blog?"
+    options:
+      - "O servidor entrega HTML praticamente vazio — o JavaScript monta a página no browser. Robôs de busca veem pouco conteúdo (SEO fraco) e o usuário vê uma tela branca enquanto o JS carrega (first paint lento)"
+      - "React não suporta TypeScript"
+      - "React não tem sistema de roteamento"
+      - "React é muito grande para ser usado em blogs"
+    correct: 0
+  - question: "Qual a diferença entre SSR e SSG?"
+    options:
+      - "SSR é para React; SSG é para outros frameworks"
+      - "SSG é mais rápido para qualquer tipo de conteúdo"
+      - "SSR (Server-Side Rendering) renderiza o HTML no servidor a cada requisição — ideal para conteúdo dinâmico por usuário. SSG (Static Site Generation) gera o HTML em tempo de build — ideal para conteúdo que não muda entre deploys, como artigos de blog"
+      - "Não há diferença técnica — são termos equivalentes"
+    correct: 2
+  - question: "Por que o Astro seria a escolha mais direta para o blog do curso?"
+    options:
+      - "Porque Astro usa React internamente"
+      - "Porque Astro tem o melhor suporte a TypeScript"
+      - "Porque Astro é o framework mais popular do mercado"
+      - "Porque Astro gera HTML estático por padrão e tem zero JS no cliente a menos que você peça — para um blog de conteúdo, a maioria das páginas não precisa de JavaScript interativo, e Astro é otimizado exatamente para esse caso"
+    correct: 3
+  - question: "Quando Next.js faz mais sentido que Astro?"
+    options:
+      - "Sempre — Next.js é mais completo"
+      - "Quando a aplicação tem partes altamente interativas (dashboards, feeds em tempo real, experiências personalizadas por usuário) e precisa de SSR com lógica de servidor, autenticação, ou APIs integradas — não apenas páginas de conteúdo estático"
+      - "Quando você quer usar TypeScript"
+      - "Quando o projeto é grande"
+    correct: 1
 ---
+
+O blog React do curso é uma SPA — Single Page Application. O servidor entrega um único arquivo HTML quase vazio, e o JavaScript monta tudo no browser. Para uma aplicação interativa com estado complexo, esse modelo funciona bem. Para um blog de conteúdo que precisa de bom SEO e carregamento rápido, ele tem problemas. Frameworks como Next.js, Astro e SvelteKit resolvem esses problemas adicionando roteamento, renderização no servidor e geração de páginas estáticas sobre React (ou outros frameworks).
+
+## O problema do React puro
+
+Quando você abre o blog React em produção e vê o código-fonte da página, encontra algo assim:
+
+```html title="HTML que o servidor entrega numa SPA React."
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <title>Blog</title>
+    <script type="module" src="/assets/index-abc123.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- nada aqui — React vai preencher via JavaScript -->
+  </body>
+</html>
+```
+
+Dois problemas. Primeiro: robôs de busca como o Googlebot veem esse HTML vazio antes de o JavaScript executar — os artigos não existem para o índice de busca. Segundo: o usuário vê uma tela branca enquanto o bundle de JavaScript baixa, executa e renderiza o conteúdo.
+
+A solução: **renderizar o HTML no servidor** antes de entregar ao browser — seja a cada requisição (SSR) ou em tempo de build (SSG).
+
+## SSR, SSG e o espectro de renderização
+
+**SSG (Static Site Generation)** — gera os arquivos HTML em tempo de build. O servidor entrega páginas prontas. Ideal quando o conteúdo não muda frequentemente: blogs, documentação, sites de marketing. Performance máxima — o browser recebe HTML pronto, sem esperar JavaScript.
+
+**SSR (Server-Side Rendering)** — renderiza o HTML no servidor a cada requisição. Ideal quando o conteúdo é dinâmico: feed personalizado por usuário, preços em tempo real, dashboards. Mais lento que SSG (o servidor precisa trabalhar a cada requisição), mas o HTML que chega ao browser já tem conteúdo.
+
+**ISR (Incremental Static Regeneration)** — um meio-termo popularizado pelo Next.js: páginas geradas estaticamente mas regeneradas em background quando ficam desatualizadas. Um artigo de blog gerado às 3h pode ser regenerado às 15h quando há uma edição, sem rebuild completo do site.
+
+## Next.js — o mais usado com React
+
+Next.js é o framework React mais popular do mercado. Adiciona roteamento baseado em sistema de arquivos, SSR, SSG, ISR, Server Components, e uma camada de API Routes que permite escrever endpoints no mesmo projeto.
+
+O `ArticlePage` do módulo de React se tornaria algo assim em Next.js:
+
+```tsx title="app/artigos/[slug]/page.tsx — rota dinâmica no App Router."
+// este arquivo define a rota /artigos/[qualquer-slug]
+// roda no servidor — acesso direto ao banco de dados, sem fetch do cliente
+
+interface PageProps {
+  params: { slug: string };
+}
+
+// generateStaticParams — Next.js pré-gera as páginas em build time (SSG)
+export async function generateStaticParams() {
+  const artigos = await buscarTodosArtigos();
+  return artigos.map(a => ({ slug: a.slug }));
+}
+
+export default async function ArticlePage({ params }: PageProps) {
+  // Server Component — roda no servidor, sem expor lógica ao browser
+  const artigo = await buscarArtigoPorSlug(params.slug);
+
+  if (!artigo) {
+    notFound(); // retorna 404
+  }
+
+  return (
+    <article>
+      <h1>{artigo.titulo}</h1>
+      <p>{artigo.descricao}</p>
+      {/* LikeButton é um Client Component — tem estado no browser */}
+      <LikeButton artigoId={artigo.id} />
+    </article>
+  );
+}
+```
+
+A distinção entre **Server Components** (rodam no servidor, sem JS no browser) e **Client Components** (têm estado e efeitos, rodam no browser) é o conceito central do App Router do Next.js. A maioria do conteúdo fica em Server Components; apenas as partes interativas usam `"use client"`.
+
+**Quando usar Next.js:** aplicações React que precisam de SEO, SSR/SSG, autenticação, API Routes, ou que crescerão para algo mais complexo que uma SPA. É a escolha padrão quando alguém pede "uma aplicação React com SSR".
+
+## Astro — para sites de conteúdo
+
+Astro é projetado para sites de conteúdo — blogs, documentação, portfólios, sites de marketing. A premissa: a maioria do conteúdo é HTML estático; JavaScript interativo é a exceção, não a regra.
+
+O blog do curso seria um caso ideal para Astro. Um artigo em Astro:
+
+```astro title="src/pages/artigos/[slug].astro — página de artigo em Astro."
+---
+// roda apenas no servidor em build time — zero JS entregue ao browser
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  const artigos = await getCollection('artigos');
+  return artigos.map(a => ({
+    params: { slug: a.slug },
+    props: { artigo: a },
+  }));
+}
+
+const { artigo } = Astro.props;
+---
+
+<Layout title={artigo.data.titulo}>
+  <article>
+    <h1>{artigo.data.titulo}</h1>
+    <p>{artigo.data.descricao}</p>
+    <!-- LikeButton é uma "ilha" — apenas este pedaço tem JS -->
+    <LikeButton client:load artigoId={artigo.data.id} />
+  </article>
+</Layout>
+```
+
+A **Islands Architecture** do Astro: a página é HTML estático. O `LikeButton` com `client:load` é uma "ilha" de JavaScript — apenas esse componente tem hidratação. O restante da página é HTML puro, sem overhead de JavaScript.
+
+**Quando usar Astro:** blogs, documentação, sites de marketing — qualquer coisa onde a maioria do conteúdo é estático e a interatividade é pontual. O blog deste curso migraria para Astro com zero comprometimento de funcionalidade.
+
+## Remix — full-stack com React
+
+Remix tem uma filosofia diferente: tudo que pode ser feito no servidor deve ser feito no servidor. Formulários com `action`, carregamento de dados com `loader`, sem `useEffect` para buscar dados.
+
+**Quando usar Remix:** aplicações com muitos formulários, fluxos de dados bidirecional entre cliente e servidor, ou quando você quer seguir os primitivos da web (forms, redirects, status codes) em vez de reinventá-los com JavaScript.
+
+## SvelteKit — Svelte com roteamento e SSR
+
+SvelteKit é para Svelte o que Next.js é para React — adiciona roteamento, SSR, SSG e server-side data loading sobre o Svelte. A escolha natural se você decidir aprender Svelte (lição seguinte).
+
+## Como escolher
+
+Não há resposta universal. Alguns critérios:
+
+| Situação | Recomendação |
+|---|---|
+| Blog ou site de conteúdo | Astro |
+| Aplicação React com SSR e autenticação | Next.js |
+| Full-stack com React, muitos formulários | Remix |
+| Aprendendo Svelte | SvelteKit |
+| SPA simples sem necessidade de SSR | React + Vite (o que você já tem) |
+
+## Resumo
+
+- React puro como SPA tem limitações de SEO e first paint — o HTML inicial está vazio.
+- **SSG** gera HTML em build time — ideal para conteúdo estático como artigos. **SSR** renderiza no servidor a cada requisição — ideal para conteúdo dinâmico por usuário.
+- **Next.js**: o mais popular com React. App Router, Server Components, SSG/SSR/ISR, API Routes.
+- **Astro**: zero JS por padrão, Islands Architecture. Melhor para blogs e sites de conteúdo.
+- **Remix**: full-stack com React, segue os primitivos da web (forms, redirects).
+- **SvelteKit**: a escolha natural se você migrar para Svelte.

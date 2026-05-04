@@ -1,6 +1,236 @@
 ---
 title: "Union e intersection types"
 description: "A | B, A & B. Narrowing com type guards (typeof, in, instanceof) e discriminated unions."
-comingSoon: true
 order: 7
+hero:
+  titleBefore: "Union"
+  titleAccent: "e intersection"
+  titleAfter: "— compor tipos."
+quiz:
+  - question: "Por que TypeScript exige narrowing antes de usar uma propriedade de um union type?"
+    options:
+      - "Por convenção de estilo"
+      - "Porque união de tipos não suporta propriedades"
+      - "Porque narrowing é necessário apenas em funções"
+      - "Porque se um valor é string | null, acessar .length sem verificar pode falhar em runtime se o valor for null — o compilador obriga a tratar todos os casos do union"
+    correct: 3
+  - question: "O que é uma discriminated union?"
+    options:
+      - "Uma union de mais de dois tipos"
+      - "Uma union de objetos onde cada variante tem uma propriedade comum com valor literal diferente — TypeScript usa esse valor para narrowing automático, sabendo exatamente qual variante você está tratando"
+      - "Uma union onde os tipos são discriminados pelo compilador automaticamente"
+      - "Uma union que não pode ser null"
+    correct: 1
+  - question: "Qual é o resultado de string & number em uma intersection?"
+    options:
+      - "never — não existe nenhum valor que seja simultaneamente string e number"
+      - "string — o tipo mais amplo vence"
+      - "number — o tipo mais específico vence"
+      - "any — TypeScript não consegue resolver o conflito"
+    correct: 0
+  - question: "O que o type guard 'titulo' in obj verifica?"
+    options:
+      - "Se o valor de obj.titulo é uma string"
+      - "Se titulo é uma propriedade readonly"
+      - "Se obj tem uma propriedade chamada titulo — e TypeScript usa isso para narrowing, sabendo que dentro do if o objeto tem essa propriedade"
+      - "Se titulo é uma propriedade opcional"
+    correct: 2
 ---
+
+Union types (`A | B`) e intersection types (`A & B`) são os blocos construtores para compor tipos em TypeScript. Unions descrevem valores que podem ser de um tipo ou outro — essenciais para modelar dados opcionais, estados de carregamento e resultados de API. Intersections combinam tipos — úteis para compor objetos. E como unions expandem o conjunto de possíveis valores, TypeScript exige que você **reduza** esse conjunto antes de usar — isso é narrowing.
+
+## Union types (`A | B`)
+
+Um union type diz que um valor pode ser de qualquer um dos tipos listados:
+
+```ts title="Union types — modelar valores que podem ser de tipos diferentes."
+// primitivos em union
+type Tema = "claro" | "escuro";
+type StatusArtigo = "rascunho" | "publicado" | "arquivado";
+
+// null em union — necessário com strictNullChecks
+type DataPublicacao = string | null;  // null quando é rascunho
+
+// em interfaces — propriedade que pode ser de dois tipos
+interface Artigo {
+  publicadoEm: string | null;
+  autor: Autor | null; // null quando é artigo anônimo
+}
+
+// union de tipos mais complexos
+type Resultado = Artigo[] | string; // array de artigos ou mensagem de erro
+```
+
+O uso mais frequente é combinar um tipo com `null` ou `undefined` — com `strict: true`, qualquer valor que possa ser ausente precisa ser declarado explicitamente no tipo.
+
+## Narrowing
+
+Quando uma variável tem tipo `string | null`, você não pode chamar `.toLowerCase()` diretamente — o compilador não sabe se é `string` ou `null`. Você precisa **reduzir** o tipo (narrowing) para o compilador ter certeza:
+
+```ts title="Narrowing — reduzir o union para usar propriedades específicas."
+function formatarDataPublicacao(data: string | null): string {
+  // TypeScript não permite usar .toUpperCase() diretamente — data pode ser null
+  // data.toUpperCase(); // TS erro
+
+  // narrowing com verificação de null
+  if (data === null) {
+    return "Não publicado";
+  }
+  // aqui TypeScript sabe que data é string
+  return new Intl.DateTimeFormat("pt-BR").format(new Date(data));
+}
+
+// narrowing com typeof — para primitivos
+function processar(valor: string | number): string {
+  if (typeof valor === "string") {
+    return valor.toUpperCase(); // TypeScript sabe: string
+  }
+  return valor.toFixed(2); // TypeScript sabe: number
+}
+
+// narrowing com in — verificar se uma propriedade existe
+function exibir(conteudo: Artigo | Pagina): string {
+  if ("descricao" in conteudo) {
+    return conteudo.descricao; // TypeScript sabe: Artigo (tem descricao)
+  }
+  return conteudo.conteudo; // TypeScript sabe: Pagina (não tem descricao)
+}
+
+// narrowing com instanceof — para classes
+function formatarErro(erro: Error | string): string {
+  if (erro instanceof Error) {
+    return erro.message; // TypeScript sabe: Error
+  }
+  return erro; // TypeScript sabe: string
+}
+```
+
+TypeScript analisa o fluxo do código e deduz o tipo em cada ponto — isso é chamado de **type narrowing** ou **control flow analysis**. Após um `if (data === null) return`, TypeScript sabe que o código abaixo só executa quando `data` não é `null`.
+
+## Discriminated unions
+
+Quando você tem uma union de objetos, o narrowing com `in` funciona, mas pode ser impreciso se os objetos tiverem campos parecidos. A solução elegante é a **discriminated union**: cada variante do union tem uma propriedade com um valor literal diferente — TypeScript usa esse valor como discriminante.
+
+```ts title="Discriminated union — modelar o estado de carregamento dos artigos."
+// cada variante tem 'status' com um valor diferente
+type EstadoCarregamento =
+  | { status: "carregando" }
+  | { status: "sucesso"; artigos: Artigo[] }
+  | { status: "erro"; mensagem: string };
+
+// TypeScript usa 'status' para narrowing automático
+function renderizarEstado(estado: EstadoCarregamento): string {
+  if (estado.status === "carregando") {
+    // TypeScript sabe: { status: "carregando" }
+    return "<p>Carregando artigos…</p>";
+  }
+
+  if (estado.status === "erro") {
+    // TypeScript sabe: { status: "erro"; mensagem: string }
+    return `<p class="erro">${estado.mensagem}</p>`;
+  }
+
+  // TypeScript sabe: { status: "sucesso"; artigos: Artigo[] }
+  return estado.artigos.map(renderizarCard).join("");
+}
+```
+
+O `switch` funciona igualmente bem como discriminante — e é mais legível quando há muitos casos:
+
+```ts title="Switch como discriminante — cobertura exaustiva verificada pelo compilador."
+function aplicarTema(tema: Tema): void {
+  switch (tema) {
+    case "claro":
+      document.documentElement.removeAttribute("data-theme");
+      break;
+    case "escuro":
+      document.documentElement.setAttribute("data-theme", "escuro");
+      break;
+    default: {
+      // TypeScript sabe que tema é never aqui — todos os casos foram cobertos
+      // se Tema ganhar "sistema", isso vira erro de compilação — você é avisado
+      const _exaustivo: never = tema;
+      throw new Error(`Tema não esperado: ${_exaustivo}`);
+    }
+  }
+}
+```
+
+Discriminated unions com verificação de exaustividade são um dos padrões mais úteis do TypeScript — eles garantem que você trata todos os casos de um conjunto de estados.
+
+## Intersection types (`A & B`)
+
+Intersection combina dois tipos — o resultado deve satisfazer ambos. É o `extends` do mundo dos `type`:
+
+```ts title="Intersection — combinar tipos sem herança."
+type ArtigoDestacado = Artigo & {
+  posicaoDestaque: number;
+  imagemDestaque: string;
+};
+
+// ArtigoDestacado tem todas as propriedades de Artigo + posicaoDestaque + imagemDestaque
+
+// útil para compor tipos de bibliotecas externas com seus próprios tipos
+type BotaoComId = HTMLButtonElement & { "data-artigo-id": string };
+```
+
+Quando duas propriedades no mesmo nome existem em ambos os tipos e têm tipos incompatíveis, o resultado é `never`:
+
+```ts title="Conflito em intersection — resulta em never."
+type A = { id: string };
+type B = { id: number };
+type C = A & B;
+// C.id tem tipo string & number = never
+// não existe nenhum valor que seja string e number ao mesmo tempo
+
+const x: C = { id: ??? }; // impossível criar um valor válido
+```
+
+Por isso, `&` é mais útil quando você está combinando tipos sem conflito de propriedades — compor interfaces complementares, adicionar propriedades extras a um tipo existente.
+
+## Aplicando ao blog
+
+Com unions e narrowing, as funções do blog ficam robustas para os casos onde dados podem ser ausentes:
+
+```ts title="api.ts — resposta tipada com discriminated union."
+import type { Artigo } from "./types.ts";
+
+type RespostaBusca =
+  | { ok: true; artigos: Artigo[] }
+  | { ok: false; erro: string };
+
+export async function buscarArtigos(): Promise<RespostaBusca> {
+  try {
+    const response = await fetch("/artigos.json");
+    if (!response.ok) {
+      return { ok: false, erro: `Erro ${response.status}` };
+    }
+    const artigos: Artigo[] = await response.json();
+    return { ok: true, artigos };
+  } catch {
+    return { ok: false, erro: "Falha de conexão" };
+  }
+}
+
+// consumir com narrowing
+async function inicializar(): Promise<void> {
+  const resultado = await buscarArtigos();
+
+  if (!resultado.ok) {
+    // TypeScript sabe: { ok: false; erro: string }
+    listaArtigos.innerHTML = `<p>${resultado.erro}</p>`;
+    return;
+  }
+
+  // TypeScript sabe: { ok: true; artigos: Artigo[] }
+  listaArtigos.innerHTML = renderizarCards(resultado.artigos, []);
+}
+```
+
+## Resumo
+
+- **Union** (`A | B`): o valor pode ser de qualquer um dos tipos. Com `strictNullChecks`, valores que podem ser `null` ou `undefined` precisam incluí-los no union explicitamente.
+- **Narrowing** é obrigatório antes de usar propriedades específicas de um union: `typeof` para primitivos, `in` para verificar propriedade, `instanceof` para classes, verificação de `null`/`undefined`.
+- **Discriminated unions** são unions de objetos com uma propriedade discriminante de valor literal diferente — TypeScript usa para narrowing automático. Combinam com `switch` para verificação de exaustividade.
+- **Intersection** (`A & B`): o resultado deve satisfazer ambos os tipos. Conflito de propriedades com tipos incompatíveis resulta em `never`.
+- Modele estados de carregamento com discriminated unions: `{ status: "carregando" } | { status: "sucesso"; dados: T } | { status: "erro"; mensagem: string }`.

@@ -1,6 +1,181 @@
 ---
 title: "Configurando um projeto React"
 description: "Vite com template React + TS, estrutura de pastas, npm run dev. A primeira página renderizada."
-comingSoon: true
 order: 2
+hero:
+  titleBefore: "Configurando"
+  titleAccent: "o projeto"
+  titleAfter: "React com Vite."
+quiz:
+  - question: "Por que Vite é preferível ao Create React App para projetos novos?"
+    options:
+      - "Porque Vite usa esbuild para transpilação — o servidor de desenvolvimento inicia em milissegundos e o HMR (hot module replacement) é quase instantâneo. CRA usa webpack e fica mais lento à medida que o projeto cresce"
+      - "Porque Vite é feito pela equipe do React"
+      - "Porque CRA foi descontinuado oficialmente"
+      - "Porque Vite não precisa de tsconfig.json"
+    correct: 0
+  - question: "O que o arquivo main.tsx faz?"
+    options:
+      - "Define os estilos globais da aplicação"
+      - "Define as rotas da aplicação"
+      - "É o ponto de entrada — monta o componente raiz (App) no elemento #root do index.html usando createRoot().render()"
+      - "Exporta todos os componentes do projeto"
+    correct: 2
+  - question: "Por que artigos.json vai na pasta public/ em vez de src/?"
+    options:
+      - "Porque JSON não pode ser importado em TypeScript"
+      - "Porque public/ é mais rápida que src/"
+      - "Porque src/ não suporta arquivos JSON"
+      - "Porque arquivos em public/ são servidos diretamente pelo servidor HTTP — o fetch('/artigos.json') acessa via URL, não via import. Arquivos em src/ são processados pelo bundler"
+    correct: 3
+  - question: "O que o operador ! (non-null assertion) faz em document.getElementById('root')!?"
+    options:
+      - "Cria o elemento #root se ele não existir"
+      - "Diz ao TypeScript que você garante que o valor não é null — o compilador aceita sem verificação. Se o elemento não existir em runtime, o erro aparece aí"
+      - "Lança um erro se o elemento não existir"
+      - "Converte o elemento para HTMLElement automaticamente"
+    correct: 1
 ---
+
+Projetos React modernos usam **Vite** como ferramenta de build. Vite usa esbuild para transpilação — o servidor de desenvolvimento inicia em milissegundos e o HMR (hot module replacement) aplica mudanças no browser sem recarregar a página. O template `react-ts` configura React, TypeScript e Vite juntos com um único comando.
+
+## Criando o projeto com Vite
+
+```bash title="Criar o projeto — um comando, tudo configurado."
+# criar o projeto com template React + TypeScript
+npm create vite@latest blog-react -- --template react-ts
+
+# entrar na pasta, instalar dependências e rodar
+cd blog-react
+npm install
+npm run dev
+# servidor em http://localhost:5173
+```
+
+O Vite gera a estrutura inicial e o browser mostra um contador de cliques — a aplicação React funcionando. O HMR está ativo: salvar qualquer arquivo atualiza o browser em tempo real, sem recarregar.
+
+## A estrutura de arquivos
+
+O template `react-ts` gera:
+
+```bash title="Estrutura inicial gerada pelo Vite."
+blog-react/
+├── public/               # arquivos estáticos — servidos diretamente
+│   └── vite.svg
+├── src/
+│   ├── assets/           # imagens e fontes importadas pelo bundler
+│   ├── App.tsx           # componente raiz
+│   ├── App.css           # estilos do App
+│   ├── main.tsx          # ponto de entrada — monta a aplicação
+│   ├── index.css         # estilos globais
+│   └── vite-env.d.ts     # declarações de tipo do Vite
+├── index.html            # template HTML com <div id="root">
+├── tsconfig.json         # configuração do TypeScript
+├── tsconfig.node.json    # tsconfig para o vite.config.ts
+└── vite.config.ts        # configuração do Vite
+```
+
+Para o blog, a estrutura proposta é um pouco mais organizada:
+
+```bash title="Estrutura do blog — organização por responsabilidade."
+src/
+├── components/           # componentes reutilizáveis
+│   ├── ArticleCard.tsx
+│   ├── ArticleList.tsx
+│   ├── Header.tsx
+│   ├── Footer.tsx
+│   ├── LikeButton.tsx
+│   └── ThemeToggle.tsx
+├── context/              # providers de contexto
+│   └── TemaContext.tsx
+├── hooks/                # custom hooks
+│   ├── useArtigos.ts
+│   └── useCurtidas.ts
+├── types/                # interfaces TypeScript
+│   └── index.ts
+├── App.tsx
+├── main.tsx
+└── index.css
+```
+
+```bash title="public/ — arquivos servidos diretamente."
+public/
+└── artigos.json          # dados do blog — acessados via fetch('/artigos.json')
+```
+
+`artigos.json` vai em `public/` (não em `src/`) porque o `fetch("/artigos.json")` acessa o arquivo via URL HTTP — e arquivos em `public/` são servidos diretamente pelo servidor Vite em desenvolvimento e pelo servidor de produção depois.
+
+## `index.html` e o ponto de montagem
+
+O Vite usa `index.html` como ponto de entrada, não como template gerado — é o HTML real que o browser recebe:
+
+```html title="index.html — o único arquivo HTML da aplicação."
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog React</title>
+  </head>
+  <body>
+    <!-- React monta a aplicação aqui -->
+    <div id="root"></div>
+    <!-- Vite injeta o script correto na compilação -->
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+```
+
+## `main.tsx` — montando a aplicação
+
+`main.tsx` é o ponto de entrada do JavaScript. Ele pega o elemento `#root` do HTML e monta o componente `App` dentro dele:
+
+```tsx title="main.tsx — createRoot monta o componente raiz."
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.tsx";
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
+```
+
+**`createRoot`** cria o raiz do React no elemento DOM especificado. **`render`** monta o componente `App` dentro dele. A partir daqui, React gerencia tudo dentro de `#root` — o HTML estático fora do `#root` não é tocado pelo React.
+
+O **`!`** (non-null assertion operator) diz ao TypeScript que você garante que `document.getElementById("root")` não retorna `null`. O TypeScript sabe que `getElementById` pode retornar `HTMLElement | null` — o `!` suprime o erro de compilação. Se o elemento não existir em runtime, o erro aparece como exceção JavaScript.
+
+**`StrictMode`** é um wrapper que ativa verificações extras em desenvolvimento — detecta efeitos colaterais inesperados e APIs depreciadas. Em produção, `StrictMode` não tem impacto. Uma consequência visível: em desenvolvimento, `StrictMode` deliberadamente monta e desmonta componentes duas vezes para detectar problemas nos efeitos — pode parecer estranho mas é o comportamento correto.
+
+## O primeiro componente: `App.tsx`
+
+O `App.tsx` gerado pelo template tem código de demonstração. Para o blog, limpe e comece do zero:
+
+```tsx title="App.tsx — ponto de partida limpo para o blog."
+import "./App.css";
+
+function App() {
+  return (
+    <div className="app">
+      <h1>Blog React</h1>
+      <p>Em construção…</p>
+    </div>
+  );
+}
+
+export default App;
+```
+
+Salve e o browser atualiza automaticamente — HMR em ação. Nos próximos arquivos, `App` vai crescer para incluir `Header`, `ArticleList` e o sistema de tema.
+
+## Resumo
+
+- **`npm create vite@latest nome -- --template react-ts`** cria o projeto com React, TypeScript e Vite configurados.
+- `public/` serve arquivos estáticos via URL (`fetch('/artigos.json')`). `src/` contém código processado pelo bundler.
+- `main.tsx` monta o componente `App` no elemento `#root` com `createRoot().render()`.
+- O `!` (non-null assertion) diz ao TypeScript que o valor não é null — use quando você tem certeza.
+- `StrictMode` ativa verificações extras em desenvolvimento — componentes são montados duas vezes intencionalmente.
+- A estrutura proposta para o blog: `src/components/`, `src/context/`, `src/hooks/`, `src/types/`.

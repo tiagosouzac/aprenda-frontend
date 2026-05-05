@@ -26,7 +26,6 @@
 - Testes: mudar código com confiança
 
 #### O que ainda não foi visto
-- Roteamento (múltiplas páginas em React)
 - Renderização no servidor (SSR, SSG)
 - Backend e banco de dados
 - Deploy e CI/CD
@@ -313,3 +312,24 @@
 - Não precisa de 10 projetos — 2 ou 3 bem feitos valem mais
 - Contribuir para open source: encontrar uma boa primeira issue em projetos que você usa
 - **Código**: checklist para o blog antes de publicar no portfólio
+
+
+---
+
+## Lição 12: Encerramento
+
+### Seções (H2)
+
+#### O que foi construído
+- O blog `artigo.dev` em sete versões progressivas: HTML → CSS → JS → TS → React → Testes
+- Tabela: módulo / o que o blog ganhou
+- Cada tecnologia resolve um problema criado pela camada anterior — a dependência é intencional
+
+#### O que cada tecnologia resolve
+- HTML: estrutura que o browser processa; CSS: aparência; JS: comportamento; TS: segurança; React: estado declarativo; Testes: confiança
+- A sequência não é arbitrária — é a ordem em que cada camada depende da anterior
+
+#### O próximo passo
+- O módulo de próximos passos cobre frameworks, ferramentas e caminhos em detalhe
+- A decisão mais importante agora não é qual framework estudar — é publicar o blog
+- Um projeto publicado com README claro demonstra mais do que qualquer lista de tecnologias

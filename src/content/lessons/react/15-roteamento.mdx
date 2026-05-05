@@ -1,0 +1,220 @@
+---
+title: "Roteamento com React Router"
+description: "Por que SPAs precisam de um router, como configurar o React Router DOM e conectar as páginas do blog com Link, useParams e useNavigate."
+order: 15
+hero:
+  titleBefore: "Roteamento"
+  titleAccent: "com React"
+  titleAfter: "Router."
+quiz:
+  - question: "Por que usar <a href='/artigos'> comum em uma SPA React causa problema?"
+    options:
+      - "Porque React não suporta o elemento <a>"
+      - "Porque o href precisa ser absoluto em SPAs"
+      - "Porque o navegador faz uma nova requisição ao servidor e a página recarrega — a aplicação perde o estado e todos os componentes são remontados do zero"
+      - "Porque o React Router bloqueia navegações com <a>"
+    correct: 2
+  - question: "Qual é a diferença entre Link e NavLink do React Router?"
+    options:
+      - "Link é para links externos; NavLink é para links internos"
+      - "NavLink recarrega a página; Link não"
+      - "Ambos geram <a> sem reload. NavLink adiciona automaticamente um estilo ou classe quando a rota atual corresponde ao destino — útil para menus de navegação"
+      - "Link é o componente antigo; NavLink é a versão nova que substituiu Link"
+    correct: 2
+  - question: "Como um componente acessa o parâmetro :slug da rota /artigos/:slug?"
+    options:
+      - "Via props: function ArticlePage({ slug })"
+      - "Via useContext(RouterContext)"
+      - "Via useParams: const { slug } = useParams()"
+      - "Via useLocation: location.pathname.split('/')[2]"
+    correct: 2
+---
+
+O blog construído até agora alterna entre `HomePage` e `ArticlePage` por estado — a URL nunca muda, o botão voltar não funciona, e não é possível compartilhar o link de um artigo específico. Roteamento resolve exatamente isso: cada página recebe uma URL, a navegação passa pelo histórico do browser, e qualquer link pode ser compartilhado diretamente.
+
+## Por que roteamento existe em aplicações React
+
+Sites tradicionais têm múltiplos arquivos HTML no servidor — clicar em um link faz o browser requisitar um novo arquivo e renderizar a página do zero.
+
+React apps são SPAs (*Single Page Applications*): o servidor entrega um único `index.html`, e o JavaScript substitui o conteúdo sem requisições adicionais. Isso é mais rápido — mas cria um problema: sem intervenção, a URL não muda com a navegação. O botão voltar não vai para a tela anterior — vai para a URL anterior, que provavelmente é a mesma. Links para páginas específicas não funcionam.
+
+```tsx title="SPA sem router — navegação por estado, URL estática."
+// sem React Router: troca de página é estado
+const [pagina, setPagina] = useState<"home" | "artigo">("home");
+
+return pagina === "home"
+  ? <HomePage onVerArtigo={() => setPagina("artigo")} />
+  : <ArticlePage />;
+
+// problemas:
+// - URL nunca muda — /artigos/css-em-geral não existe
+// - botão voltar do browser não funciona
+// - não dá para compartilhar link de um artigo específico
+```
+
+React Router intercepta a navegação, atualiza a URL com a History API do browser e renderiza o componente correto — sem recarregar a página.
+
+## Instalação e configuração
+
+```bash title="Instalar o React Router DOM."
+npm install react-router-dom
+```
+
+A API recomendada no React Router v6 usa `createBrowserRouter` — uma função que recebe a lista de rotas e retorna um objeto de router. O `RouterProvider` monta esse router na raiz da aplicação:
+
+```tsx title="main.tsx — configurar o router e montar a aplicação."
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { HomePage } from "./pages/HomePage";
+import { ArticlePage } from "./pages/ArticlePage";
+import { PaginaNaoEncontrada } from "./pages/PaginaNaoEncontrada";
+
+const router = createBrowserRouter([
+  { path: "/", element: <HomePage /> },
+  { path: "/artigos/:slug", element: <ArticlePage /> },
+  { path: "*", element: <PaginaNaoEncontrada /> },
+]);
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <RouterProvider router={router} />
+  </StrictMode>
+);
+```
+
+`RouterProvider` substitui `<App />` como raiz. Todos os componentes dentro dele têm acesso aos hooks do React Router.
+
+## Definindo rotas
+
+Cada rota é um objeto com `path` e `element`. O `path` é um padrão de URL:
+
+```tsx title="Padrões de rota — literal, dinâmico e wildcard."
+const router = createBrowserRouter([
+  // rota literal — corresponde exatamente a "/"
+  { path: "/", element: <HomePage /> },
+
+  // rota com parâmetro dinâmico — ":slug" captura qualquer segmento
+  // /artigos/css-em-geral → slug = "css-em-geral"
+  // /artigos/react-hooks  → slug = "react-hooks"
+  { path: "/artigos/:slug", element: <ArticlePage /> },
+
+  // wildcard — captura qualquer rota não definida acima
+  { path: "*", element: <PaginaNaoEncontrada /> },
+]);
+```
+
+## Navegando com Link e NavLink
+
+Dentro de componentes, use `<Link>` do React Router no lugar de `<a>`. `<Link>` gera um `<a>` no HTML, mas intercepta o clique e chama o router em vez de deixar o browser navegar:
+
+```tsx title="ArticleCard.tsx — Link navega sem recarregar a página."
+import { Link } from "react-router-dom";
+
+interface Props {
+  artigo: Artigo;
+}
+
+export function ArticleCard({ artigo }: Props) {
+  return (
+    <article className="card-artigo">
+      <h2>{artigo.titulo}</h2>
+      <p>{artigo.descricao}</p>
+      {/* Link gera <a> mas intercepta o clique — sem reload */}
+      <Link to={`/artigos/${artigo.slug}`}>Ler artigo →</Link>
+    </article>
+  );
+}
+```
+
+`<NavLink>` é uma variante que aplica automaticamente uma classe quando a rota está ativa — útil para menus:
+
+```tsx title="Header.tsx — NavLink com classe active automática."
+import { NavLink } from "react-router-dom";
+
+export function Header() {
+  return (
+    <nav>
+      {/* className recebe função: isActive indica se a rota está ativa */}
+      <NavLink
+        to="/"
+        end
+        className={({ isActive }) => isActive ? "nav-link ativo" : "nav-link"}
+      >
+        Início
+      </NavLink>
+      {/* end: ativa só em "/", não em "/artigos/qualquer-coisa" */}
+    </nav>
+  );
+}
+```
+
+## Parâmetros de URL com useParams
+
+Quando uma rota tem parâmetros (`:slug`, `:id`), o componente os acessa com `useParams`:
+
+```tsx title="ArticlePage.tsx — ler :slug da URL com useParams."
+import { useParams } from "react-router-dom";
+import { useArtigo } from "../hooks/useArtigo";
+
+export function ArticlePage() {
+  // slug vem da URL: /artigos/css-em-geral → slug = "css-em-geral"
+  const { slug } = useParams<{ slug: string }>();
+
+  const { artigo, carregando, erro } = useArtigo(slug!);
+
+  if (carregando) return <p>Carregando artigo...</p>;
+  if (erro || !artigo) return <p>Artigo não encontrado.</p>;
+
+  return (
+    <main>
+      <h1>{artigo.titulo}</h1>
+      <ArticleBody conteudo={artigo.conteudo} />
+      <LikeButton artigoId={artigo.id} />
+    </main>
+  );
+}
+```
+
+O tipo genérico `<{ slug: string }>` em `useParams` garante que o TypeScript sabe que `slug` existe e é string — sem necessidade de verificação manual.
+
+## Navegação programática com useNavigate
+
+Quando a navegação deve acontecer em código — após submit de formulário, após login, ao detectar um erro — use `useNavigate`:
+
+```tsx title="Redirecionar após submit de formulário com useNavigate."
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+
+export function BuscaRapida() {
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    navigate(`/?busca=${encodeURIComponent(query)}`);
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        placeholder="Buscar artigos..."
+      />
+      <button type="submit">Buscar</button>
+    </form>
+  );
+}
+```
+
+`navigate(-1)` navega para a entrada anterior no histórico — equivalente ao botão voltar do browser.
+
+## Resumo
+
+- **SPAs sem router**: URL estática, botão voltar quebrado, links para páginas específicas não funcionam.
+- `npm install react-router-dom` + `createBrowserRouter` + `RouterProvider`: configuração moderna do React Router v6.
+- Cada rota é `{ path, element }`. Parâmetros dinâmicos com `:nome`. Wildcard `*` para páginas não encontradas.
+- **`<Link to="...">`**: navegação sem reload. **`<NavLink>`**: com classe `active` automática — útil em menus.
+- **`useParams<{ slug: string }>()`**: acessa parâmetros dinâmicos da URL dentro do componente.
+- **`useNavigate()`**: navegação em código — após submit, login ou redirecionamento condicional.

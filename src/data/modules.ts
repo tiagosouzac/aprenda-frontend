@@ -17,6 +17,21 @@ export interface CourseModuleMeta {
 
 export const modules: CourseModuleMeta[] = [
   {
+    slug: "introducao",
+    name: "Introdução",
+    number: "00",
+    label: "Início",
+    color: "var(--color-intro)",
+    firstLessonSlug: "bem-vindo",
+    card: {
+      title: "Bem-vindo ao curso",
+      description:
+        "O que este curso cobre, o que você vai construir e como cada módulo se encaixa na jornada de aprendizado.",
+      visualBg: "linear-gradient(135deg,#78350f 0%,#d97706 55%,#fbbf24 100%)",
+      visualInk: "#fffbeb",
+    },
+  },
+  {
     slug: "how-the-web-works",
     name: "Web",
     number: "01",

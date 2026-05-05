@@ -16,6 +16,7 @@
   --color-line: #e8e7e3;
   --color-line-dark: #1f1f26;
 
+  --color-intro: #d97706;
   --color-web: #4c6ef5;
   --color-html: #e4572e;
   --color-css: #2563eb;
@@ -234,6 +235,41 @@ body {
   color: var(--color-ink);
   margin-top: 2em;
   letter-spacing: -0.015em;
+}
+.lesson-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.93em;
+  margin-top: 1.5em;
+}
+.lesson-prose thead tr {
+  border-bottom: 2px solid var(--color-line);
+}
+.lesson-prose thead th {
+  text-align: left;
+  padding: 0.5em 1em 0.6em;
+  font-weight: 600;
+  color: var(--color-ink);
+  letter-spacing: -0.01em;
+}
+.lesson-prose tbody tr {
+  border-bottom: 1px solid var(--color-line);
+}
+.lesson-prose tbody tr:last-child {
+  border-bottom: none;
+}
+.lesson-prose tbody td {
+  padding: 0.6em 1em;
+  color: rgba(10, 10, 11, 0.82);
+  vertical-align: top;
+}
+.lesson-prose tbody tr:nth-child(even) td {
+  background: rgba(244, 242, 237, 0.45);
+}
+.lesson-prose tbody td:first-child {
+  font-weight: 500;
+  color: var(--color-ink);
+  white-space: nowrap;
 }
 
 /* Section headings: numbered eyebrow + display title via Content components h2 swap */

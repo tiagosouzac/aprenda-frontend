@@ -421,7 +421,49 @@
 
 ---
 
-## Lição 15: Resumo do módulo
+## Lição 15: Roteamento com React Router
+
+### Seções (H2)
+
+#### Por que roteamento existe em SPAs
+- Sites multipage tradicionais: cada URL é um arquivo HTML separado no servidor
+- SPAs: um único HTML, JavaScript gerencia a navegação; sem Router, URL não muda e botão voltar quebra
+- React Router intercepta cliques em links, atualiza a URL com a History API e renderiza o componente certo
+- **Código**: SPA sem router (navegação por estado, URL estática) vs. com React Router (URL muda, histórico funciona)
+
+#### Instalação e configuração
+- `npm install react-router-dom`
+- API moderna: `createBrowserRouter` + `RouterProvider` (v6.4+) — configuração declarativa fora da árvore
+- `BrowserRouter`/`Routes`/`Route`: API clássica — mais simples de ler, menos poder
+- **Código**: `main.tsx` com `createBrowserRouter` mapeando `/` → `HomePage` e `/artigos/:slug` → `ArticlePage`
+
+#### Definindo rotas
+- Cada rota: `{ path: string, element: JSX.Element }`
+- `:slug`, `:id` — segmentos dinâmicos; `*` — wildcard para 404
+- Rotas aninhadas com `children` — para layouts compartilhados
+- **Código**: `router.tsx` completo com rotas do blog + rota de fallback `PaginaNaoEncontrada`
+
+#### Navegação com Link e NavLink
+- `<Link to="/artigos/css-em-geral">`: sem reload; gera `<a>` mas intercepta o clique
+- `<NavLink>`: variante com classe `active` automática — útil em menus
+- `end` prop em NavLink: ativa somente na rota exata, não em sub-rotas
+- **Código**: `ArticleCard` com `Link` e `Header` com `NavLink` aplicando classe active
+
+#### Parâmetros de URL com useParams
+- `/artigos/:slug` → `const { slug } = useParams<{ slug: string }>()`
+- `useParams` retorna um objeto com todos os parâmetros da rota atual
+- Integrar com `useArtigo(slug!)` — buscar o artigo correto pelo slug da URL
+- **Código**: `ArticlePage` atualizado — sem receber `slug` como prop, lendo da URL via `useParams`
+
+#### Navegação programática com useNavigate
+- `const navigate = useNavigate()` — retorna função para navegar em código
+- `navigate("/artigos/css-em-geral")` — navegar para rota; `navigate(-1)` — voltar
+- Casos de uso: após submit de formulário, login bem-sucedido, redirecionamento condicional
+- **Código**: campo de busca que navega para `/?busca=termo` ao submeter
+
+---
+
+## Lição 16: Resumo do módulo
 
 ### Seções (H2)
 

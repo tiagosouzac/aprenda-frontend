@@ -10,7 +10,8 @@ import { transformerCodeTitle } from "./src/lib/shiki-code-title";
 // https://astro.build/config
 export default defineConfig({
   // update this when the production domain is defined
-  site: "https://aprenda-frontend.dev",
+  site: "https://tiagosouzac.github.io",
+  base: "/aprenda-frontend",
 
   redirects: moduleRedirects,
 

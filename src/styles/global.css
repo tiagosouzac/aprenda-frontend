@@ -510,6 +510,33 @@ body {
   92%, 100% { opacity: 0; transform: translateY(-2px); }
 }
 
+/* Intro — hello world console.log typing */
+@keyframes intro-window {
+  0% { opacity: 0; transform: scale(0.96); }
+  8% { opacity: 1; transform: scale(1); }
+  84% { opacity: 1; transform: scale(1); }
+  93%, 100% { opacity: 0; transform: scale(0.98); }
+}
+@keyframes intro-type {
+  0%, 10% { width: 0ch; }
+  56%, 100% { width: 29ch; }
+}
+@keyframes intro-cursor {
+  0%, 54% { opacity: 1; }
+  56% { opacity: 0; }
+  58% { opacity: 1; }
+  60% { opacity: 0; }
+  62% { opacity: 1; }
+  84% { opacity: 1; }
+  93%, 100% { opacity: 1; }
+}
+@keyframes intro-output {
+  0%, 58% { opacity: 0; transform: translateY(6px); }
+  66% { opacity: 1; transform: translateY(0); }
+  84% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 1; }
+}
+
 /* Next steps — cards sliding in from the right, forming a menu of options */
 @keyframes ns-card {
   0%, 4% { opacity: 0; transform: translateX(22px); }

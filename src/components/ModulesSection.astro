@@ -130,6 +130,61 @@ import { modules } from "../data/modules";
                   <div class="absolute inset-0 grid-lines opacity-40"></div>
                   <div class="noise"></div>
 
+                  {m.slug === "introducao" && (
+                    <div class="absolute inset-0 flex items-center justify-center p-8">
+                      <div
+                        class="relative w-full max-w-[340px] rounded-lg overflow-hidden ring-1 ring-white/10 shadow-[0_24px_64px_rgba(0,0,0,0.55)]"
+                        style="background: rgba(12,6,1,0.84); animation: intro-window 6s ease-in-out infinite;"
+                      >
+                        {/* Title bar */}
+                        <div class="flex items-center gap-1.5 px-3 py-2.5 border-b border-white/10">
+                          <span class="h-2 w-2 rounded-full bg-white/25"></span>
+                          <span class="h-2 w-2 rounded-full bg-white/18"></span>
+                          <span class="h-2 w-2 rounded-full bg-white/12"></span>
+                          <span class="ml-auto mono text-[10px] text-white/28">script.js</span>
+                        </div>
+
+                        {/* Code area */}
+                        <div class="px-4 py-5 mono text-[13px] leading-[2]">
+                          {/* Line 1: console.log("Olá, mundo!"); */}
+                          <div class="flex items-baseline gap-3">
+                            <span class="text-white/22 select-none w-3 text-right shrink-0 text-[11px]">1</span>
+                            <div
+                              class="overflow-hidden whitespace-nowrap"
+                              style="width: 0ch; animation: intro-type 6s linear infinite;"
+                            >
+                              <span style="color: #fbbf24;">console</span>
+                              <span class="text-white/55">.log(</span>
+                              <span style="color: #86efac;">&quot;Olá, mundo!&quot;</span>
+                              <span class="text-white/55">);</span>
+                            </div>
+                            <span
+                              class="w-[2px] h-[0.9em] self-center shrink-0 rounded-sm"
+                              style="background: #fbbf24; animation: intro-cursor 6s ease-in-out infinite;"
+                            ></span>
+                          </div>
+
+                          {/* Line 2: output */}
+                          <div
+                            class="flex items-baseline gap-3"
+                            style="animation: intro-output 6s ease-in-out infinite;"
+                          >
+                            <span class="text-white/22 select-none w-3 text-right shrink-0 text-[11px]">2</span>
+                            <span class="text-white/32">{"// → "}</span>
+                            <span style="color: #fde68a; letter-spacing: 0.01em;">Olá, mundo!</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="absolute top-5 left-5 mono text-[10.5px] tracking-[0.18em] uppercase text-white/45">
+                        hello world
+                      </div>
+                      <div class="absolute bottom-5 right-5 mono text-[10.5px] tracking-[0.18em] uppercase text-white/35">
+                        módulo 00
+                      </div>
+                    </div>
+                  )}
+
                   {m.slug === "how-the-web-works" && (
                     <div class="absolute inset-0 flex items-center justify-center p-8">
                       <div class="relative w-full max-w-[440px] h-52">

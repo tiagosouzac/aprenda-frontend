@@ -79,8 +79,9 @@ O `ArticlePage` do módulo de React se tornaria algo assim em Next.js:
 // este arquivo define a rota /artigos/[qualquer-slug]
 // roda no servidor — acesso direto ao banco de dados, sem fetch do cliente
 
+// no Next.js 15+, params é uma Promise — precisa de await
 interface PageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 // generateStaticParams — Next.js pré-gera as páginas em build time (SSG)
@@ -91,7 +92,8 @@ export async function generateStaticParams() {
 
 export default async function ArticlePage({ params }: PageProps) {
   // Server Component — roda no servidor, sem expor lógica ao browser
-  const artigo = await buscarArtigoPorSlug(params.slug);
+  const { slug } = await params;
+  const artigo = await buscarArtigoPorSlug(slug);
 
   if (!artigo) {
     notFound(); // retorna 404

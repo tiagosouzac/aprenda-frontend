@@ -1,6 +1,6 @@
 ---
 title: "Roteamento com React Router"
-description: "Por que SPAs precisam de um router, como configurar o React Router DOM e conectar as páginas do blog com Link, useParams e useNavigate."
+description: "Por que SPAs precisam de um router, como configurar o React Router v7 e conectar as páginas do blog com Link, useParams e useNavigate."
 order: 15
 hero:
   titleBefore: "Roteamento"
@@ -56,14 +56,14 @@ React Router intercepta a navegação, atualiza a URL com a History API do brows
 
 ## Instalação e configuração
 
-```bash title="Instalar o React Router DOM."
-npm install react-router-dom
+```bash title="Instalar o React Router."
+npm install react-router
 ```
 
-A API recomendada no React Router v6 usa `createBrowserRouter` — uma função que recebe a lista de rotas e retorna um objeto de router. O `RouterProvider` monta esse router na raiz da aplicação:
+A partir do React Router v7, o pacote foi consolidado em `react-router` — o `react-router-dom` foi descontinuado. A API usa `createBrowserRouter` — uma função que recebe a lista de rotas e retorna um objeto de router. O `RouterProvider` monta esse router na raiz da aplicação:
 
 ```tsx title="main.tsx — configurar o router e montar a aplicação."
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { HomePage } from "./pages/HomePage";
@@ -109,7 +109,7 @@ const router = createBrowserRouter([
 Dentro de componentes, use `<Link>` do React Router no lugar de `<a>`. `<Link>` gera um `<a>` no HTML, mas intercepta o clique e chama o router em vez de deixar o browser navegar:
 
 ```tsx title="ArticleCard.tsx — Link navega sem recarregar a página."
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 interface Props {
   artigo: Artigo;
@@ -130,7 +130,7 @@ export function ArticleCard({ artigo }: Props) {
 `<NavLink>` é uma variante que aplica automaticamente uma classe quando a rota está ativa — útil para menus:
 
 ```tsx title="Header.tsx — NavLink com classe active automática."
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 
 export function Header() {
   return (
@@ -154,7 +154,7 @@ export function Header() {
 Quando uma rota tem parâmetros (`:slug`, `:id`), o componente os acessa com `useParams`:
 
 ```tsx title="ArticlePage.tsx — ler :slug da URL com useParams."
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import { useArtigo } from "../hooks/useArtigo";
 
 export function ArticlePage() {
@@ -183,7 +183,7 @@ O tipo genérico `<{ slug: string }>` em `useParams` garante que o TypeScript sa
 Quando a navegação deve acontecer em código — após submit de formulário, após login, ao detectar um erro — use `useNavigate`:
 
 ```tsx title="Redirecionar após submit de formulário com useNavigate."
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useState } from "react";
 
 export function BuscaRapida() {
@@ -213,7 +213,7 @@ export function BuscaRapida() {
 ## Resumo
 
 - **SPAs sem router**: URL estática, botão voltar quebrado, links para páginas específicas não funcionam.
-- `npm install react-router-dom` + `createBrowserRouter` + `RouterProvider`: configuração moderna do React Router v6.
+- `npm install react-router` + `createBrowserRouter` + `RouterProvider`: configuração do React Router v7. O pacote foi consolidado em `react-router` — importe tudo de lá.
 - Cada rota é `{ path, element }`. Parâmetros dinâmicos com `:nome`. Wildcard `*` para páginas não encontradas.
 - **`<Link to="...">`**: navegação sem reload. **`<NavLink>`**: com classe `active` automática — útil em menus.
 - **`useParams<{ slug: string }>()`**: acessa parâmetros dinâmicos da URL dentro do componente.

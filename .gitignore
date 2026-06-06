@@ -2,6 +2,8 @@
 dist/
 # generated types
 .astro/
+# local caches (e.g. fonts fetched by scripts/generate-og.mjs)
+.cache/
 
 # dependencies
 node_modules/
@@ -13,9 +15,10 @@ yarn-error.log*
 pnpm-debug.log*
 
 
-# environment variables
+# environment variables & secrets
 .env
 .env.production
+.mcp.json
 
 # macOS-specific files
 .DS_Store

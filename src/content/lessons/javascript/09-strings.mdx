@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a vantagem de template literals (backticks) sobre concatenação com +?"
     options:
-      - "Template literals são mais rápidos"
-      - "Template literals funcionam apenas com variáveis simples, não com expressões"
+      - "Os template literals são executados de forma perceptivelmente mais rápida pelo motor JavaScript do que a concatenação com +"
+      - "Os template literals funcionam apenas com variáveis simples dentro deles, e não conseguem interpolar expressões mais complexas"
       - "Template literals permitem interpolação de expressões com ${}, suportam múltiplas linhas e são mais legíveis do que concatenação encadeada"
-      - "Template literals só funcionam com strings — não com números"
+      - "Os template literals só funcionam quando todos os valores envolvidos são strings, e não aceitam números no meio do texto"
     correct: 2
   - question: "O que slice(-3) retorna em uma string?"
     options:
-      - "Os três primeiros caracteres"
-      - "Um erro — slice não aceita índices negativos"
-      - "A string sem os três últimos caracteres"
+      - "Retorna os três primeiros caracteres da string, contando a partir do começo do texto e indo até o terceiro caractere"
+      - "Lança um erro de execução, porque o método slice não aceita índices negativos como argumento em nenhuma situação"
+      - "Retorna a string inteira, mas sem incluir nela os três últimos caracteres que aparecem bem no final do texto original"
       - "Os três últimos caracteres — índices negativos contam a partir do final"
     correct: 3
   - question: "Por que strings são imutáveis em JavaScript?"
     options:
-      - "É uma limitação que será corrigida em versões futuras"
+      - "É uma limitação atual da linguagem que muitos consideram um problema e que deve acabar sendo corrigida em versões futuras"
       - "Strings são valores primitivos — uma vez criadas, não podem ser modificadas. Métodos como toUpperCase() retornam uma nova string, não modificam a original"
-      - "Porque strings compartilham referência como objetos"
-      - "Porque o JavaScript usa UTF-8 internamente"
+      - "Porque as strings compartilham a mesma referência de memória entre si, exatamente do mesmo jeito que acontece com os objetos"
+      - "Porque o JavaScript usa a codificação UTF-8 internamente para guardar cada um dos caracteres de qualquer string criada"
     correct: 1
   - question: "O que split('') faz em uma string?"
     options:
       - "Divide a string em um array de caracteres individuais"
-      - "Divide a string em palavras"
-      - "Remove todos os espaços"
-      - "Converte a string para um array de códigos ASCII"
+      - "Divide a string em um array, separando o texto em palavras a cada espaço em branco encontrado entre elas"
+      - "Remove da string todos os espaços em branco, devolvendo o texto totalmente compactado e sem nenhuma separação"
+      - "Converte a string inteira em um array contendo os códigos ASCII correspondentes a cada um de seus caracteres"
     correct: 0
 ---
 

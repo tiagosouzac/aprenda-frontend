@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que usar const por padrão em vez de let?"
     options:
-      - "Porque const é mais rápido que let"
-      - "Porque let foi descontinuado no ES2020"
+      - "Porque o const é executado de forma perceptivelmente mais rápida pelo motor JavaScript do que o let na maioria dos casos"
+      - "Porque a palavra-chave let acabou sendo descontinuada e removida da linguagem a partir da versão ES2020 do JavaScript"
       - "Para comunicar que o valor não vai ser reatribuído — reduz o espaço mental necessário para ler o código e previne reatribuições acidentais"
-      - "Apenas uma convenção sem impacto real"
+      - "É apenas uma convenção de estilo adotada pela comunidade, sem nenhum impacto real sobre o comportamento do código em si"
     correct: 2
   - question: "Por que dados do usuário nunca devem ir para innerHTML?"
     options:
-      - "Porque innerHTML não aceita texto"
-      - "Porque innerHTML é mais lento que textContent"
-      - "Porque innerHTML só funciona em divs"
+      - "Porque o innerHTML simplesmente não aceita receber texto puro e só consegue trabalhar com marcação HTML completa por dentro"
+      - "Porque o innerHTML é executado de forma perceptivelmente mais lenta pelo navegador do que a propriedade textContent na tela"
+      - "Porque a propriedade innerHTML só funciona quando é aplicada diretamente em elementos do tipo div, e não em outros elementos"
       - "Porque innerHTML interpreta HTML — se o dado vier do usuário, código malicioso poderia ser executado (XSS)"
     correct: 3
   - question: "Por que event delegation é preferível a N listeners individuais?"
     options:
-      - "Porque o navegador processa um listener mais rápido"
+      - "Porque o navegador processa um único listener registrado de forma perceptivelmente mais rápida do que vários listeners separados"
       - "Porque um listener no pai captura eventos de filhos via bubbling — inclusive filhos criados dinamicamente após o registro do listener"
-      - "Porque addEventListener tem limite de N listeners por elemento"
-      - "Não há vantagem real — é apenas uma preferência de estilo"
+      - "Porque o método addEventListener possui um limite máximo de listeners que podem ser registrados em cada elemento da página"
+      - "Não existe vantagem técnica real nisso: é apenas uma preferência de estilo de quem está escrevendo o código naquele momento"
     correct: 1
   - question: "Qual é o problema de await sequencial desnecessário?"
     options:
       - "Operações que poderiam ocorrer em paralelo ficam esperando uma a outra — o tempo total é a soma de todos os tempos"
-      - "await sequencial não funciona em todos os navegadores"
-      - "O código fica mais difícil de ler"
-      - "Não há problema — await sequencial é sempre preferível"
+      - "O await usado em sequência simplesmente não funciona de forma correta em todos os navegadores modernos do mercado atual"
+      - "O único problema é que o código que usa await de forma sequencial acaba ficando um pouco mais difícil de ler e entender"
+      - "Não existe problema algum nisso: usar await de forma sequencial é sempre a opção preferível em qualquer situação possível"
     correct: 0
 ---
 

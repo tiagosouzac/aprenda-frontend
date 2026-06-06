@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "O que type='module' faz em uma tag script?"
     options:
-      - "Carrega um módulo CSS junto com o JavaScript"
-      - "Desativa o JavaScript e carrega WebAssembly"
+      - "Carrega um módulo de CSS em conjunto com o arquivo JavaScript, aplicando os estilos assim que o script é executado"
+      - "Desativa a execução de JavaScript naquela tag e passa a carregar um arquivo WebAssembly no lugar do script original"
       - "Habilita ES Modules: import/export funcionam, cada arquivo tem escopo próprio (variáveis não vazam para o global) e strict mode é ativado automaticamente"
-      - "Converte o script para TypeScript automaticamente"
+      - "Converte o código do script para TypeScript automaticamente antes de o navegador executar qualquer uma das suas linhas"
     correct: 2
   - question: "Qual é a diferença entre named export e default export?"
     options:
-      - "Named export é para funções; default export é para classes"
-      - "Não há diferença prática — são sinônimos"
-      - "Default export só pode ser usado em Node.js; named export no navegador"
+      - "O named export serve para exportar funções, enquanto o default export serve especificamente para exportar classes"
+      - "Não existe diferença prática entre os dois: named export e default export são apenas sinônimos um do outro na linguagem"
+      - "O default export só pode ser usado em código rodando no Node.js, enquanto o named export só funciona dentro do navegador"
       - "Named export exporta com um nome específico — pode haver vários por arquivo; default export exporta o valor principal — apenas um por arquivo. Named import usa {chaves}; default import usa qualquer nome"
     correct: 3
   - question: "Por que módulos têm defer implícito?"
     options:
-      - "Para compatibilidade com sistemas mais antigos"
+      - "É apenas por uma questão de compatibilidade com sistemas e navegadores mais antigos que ainda não suportam ES Modules"
       - "Para garantir que o HTML esteja completamente parseado antes dos módulos executarem — módulos frequentemente acessam o DOM"
-      - "Para que os imports possam ser resolvidos em paralelo"
-      - "Não é verdade — módulos não têm defer implícito"
+      - "É para que todos os imports do módulo possam ser resolvidos e baixados em paralelo, acelerando o carregamento da página"
+      - "Na verdade isso não é verdade: os módulos não possuem nenhum comportamento de defer implícito quando são carregados"
     correct: 1
   - question: "Por que organizar o código em múltiplos módulos é vantajoso?"
     options:
       - "Cada módulo tem responsabilidade única, é mais fácil de testar isoladamente, variáveis não colide com outros arquivos e você importa apenas o que precisa"
-      - "Porque o navegador executa múltiplos arquivos mais rápido que um único"
-      - "Porque ES Modules é obrigatório em browsers modernos"
-      - "Apenas porque é convenção do mercado, sem benefício real"
+      - "Porque o navegador consegue executar vários arquivos separados de forma perceptivelmente mais rápida do que um arquivo único"
+      - "Porque o uso de ES Modules passou a ser obrigatório em todos os navegadores modernos que estão disponíveis atualmente"
+      - "Apenas porque virou uma convenção adotada pelo mercado, sem trazer nenhum benefício técnico real para o projeto na prática"
     correct: 0
 ---
 

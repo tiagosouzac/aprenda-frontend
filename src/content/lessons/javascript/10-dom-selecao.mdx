@@ -16,24 +16,24 @@ quiz:
     correct: 2
   - question: "Qual é a diferença entre querySelector e querySelectorAll?"
     options:
-      - "querySelector é mais rápido; querySelectorAll é mais preciso"
-      - "querySelectorAll aceita apenas seletores de id; querySelector aceita qualquer seletor"
-      - "Não há diferença — um é um alias do outro"
+      - "O querySelector é mais rápido na busca, enquanto o querySelectorAll é mais preciso ao localizar os elementos da página"
+      - "O querySelectorAll aceita apenas seletores baseados em id, enquanto o querySelector aceita qualquer tipo de seletor CSS"
+      - "Não existe diferença real entre os dois métodos: um deles é apenas um nome alternativo (alias) para o outro método"
       - "querySelector retorna o primeiro elemento correspondente; querySelectorAll retorna uma NodeList com todos os correspondentes"
     correct: 3
   - question: "O que el.closest('.card') faz?"
     options:
-      - "Seleciona o elemento .card mais próximo dentro de el"
+      - "Seleciona o elemento com a classe .card que estiver mais próximo entre os descendentes do elemento el na árvore"
       - "Percorre os ancestrais de el até encontrar o primeiro que corresponde ao seletor '.card', retornando-o"
-      - "Cria um novo elemento .card próximo de el"
-      - "Verifica se el tem a classe 'card'"
+      - "Cria um novo elemento com a classe .card e o insere na página logo ao lado do elemento el que foi informado"
+      - "Apenas verifica se o próprio elemento el possui ou não a classe 'card' aplicada, devolvendo verdadeiro ou falso"
     correct: 1
   - question: "Por que NodeList não tem os métodos map() e filter()?"
     options:
       - "NodeList não é um Array — é um tipo próprio do DOM. Para ter map/filter, converta para Array com [...nodelist] ou Array.from()"
-      - "NodeList é mais eficiente sem esses métodos"
-      - "map() e filter() foram removidos do NodeList em versões recentes"
-      - "Esses métodos existem no NodeList, mas com nomes diferentes"
+      - "O NodeList é mais eficiente justamente por não carregar esses métodos extras, o que economiza memória do navegador"
+      - "Os métodos map() e filter() foram removidos do NodeList nas versões mais recentes das especificações do DOM"
+      - "Esses métodos até existem dentro do NodeList, mas aparecem ali com outros nomes diferentes dos usados em arrays"
     correct: 0
 ---
 

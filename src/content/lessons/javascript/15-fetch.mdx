@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que fetch não rejeita automaticamente para respostas 4xx e 5xx?"
     options:
-      - "É um bug do fetch que será corrigido"
-      - "Porque 4xx e 5xx não são erros reais do HTTP"
+      - "É um bug conhecido do fetch que ainda não foi corrigido e que deve ser ajustado em alguma versão futura da própria API"
+      - "Porque as respostas com status 4xx e 5xx não são consideradas erros reais dentro do funcionamento do protocolo HTTP"
       - "Por design: fetch rejeita apenas em erros de rede (sem conexão, DNS falhou). Um servidor respondendo com 404 ou 500 é uma resposta válida do ponto de vista do protocolo HTTP — você precisa verificar response.ok manualmente"
-      - "Porque fetch só funciona com APIs que retornam 2xx"
+      - "Porque o fetch foi feito para funcionar apenas com APIs que sempre respondem com algum código de status da família 2xx"
     correct: 2
   - question: "Por que há dois awaits em: const dados = await (await fetch(url)).json()?"
     options:
-      - "O segundo await é um erro — await só pode ser usado uma vez por linha"
-      - "O primeiro await baixa o arquivo; o segundo o descomprime"
-      - "São equivalentes — qualquer um dos dois é suficiente"
+      - "O segundo await é um erro de escrita, porque o await só pode ser usado uma única vez em cada linha de código JavaScript"
+      - "O primeiro await é responsável por baixar o arquivo da rede, enquanto o segundo await apenas o descomprime em seguida"
+      - "Os dois awaits são equivalentes nesse caso, então usar apenas um deles sozinho já seria totalmente suficiente para funcionar"
       - "O primeiro await espera os headers da resposta chegarem. O segundo await espera o body ser completamente recebido e parseado como JSON — são duas operações assíncronas distintas"
     correct: 3
   - question: "O que o header Content-Type: application/json faz em uma requisição POST?"
     options:
-      - "Define o formato da resposta esperada"
+      - "Define qual será o formato da resposta que o cliente espera receber de volta do servidor depois da requisição"
       - "Informa ao servidor que o body da requisição está no formato JSON — o servidor usa isso para saber como parsear os dados recebidos"
-      - "Converte o body para JSON automaticamente"
-      - "É obrigatório apenas com PUT, não com POST"
+      - "Converte automaticamente o body da requisição para o formato JSON antes que ele seja de fato enviado para o servidor"
+      - "É um header obrigatório apenas em requisições do tipo PUT, e não tem nenhum efeito quando usado em uma requisição POST"
     correct: 1
   - question: "O que é response.ok?"
     options:
       - "true se o status HTTP está entre 200 e 299 — indica sucesso"
-      - "true se a resposta foi recebida em menos de 200ms"
-      - "true se o body da resposta não está vazio"
-      - "true se a requisição usou HTTPS"
+      - "É true quando a resposta do servidor chega ao navegador em menos de duzentos milissegundos de tempo total de espera"
+      - "É true sempre que o body da resposta recebida do servidor não estiver completamente vazio de conteúdo naquele momento"
+      - "É true apenas quando a requisição foi feita usando o protocolo HTTPS em vez do protocolo HTTP comum sem criptografia"
     correct: 0
 ---
 

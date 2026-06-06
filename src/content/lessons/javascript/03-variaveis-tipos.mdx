@@ -9,24 +9,24 @@ hero:
 quiz:
   - question: "Quando usar let em vez de const?"
     options:
-      - "Quando a variável contém um array ou objeto"
-      - "Quando a variável está dentro de uma função"
+      - "Quando a variável vai armazenar um array ou um objeto, já que o const não consegue guardar valores compostos como esses"
+      - "Quando a variável é declarada dentro do corpo de uma função, e não no escopo global do arquivo de script"
       - "Quando o valor precisa ser reatribuído depois da declaração — const não permite reatribuição"
-      - "Quando o tipo do valor pode mudar"
+      - "Quando o tipo do valor guardado pode mudar ao longo do tempo, indo de número para string, por exemplo"
     correct: 2
   - question: "Qual é a diferença entre null e undefined em JavaScript?"
     options:
-      - "Não há diferença — são sinônimos"
-      - "null é um número; undefined é uma string"
-      - "undefined é mais moderno e deve substituir null"
+      - "Não existe diferença alguma entre os dois: null e undefined são apenas sinônimos que podem ser usados livremente no código"
+      - "O null é sempre tratado pela linguagem como um valor numérico igual a zero, enquanto o undefined equivale a uma string vazia"
+      - "O undefined é a forma mais moderna e recomendada da linguagem, e a tendência é que ele substitua o null nos códigos atuais"
       - "null representa ausência intencional de valor (atribuído explicitamente); undefined é o estado padrão de variáveis não inicializadas e propriedades inexistentes"
     correct: 3
   - question: "Por que '5' + 3 resulta em '53' mas '5' - 3 resulta em 2?"
     options:
-      - "É um bug do JavaScript"
+      - "É simplesmente um bug do JavaScript, um comportamento inconsistente que a linguagem nunca conseguiu corrigir direito ao longo dos anos"
       - "O operador + em JavaScript também concatena strings, então se um operando for string ele converte o outro para string. O operador - não tem esse comportamento — converte tudo para número"
-      - "Porque 5 e 3 são coercidos para strings diferentes em cada caso"
-      - "Porque + tem precedência maior que -"
+      - "Porque o número 3 é convertido para uma string de formato diferente em cada caso, dependendo do operador que aparece antes dele na conta"
+      - "Porque o operador de soma tem uma precedência maior que a do operador de subtração na ordem de avaliação da expressão"
     correct: 1
   - question: "Qual é o resultado de typeof null?"
     options:

@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a diferença entre map() e filter()?"
     options:
-      - "map() modifica o array original; filter() cria um novo"
-      - "map() é para números; filter() é para strings"
+      - "O map() modifica diretamente o array original durante a iteração, enquanto o filter() é o único dos dois que cria um array novo"
+      - "O map() foi feito para trabalhar com arrays de números, enquanto o filter() foi pensado para trabalhar com arrays de strings"
       - "map() transforma cada item e retorna um array de mesmo tamanho; filter() mantém apenas os itens que passam no teste e pode retornar um array menor"
-      - "Não há diferença — são sinônimos com nomes diferentes"
+      - "Não existe diferença entre os dois: são apenas sinônimos com nomes diferentes que fazem exatamente a mesma transformação"
     correct: 2
   - question: "Por que preferir [...array, novoItem] a array.push(novoItem)?"
     options:
-      - "O spread é mais rápido que push"
-      - "push() não funciona em arrays modernos"
-      - "O spread é necessário para uso com React"
+      - "O operador spread é executado de forma perceptivelmente mais rápida pelo motor JavaScript do que o método push()"
+      - "O método push() simplesmente não funciona nos arrays que são criados pela sintaxe moderna do JavaScript usada hoje"
+      - "O uso do spread é uma exigência técnica imposta pelo React, que não aceita arrays criados ou alterados com push()"
       - "O spread cria um novo array (imutável); push() modifica o array original. Imutabilidade facilita rastrear mudanças de estado"
     correct: 3
   - question: "O que reduce() faz?"
     options:
-      - "Reduz o tamanho do array removendo itens duplicados"
+      - "Reduz o tamanho do array removendo dele todos os itens que estiverem duplicados, deixando apenas valores únicos"
       - "Acumula todos os itens em um único valor — passando o resultado de cada iteração para a próxima"
-      - "Remove itens do array que são falsy"
-      - "Retorna o menor valor do array"
+      - "Percorre o array inteiro e remove dele todos os itens cujo valor seja considerado falsy pela linguagem JavaScript"
+      - "Percorre todos os itens do array e retorna apenas aquele que tiver o menor valor numérico entre todos eles"
     correct: 1
   - question: "Qual é a diferença entre find() e filter()?"
     options:
       - "find() retorna o primeiro item que passa no teste (ou undefined); filter() retorna um array com todos os itens que passam"
-      - "Não há diferença prática"
-      - "find() é mais rápido que filter()"
-      - "filter() retorna apenas um item; find() retorna todos"
+      - "Não existe diferença prática entre find() e filter(): os dois percorrem o array e devolvem o mesmo tipo de resultado"
+      - "O método find() é executado de forma perceptivelmente mais rápida que o filter() ao percorrer um array grande na memória"
+      - "O filter() é que retorna apenas um único item do array, enquanto o find() retorna todos os itens que passam no teste"
     correct: 0
 ---
 

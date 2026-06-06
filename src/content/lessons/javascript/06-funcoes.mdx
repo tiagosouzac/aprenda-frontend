@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a diferença entre declaração de função e expressão de função em relação ao hoisting?"
     options:
-      - "Não há diferença — ambas são içadas da mesma forma"
-      - "Expressões de função são içadas; declarações não"
+      - "Não existe diferença entre as duas formas: tanto a declaração quanto a expressão de função são içadas exatamente do mesmo jeito"
+      - "As expressões de função é que são içadas para o topo do escopo, enquanto as declarações de função não recebem hoisting nenhum"
       - "Declarações de função são içadas — podem ser chamadas antes de aparecer no código. Expressões de função não são — chamá-las antes da declaração causa ReferenceError"
-      - "Nenhuma das duas é içada em modo strict"
+      - "Nenhuma das duas formas recebe hoisting quando o arquivo de script está rodando no modo strict do JavaScript moderno"
     correct: 2
   - question: "Por que arrow functions não têm seu próprio this?"
     options:
-      - "É uma limitação de implementação que será corrigida"
-      - "Para forçar o uso de classes"
-      - "Para economizar memória"
+      - "É uma limitação atual na implementação das arrow functions que deve acabar sendo corrigida em versões futuras da linguagem"
+      - "Foi uma decisão tomada deliberadamente para forçar as pessoas a usarem classes sempre que precisam de um this próprio"
+      - "Foi feito assim apenas para economizar memória, já que guardar um this próprio em cada arrow function teria um custo alto"
       - "Arrow functions herdam o this do contexto léxico onde foram definidas — isso é vantajoso em callbacks e métodos que precisam acessar o this do objeto pai"
     correct: 3
   - question: "O que é uma closure em JavaScript?"
     options:
-      - "Uma função que não tem retorno"
+      - "É uma função que simplesmente não possui nenhuma instrução de retorno e, por isso, sempre devolve o valor undefined"
       - "Uma função que lembra o escopo onde foi criada, mesmo após a função externa ter retornado — mantendo acesso às variáveis daquele escopo"
-      - "Um padrão de design para encapsular objetos"
-      - "Uma função que só pode ser chamada uma vez"
+      - "É um padrão de projeto usado para encapsular objetos e esconder os seus detalhes internos do resto do código da aplicação"
+      - "É um tipo especial de função que só pode ser chamada uma única vez durante toda a execução do programa em que vive"
     correct: 1
   - question: "O que o rest parameter (...args) faz em uma função?"
     options:
-      - "Agrupa todos os argumentos extras em um array"
-      - "Limita o número de argumentos que a função aceita"
-      - "Define argumentos opcionais com valor padrão"
-      - "Espalha um array como argumentos individuais"
+      - "Agrupa todos os argumentos extras passados para a função dentro de um único array, acessível pelo nome args"
+      - "Limita o número máximo de argumentos que a função tem permissão de aceitar durante cada uma de suas chamadas"
+      - "Define quais argumentos da função são opcionais, atribuindo a eles um valor padrão quando não são informados"
+      - "Espalha os itens de um array, passando cada um deles como um argumento individual e separado para a função"
     correct: 0
 ---
 

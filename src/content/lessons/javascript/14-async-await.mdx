@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "O que uma função async sempre retorna?"
     options:
-      - "Um valor síncrono"
-      - "undefined"
+      - "Sempre retorna um valor síncrono comum, exatamente como qualquer outra função normal do JavaScript também faria"
+      - "Sempre retorna o valor undefined, independentemente do que estiver escrito na instrução de return dentro da função"
       - "Uma Promise — mesmo que o return seja um valor não-Promise"
-      - "Um callback"
+      - "Sempre retorna uma função de callback, que precisa ser chamada depois para obter o resultado da operação assíncrona"
     correct: 2
   - question: "O que acontece quando await é usado em uma Promise que rejeita?"
     options:
-      - "O erro é ignorado silenciosamente"
-      - "A execução continua normalmente com valor undefined"
-      - "A função async retorna null"
+      - "O erro é simplesmente ignorado de forma silenciosa, e a execução da função async segue adiante sem nenhum aviso"
+      - "A execução da função continua normalmente a partir dali, e o valor recebido de volta pelo await passa a ser undefined"
+      - "A função async inteira retorna null naquele momento, interrompendo todo o restante do código que viria logo depois"
       - "O erro é lançado como uma exceção síncrona — pode ser capturado com try/catch"
     correct: 3
   - question: "Qual é o problema de usar await dentro de um loop for...of com múltiplas operações independentes?"
     options:
-      - "await não funciona dentro de for...of"
+      - "O await simplesmente não pode ser usado dentro de um laço for...of e acaba provocando um erro de sintaxe na execução"
       - "O loop se torna sequencial — cada operação espera a anterior terminar antes de iniciar a próxima, mesmo que fossem independentes"
-      - "O loop nunca termina"
-      - "Não há problema — é o padrão recomendado"
+      - "O laço acaba nunca terminando, ficando preso em um loop infinito por causa do await usado dentro de cada uma das iterações"
+      - "Não existe problema algum nesse uso: colocar um await dentro de um for...of é justamente o padrão recomendado pela linguagem"
     correct: 1
   - question: "Qual é a vantagem de async/await sobre .then().catch()?"
     options:
       - "async/await permite código mais legível — parece síncrono, sem encadeamento. try/catch trata erros de forma consistente com o resto do JavaScript"
-      - "async/await é mais rápido"
-      - "async/await não precisa de try/catch"
-      - "async/await funciona em mais navegadores"
+      - "O async/await é executado de forma perceptivelmente mais rápida pelo motor JavaScript do que o encadeamento com .then().catch()"
+      - "O async/await dispensa por completo o uso de try/catch para o tratamento dos erros que ocorrem nas operações assíncronas"
+      - "O async/await funciona em uma quantidade bem maior de navegadores diferentes do que o encadeamento feito com .then().catch()"
     correct: 0
 ---
 

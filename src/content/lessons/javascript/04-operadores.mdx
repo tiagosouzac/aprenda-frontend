@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a diferença entre || e ?? (nullish coalescing)?"
     options:
-      - "|| retorna o operando direito se o esquerdo for null ou undefined; ?? retorna se for qualquer valor falsy"
-      - "São sinônimos — fazem a mesma coisa"
+      - "O operador || retorna o operando da direita apenas quando o da esquerda é null ou undefined, e o ?? faz isso para qualquer valor falsy"
+      - "Os dois operadores são sinônimos e fazem exatamente a mesma coisa, então tanto faz qual deles você escolhe usar no seu código"
       - "?? retorna o operando direito se o esquerdo for null ou undefined; || retorna se for qualquer valor falsy — incluindo 0, '' e false"
-      - "|| funciona com booleanos; ?? funciona com objetos"
+      - "O operador || foi projetado para funcionar apenas com valores booleanos verdadeiros ou falsos, enquanto o ?? foi pensado para lidar com objetos"
     correct: 2
   - question: "O que é curto-circuito em operadores lógicos?"
     options:
-      - "Quando o operador causa um erro de execução"
-      - "Quando dois operadores são usados na mesma expressão"
-      - "Uma otimização que arredonda números para evitar erros de ponto flutuante"
+      - "É quando o uso de um operador lógico acaba provocando um erro de execução que interrompe o programa naquele exato ponto"
+      - "É quando dois operadores lógicos diferentes são usados juntos dentro de uma mesma expressão um pouco mais complexa"
+      - "É uma otimização interna do motor JavaScript que arredonda os números automaticamente para evitar erros de cálculo com ponto flutuante"
       - "Em a && b, se a for falsy, b não é avaliado. Em a || b, se a for truthy, b não é avaliado — o segundo operando só é executado quando necessário"
     correct: 3
   - question: "O que o operador % (módulo) retorna?"
     options:
-      - "O resultado da divisão com casas decimais"
-      - "O resto da divisão inteira"
-      - "O valor percentual de dois números"
-      - "A diferença entre dois números"
+      - "O resultado completo da divisão entre os dois números, incluindo as casas decimais que sobram"
+      - "O resto que sobra de uma divisão inteira entre o primeiro e o segundo número"
+      - "O valor percentual que um número representa em relação ao outro número da conta"
+      - "A diferença numérica entre o primeiro operando e o segundo operando da expressão"
     correct: 1
   - question: "Quando usar o operador ternário em vez de if/else?"
     options:
       - "Quando você precisa de um valor baseado em uma condição em uma expressão — atribuições, template literals, argumentos de função. Não aninhar ternários"
-      - "Sempre — o ternário é mais eficiente"
-      - "Nunca — if/else é mais legível"
-      - "Apenas quando a condição envolve null ou undefined"
+      - "Sempre que for possível, porque o operador ternário é executado de forma mais eficiente do que um bloco if/else completo"
+      - "Nunca, porque um bloco if/else é sempre mais legível e o ternário só serve para confundir quem vai ler o código depois"
+      - "Apenas nas situações em que a condição que está sendo avaliada envolve diretamente os valores null ou undefined"
     correct: 0
 ---
 

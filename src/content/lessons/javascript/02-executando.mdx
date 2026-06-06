@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a diferença entre defer e async em uma tag script?"
     options:
-      - "defer é para scripts externos; async é para scripts inline"
-      - "defer é mais rápido que async"
+      - "O defer serve apenas para scripts externos carregados por src, enquanto o async é usado somente em scripts escritos inline no HTML"
+      - "O defer é sempre mais rápido que o async porque baixa o arquivo em menos etapas e o executa imediatamente assim que termina"
       - "defer baixa o script em paralelo e executa após o HTML estar completamente parseado; async baixa em paralelo e executa assim que o download termina, sem garantia de ordem"
-      - "Não há diferença prática entre os dois"
+      - "Não existe diferença prática entre os dois atributos: ambos apenas adiam um pouco a execução do script no carregamento"
     correct: 2
   - question: "Por que scripts colocados no head sem defer ou async bloqueiam a renderização?"
     options:
-      - "Porque o CSS precisa carregar primeiro"
-      - "Porque o navegador espera o DOM estar completo antes de executar qualquer script"
-      - "Porque head não suporta execução de código"
+      - "Porque o navegador precisa carregar e aplicar todo o CSS da página antes de poder executar qualquer arquivo de script"
+      - "Porque o navegador aguarda o DOM inteiro ficar completo e disponível antes de executar qualquer linha de script, e isso só ocorre no fim"
+      - "Porque a seção head do documento não dá suporte à execução de código e por isso empurra o script para depois do parsing"
       - "Porque o parser HTML pausa completamente enquanto o script é baixado e executado — nenhum elemento do body é processado até o script terminar"
     correct: 3
   - question: "O que type='module' em uma tag script habilita?"
     options:
-      - "Compatibilidade com Internet Explorer"
+      - "Habilita um modo de compatibilidade que faz o script antigo funcionar corretamente no Internet Explorer e em navegadores legados"
       - "ES Modules (import/export), escopo de módulo isolado e strict mode ativado automaticamente"
-      - "Execução de código TypeScript diretamente"
-      - "Carregamento de arquivos CSS pelo JavaScript"
+      - "Habilita a execução de código TypeScript diretamente no navegador, sem precisar compilar para JavaScript antes de rodar"
+      - "Habilita o carregamento de arquivos CSS diretamente pelo JavaScript, importando as folhas de estilo como se fossem módulos"
     correct: 1
   - question: "Por que onclick='...' diretamente no HTML deve ser evitado?"
     options:
       - "Porque mistura comportamento com estrutura, dificulta manutenção e não permite registrar múltiplos handlers"
-      - "Porque onclick não funciona em todos os navegadores"
-      - "Porque onclick executa mais lentamente que addEventListener"
-      - "Porque onClick (com maiúscula) é a forma correta"
+      - "Porque o atributo onclick não é suportado de forma consistente por todos os navegadores modernos disponíveis no mercado"
+      - "Porque o onclick escrito no HTML é executado de forma perceptivelmente mais lenta do que registrar o evento via addEventListener"
+      - "Porque a forma escrita corretamente seria onClick, com a letra C maiúscula, como acontece no React e em outros frameworks"
     correct: 0
 ---
 

@@ -9,16 +9,16 @@ hero:
 quiz:
   - question: "Por que prefere-se textContent a innerHTML para exibir dados do usuário?"
     options:
-      - "textContent é mais rápido que innerHTML"
-      - "innerHTML não funciona com strings"
+      - "O textContent é executado de forma perceptivelmente mais rápida pelo navegador do que o innerHTML na maioria dos casos"
+      - "O innerHTML simplesmente não funciona quando o valor que você quer inserir dentro do elemento é uma string de texto comum"
       - "innerHTML interpreta HTML — um dado malicioso pode injetar scripts (XSS). textContent trata tudo como texto puro, sem interpretar HTML"
-      - "textContent aceita mais tipos de dados"
+      - "O textContent aceita uma quantidade maior de tipos de dados diferentes do que o innerHTML consegue receber e exibir na tela"
     correct: 2
   - question: "O que classList.toggle('dark') faz?"
     options:
-      - "Adiciona a classe 'dark' sempre"
-      - "Remove a classe 'dark' sempre"
-      - "Alterna entre 'dark' e 'light'"
+      - "Adiciona a classe 'dark' ao elemento em toda chamada, independentemente de a classe já estar presente nele ou não"
+      - "Remove a classe 'dark' do elemento em toda chamada, mesmo nos casos em que essa classe ainda nem estava aplicada"
+      - "Alterna o elemento entre as classes 'dark' e 'light', trocando uma pela outra a cada vez que o método é chamado"
       - "Adiciona a classe se não existir; remove se existir"
     correct: 3
   - question: "Como você lê o valor de data-artigo-id='5' pelo JavaScript?"
@@ -31,9 +31,9 @@ quiz:
   - question: "Qual é a diferença entre appendChild e prepend?"
     options:
       - "appendChild insere no final do elemento pai; prepend insere no início"
-      - "Não há diferença — são sinônimos"
-      - "appendChild cria o elemento antes de inserir; prepend usa um elemento já existente"
-      - "prepend é mais moderno e substitui appendChild completamente"
+      - "Não existe diferença entre os dois: appendChild e prepend são apenas sinônimos que inserem o elemento no mesmo lugar"
+      - "O appendChild cria um elemento novo antes de inseri-lo, enquanto o prepend reaproveita um elemento que já existe na página"
+      - "O prepend é a versão mais moderna do método e veio para substituir o appendChild por completo nos navegadores atuais"
     correct: 0
 ---
 

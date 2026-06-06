@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a diferença entre acesso por ponto (artigo.titulo) e por colchete (artigo['titulo'])?"
     options:
-      - "Não há diferença — são exatamente equivalentes"
-      - "O acesso por colchete é mais lento"
+      - "Não existe diferença alguma entre as duas formas de acesso: elas são exatamente equivalentes em qualquer situação"
+      - "O acesso por colchete é executado de forma perceptivelmente mais lenta do que o acesso por ponto na maioria dos casos"
       - "O acesso por colchete permite usar chaves dinâmicas (variáveis) e chaves com caracteres especiais; o acesso por ponto só funciona com chaves estáticas e identificadores válidos"
-      - "O acesso por ponto só funciona para strings; colchete para qualquer tipo"
+      - "O acesso por ponto só funciona quando o valor da propriedade é uma string, enquanto o colchete funciona para qualquer tipo"
     correct: 2
   - question: "O que o optional chaining (?.) faz?"
     options:
-      - "Cria uma propriedade opcional no objeto"
-      - "Verifica se a propriedade existe antes de atribuir um valor"
-      - "É uma forma abreviada de Object.assign()"
+      - "Cria uma nova propriedade marcada como opcional dentro do objeto, que pode ou não receber um valor mais adiante"
+      - "Verifica se a propriedade já existe dentro do objeto antes de permitir que um novo valor seja atribuído a ela"
+      - "É uma forma abreviada de escrever Object.assign(), usada para combinar as propriedades de vários objetos em um só"
       - "Retorna undefined em vez de lançar um erro se o objeto à esquerda for null ou undefined"
     correct: 3
   - question: "Por que objetos e arrays em JavaScript são copiados por referência?"
     options:
-      - "Por uma decisão de design que será corrigida em versões futuras"
+      - "Foi uma decisão de design da linguagem que é amplamente considerada um erro e que deve ser corrigida em versões futuras"
       - "Porque objetos e arrays podem ser muito grandes — copiar o valor seria custoso. A variável guarda o endereço de memória, não o conteúdo"
-      - "Porque objetos mutáveis precisam ser compartilhados por padrão"
-      - "Não são — objetos também são copiados por valor como os primitivos"
+      - "Porque objetos que são mutáveis precisam, por padrão, ser compartilhados entre todas as partes do código que os utilizam"
+      - "Na verdade não são copiados por referência: objetos e arrays também são copiados por valor, exatamente como os primitivos"
     correct: 1
   - question: "O que é property shorthand em um objeto literal?"
     options:
       - "Quando a variável tem o mesmo nome da chave, você pode omitir a chave: { titulo } em vez de { titulo: titulo }"
-      - "Um alias para Object.create()"
-      - "Uma propriedade que não aparece na listagem de Object.keys()"
-      - "Uma propriedade definida com get/set"
+      - "É apenas um nome alternativo para o método Object.create(), usado para criar um objeto a partir de outro já existente"
+      - "É uma propriedade especial que, por algum motivo, não aparece quando você lista as chaves do objeto com Object.keys()"
+      - "É uma propriedade definida por meio de funções get e set, que controlam como o seu valor é lido e escrito no objeto"
     correct: 0
 ---
 

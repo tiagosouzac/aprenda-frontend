@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a diferença entre event.target e event.currentTarget?"
     options:
-      - "Não há diferença — são sempre o mesmo elemento"
-      - "event.target é sempre o document; event.currentTarget é o elemento clicado"
+      - "Não existe diferença entre os dois: event.target e event.currentTarget apontam sempre para exatamente o mesmo elemento"
+      - "O event.target é sempre o próprio document da página inteira, enquanto o event.currentTarget é o elemento em que se clicou"
       - "event.target é o elemento que originou o evento (onde o usuário clicou); event.currentTarget é o elemento onde o listener está registrado"
-      - "event.target existe apenas em eventos de teclado; event.currentTarget em eventos de mouse"
+      - "O event.target só existe em eventos disparados pelo teclado, enquanto o event.currentTarget só existe em eventos de mouse"
     correct: 2
   - question: "O que event.preventDefault() faz em um formulário?"
     options:
-      - "Remove o formulário da página"
-      - "Limpa todos os campos do formulário"
-      - "Valida os campos antes de enviar"
+      - "Remove o elemento do formulário inteiro da página assim que o usuário tenta enviá-lo clicando no botão de envio"
+      - "Limpa automaticamente todos os campos já preenchidos do formulário antes que os dados sejam de fato enviados adiante"
+      - "Valida todos os campos preenchidos do formulário antes de permitir que o envio dos dados realmente aconteça no final"
       - "Impede o comportamento padrão do navegador — no caso de formulário, impede o envio da página (reload)"
     correct: 3
   - question: "Por que delegação de eventos é eficiente para listas dinâmicas?"
     options:
-      - "Porque um listener no pai é mais rápido que N listeners nos filhos"
+      - "Porque um único listener registrado no elemento pai é executado de forma mais rápida do que vários listeners nos filhos"
       - "Porque elementos criados dinamicamente não existiam quando os listeners foram registrados — um listener no pai captura eventos de filhos presentes e futuros via bubbling"
-      - "Porque event.target não está disponível em listeners individuais"
-      - "Porque delegação funciona apenas com eventos de clique"
+      - "Porque a propriedade event.target não fica disponível quando os listeners são registrados em cada elemento filho separadamente"
+      - "Porque a delegação de eventos funciona exclusivamente com eventos do tipo clique, e não com nenhum outro tipo de evento"
     correct: 1
   - question: "O que window.addEventListener('scroll', handler) permite fazer?"
     options:
       - "Detectar quando a página é rolada e reagir — como calcular o progresso de leitura"
-      - "Detectar o scroll do mouse sobre qualquer elemento"
-      - "Criar um scroll suave automaticamente"
-      - "Bloquear o scroll do usuário"
+      - "Detectar o movimento de scroll do mouse quando ele passa por cima de qualquer elemento específico da página"
+      - "Criar automaticamente um efeito de rolagem suave na página inteira sempre que o usuário navega entre as seções"
+      - "Bloquear completamente a rolagem do usuário na página, impedindo que ele consiga descer ou subir o conteúdo"
     correct: 0
 ---
 

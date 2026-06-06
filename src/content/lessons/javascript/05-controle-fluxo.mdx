@@ -16,24 +16,24 @@ quiz:
     correct: 2
   - question: "Por que for...of é preferível ao for clássico na maioria dos casos?"
     options:
-      - "for...of é mais rápido"
-      - "for...of funciona com mais tipos de dados"
-      - "for clássico não funciona com arrays modernos"
+      - "O for...of é executado de forma perceptivelmente mais rápida que o for clássico ao percorrer arrays grandes na memória"
+      - "O for...of funciona com uma quantidade bem maior de tipos de dados diferentes do que o laço for clássico consegue"
+      - "O for clássico simplesmente não funciona com os arrays que são criados pela sintaxe moderna do JavaScript atual"
       - "for...of é mais legível — você itera sobre os valores diretamente, sem gerenciar índice, condição de parada e incremento"
     correct: 3
   - question: "O que acontece em um switch sem break em cada case?"
     options:
-      - "O JavaScript gera um erro de sintaxe"
+      - "O JavaScript gera um erro de sintaxe e se recusa a executar o switch enquanto todos os cases não tiverem um break"
       - "Fall-through: a execução continua para o próximo case sem verificar a condição — até encontrar um break ou o fim do switch"
-      - "Apenas o primeiro case é executado"
-      - "O switch ignora os cases sem break automaticamente"
+      - "Apenas o primeiro case que corresponde à condição é executado, e todos os demais são ignorados de forma automática"
+      - "O switch simplesmente pula e ignora todos os cases que não possuem a instrução break declarada dentro deles"
     correct: 1
   - question: "O que é retorno antecipado em uma função e por que é preferível ao aninhamento de if/else?"
     options:
       - "Usar return no início da função para casos inválidos — elimina o aninhamento e deixa o caminho principal do código sem indentação extra"
-      - "Retornar undefined ao invés de um valor"
-      - "Uma técnica para tornar a função mais rápida"
-      - "Retornar o valor antes de todos os cálculos estarem completos"
+      - "É retornar o valor undefined no lugar de um valor real sempre que a função não conseguir calcular um resultado válido"
+      - "É uma técnica criada apenas para tornar a execução da função perceptivelmente mais rápida do que ela seria normalmente"
+      - "É retornar o valor da função antes que todos os cálculos internos dela tenham sido completamente finalizados no corpo"
     correct: 0
 ---
 

@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que JavaScript precisa de código assíncrono?"
     options:
-      - "Para rodar múltiplas threads em paralelo"
-      - "Para compatibilidade com Node.js"
+      - "Para conseguir rodar várias threads de execução em paralelo ao mesmo tempo dentro do navegador do usuário final"
+      - "Apenas por uma questão de compatibilidade com o ambiente Node.js, que exige código assíncrono para conseguir funcionar"
       - "Porque JavaScript é single-threaded — só executa uma coisa por vez. Operações lentas (rede, disco) bloqueariam a UI se fossem síncronas. Assíncrono inicia a operação e continua executando outras coisas"
-      - "Porque a especificação ECMAScript exige"
+      - "Porque a especificação oficial do ECMAScript obriga toda operação de entrada e saída a ser escrita de forma assíncrona"
     correct: 2
   - question: "Quais são os três estados de uma Promise?"
     options:
-      - "ready, running, done"
-      - "loading, success, error"
-      - "open, closed, settled"
+      - "ready (pronta), running (executando) e done (já finalizada com o resultado disponível para uso)"
+      - "loading (carregando), success (concluída com sucesso) e error (terminada com algum tipo de falha)"
+      - "open (aberta), closed (fechada) e settled (encerrada de alguma forma considerada definitiva)"
       - "pending (aguardando), fulfilled (resolvida com valor), rejected (rejeitada com erro)"
     correct: 3
   - question: "O que acontece se uma Promise for rejeitada e não houver .catch()?"
     options:
-      - "O erro é ignorado silenciosamente"
+      - "O erro simplesmente é ignorado pelo JavaScript de forma totalmente silenciosa, sem aparecer em nenhum lugar do sistema"
       - "Um unhandled rejection é gerado — visível no console como erro. Em Node.js, pode encerrar o processo"
-      - "O JavaScript tenta resolver a Promise novamente"
-      - "A Promise fica em estado pending para sempre"
+      - "O JavaScript tenta resolver aquela mesma Promise novamente, repetindo a operação até que ela enfim termine com sucesso"
+      - "A Promise fica presa para sempre no estado pending, sem nunca ser resolvida nem rejeitada de forma definitiva pelo motor"
     correct: 1
   - question: "Qual é a diferença entre Promise.all e Promise.allSettled?"
     options:
       - "Promise.all aguarda todas as Promises e rejeita imediatamente se qualquer uma rejeitar; Promise.allSettled aguarda todas e retorna o resultado de cada uma, independente de sucesso ou erro"
-      - "Promise.all é mais rápido que Promise.allSettled"
-      - "Promise.allSettled só funciona com exatamente duas Promises"
-      - "Não há diferença — são sinônimos"
+      - "O Promise.all é executado de forma perceptivelmente mais rápida que o Promise.allSettled na maioria das situações reais"
+      - "O Promise.allSettled só funciona quando você passa para ele exatamente duas Promises, nem mais nem menos do que isso"
+      - "Não existe diferença entre os dois: Promise.all e Promise.allSettled são apenas sinônimos com nomes distintos para o mesmo método"
     correct: 0
 ---
 

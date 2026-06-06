@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a diferença entre any e unknown?"
     options:
-      - "Não há diferença — são sinônimos"
-      - "any é para objetos; unknown é para primitivos"
-      - "unknown é depreciado em favor de any"
+      - "Não existe diferença entre any e unknown: os dois são apenas sinônimos que desativam por completo a verificação de tipos"
+      - "O tipo any é usado para representar objetos, enquanto o tipo unknown é usado para representar apenas valores primitivos"
+      - "O tipo unknown está depreciado e a recomendação atual é substituí-lo pelo tipo any em todo o código novo do projeto"
       - "any desativa toda a verificação de tipo; unknown também aceita qualquer valor mas exige verificação antes de usar — é a alternativa segura ao any"
     correct: 3
   - question: "Por que enums são geralmente evitados em TypeScript moderno?"
     options:
-      - "Porque enums não funcionam com strict mode"
+      - "Porque os enums simplesmente não funcionam quando o projeto está com o strict mode do TypeScript ativado no tsconfig"
       - "Porque enums compilam para um objeto JavaScript no output — aumentam o bundle. A alternativa com as const tem zero custo em runtime"
-      - "Porque enums não podem ser usados em interfaces"
-      - "Porque enums foram removidos no TypeScript 5"
+      - "Porque os enums não podem ser usados como tipo de uma propriedade declarada dentro de uma interface no TypeScript"
+      - "Porque os enums acabaram sendo completamente removidos da linguagem a partir da versão 5 do TypeScript moderno"
     correct: 1
   - question: "O que é uma tupla em TypeScript?"
     options:
       - "Um array com comprimento fixo e tipos definidos por posição — [string, number] significa exatamente um string na posição 0 e um number na posição 1"
-      - "Um array de objetos"
-      - "Um tipo sinônimo de Record"
-      - "Uma versão imutável de Array"
+      - "É um array criado para armazenar exclusivamente objetos, em vez de valores primitivos soltos como números ou strings"
+      - "É apenas um nome alternativo (sinônimo) para o tipo utilitário Record do TypeScript, com exatamente a mesma finalidade"
+      - "É uma versão imutável de um Array comum, que impede qualquer alteração nos seus itens depois que ela é criada na memória"
     correct: 0
   - question: "Quando usar never como tipo de retorno?"
     options:
-      - "Quando a função retorna undefined"
-      - "Quando a função retorna null"
+      - "Quando a função retorna o valor undefined ao final da sua execução, em vez de devolver um valor concreto e realmente útil"
+      - "Quando a função retorna explicitamente o valor null como resultado padrão toda vez que termina a sua execução normal"
       - "Quando a função nunca retorna — porque sempre lança um erro ou entra em loop infinito"
-      - "Quando a função é assíncrona"
+      - "Quando a função é assíncrona e devolve uma Promise, já que o resultado só fica disponível em algum momento futuro do código"
     correct: 2
 ---
 

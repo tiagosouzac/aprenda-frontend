@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a diferença entre Partial<T> e Pick<T, K>?"
     options:
-      - "São equivalentes"
-      - "Partial é para interfaces; Pick é para types"
-      - "Pick remove propriedades; Partial as torna readonly"
+      - "São equivalentes na prática: Partial<T> e Pick<T, K> acabam produzindo exatamente o mesmo tipo final em qualquer situação"
+      - "O Partial é um utilitário que só pode ser aplicado a interfaces, enquanto o Pick só pode ser aplicado a type aliases puros"
+      - "O Pick remove do tipo as propriedades indicadas, enquanto o Partial apenas transforma todas as propriedades dele em readonly"
       - "Partial<T> mantém todas as propriedades de T mas as torna opcionais; Pick<T, K> seleciona apenas as propriedades K de T (que permanecem com seus modificadores originais)"
     correct: 3
   - question: "Quando usar Record<K, V>?"
     options:
-      - "Para substituir arrays"
+      - "Você deve usar o Record sempre que quiser substituir um array por uma estrutura de dados um pouco mais organizada no código"
       - "Quando você precisa de um objeto/mapa onde as chaves são de um tipo K e os valores são de um tipo V — especialmente útil quando K é uma union de literais"
-      - "Para criar objetos aninhados"
-      - "Record é uma forma mais verbosa de escrever { [key: string]: V }"
+      - "Você deve usar o Record principalmente quando precisa criar objetos aninhados, com vários níveis de propriedades um dentro do outro"
+      - "O Record é apenas uma forma bem mais verbosa e desnecessária de escrever a assinatura de índice { [key: string]: V } de um objeto"
     correct: 1
   - question: "O que Awaited<Promise<Artigo[]>> resulta?"
     options:
       - "Artigo[] — Awaited extrai o tipo do valor resolvido de uma Promise"
-      - "Promise<Artigo[]>"
-      - "Artigo"
-      - "never"
+      - "Resulta em Promise<Artigo[]> — o Awaited apenas confirma o tipo da própria Promise, sem extrair o valor que está dentro dela"
+      - "Resulta apenas em Artigo, no singular — o Awaited extrai o valor da Promise e ainda desempacota o array para um único item"
+      - "Resulta no tipo never, porque o Awaited não consegue desempacotar uma Promise que contém um array de objetos por dentro"
     correct: 0
   - question: "Por que Omit<Artigo, 'id' | 'slug'> é útil para formulários de criação?"
     options:
-      - "Porque formulários não suportam id"
-      - "Porque Omit remove propriedades readonly"
+      - "Porque os formulários, de forma geral, não dão suporte a campos que sejam do tipo id dentro de qualquer aplicação web"
+      - "Porque o utilitário Omit também serve para remover automaticamente todas as propriedades que estiverem marcadas como readonly"
       - "Porque ao criar um artigo novo, o servidor gera o id e o slug — o formulário não deve incluir essas propriedades, e Omit cria o tipo correto sem duplicar a interface"
-      - "Porque Omit é obrigatório para formulários em TypeScript"
+      - "Porque o uso do Omit passou a ser obrigatório sempre que você precisa tipar qualquer formulário de criação dentro do TypeScript"
     correct: 2
 ---
 

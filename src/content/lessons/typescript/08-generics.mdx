@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que generics existem?"
     options:
-      - "Para substituir interfaces"
-      - "Para criar tipos dinâmicos em runtime"
-      - "Para substituir unions"
+      - "Os generics existem principalmente para servir como uma alternativa mais moderna às interfaces na hora de descrever objetos"
+      - "Os generics existem para permitir a criação de tipos totalmente dinâmicos, que são montados em tempo de execução do código"
+      - "Os generics existem como uma forma de substituir as uniões de tipos (A | B) em situações um pouco mais complexas do projeto"
       - "Para escrever código que funciona para qualquer tipo sem perder a informação de tipo — sem generics, você escolheria entre duplicar código ou usar any (que perde a tipagem)"
     correct: 3
   - question: "O que T extends { id: number } significa em uma restrição?"
     options:
-      - "T deve ser exatamente o tipo { id: number }"
+      - "Significa que o T precisa ser exatamente igual ao tipo { id: number }, sem nenhuma propriedade a mais nem a menos do que isso"
       - "T deve ter pelo menos a propriedade id do tipo number — T pode ter outras propriedades além de id"
-      - "T não pode ter outras propriedades além de id"
-      - "T deve ser um subtipo de number"
+      - "Significa que o T não pode, em hipótese alguma, ter qualquer outra propriedade além da propriedade id que já foi declarada nele"
+      - "Significa que o tipo T precisa ser um subtipo do tipo number, ou seja, algum tipo numérico mais específico do que o próprio number"
     correct: 1
   - question: "Quando TypeScript infere o parâmetro de tipo automaticamente?"
     options:
       - "Quando o parâmetro de tipo pode ser deduzido dos argumentos passados — primeiro<string>(['a', 'b']) pode ser escrito como primeiro(['a', 'b']) porque o array é string[]"
-      - "Nunca — sempre precisa ser passado explicitamente"
-      - "Apenas em funções arrow"
-      - "Apenas quando há um único parâmetro de tipo"
+      - "O TypeScript nunca infere o parâmetro de tipo sozinho: ele sempre precisa ser informado explicitamente entre os sinais de < e >"
+      - "O TypeScript só consegue inferir o parâmetro de tipo de forma automática quando a função é escrita na forma de uma arrow function"
+      - "O TypeScript só infere o parâmetro de tipo automaticamente quando a função declara apenas um único parâmetro de tipo genérico"
     correct: 0
   - question: "Qual é a diferença entre uma função genérica e uma função que aceita any?"
     options:
-      - "Não há diferença prática"
-      - "any é mais rápido em runtime"
+      - "Não existe diferença prática entre as duas: uma função genérica e uma função que aceita any acabam se comportando exatamente igual"
+      - "A função que usa any é executada de forma perceptivelmente mais rápida em tempo de execução do que a função genérica equivalente"
       - "Com any, você perde a informação de tipo — a função aceita tudo e retorna any. Com generic, o tipo é preservado — se você passa string[], o retorno também é tipado como string (ou outro tipo derivado)"
-      - "Funções genéricas só funcionam com arrays"
+      - "As funções genéricas só conseguem funcionar quando o argumento que é passado para elas é especificamente um array de itens"
     correct: 2
 ---
 

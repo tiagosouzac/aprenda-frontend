@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que strict: true é a primeira configuração a ativar em um projeto novo?"
     options:
-      - "Porque acelera a compilação"
-      - "Porque é obrigatório para usar generics"
-      - "Porque é necessário para usar interfaces"
+      - "Porque ligar essa opção faz a compilação do projeto inteiro acontecer de forma perceptivelmente mais rápida no final das contas"
+      - "Porque a opção strict: true é um pré-requisito obrigatório para que você consiga utilizar generics no seu código TypeScript"
+      - "Porque a opção strict: true é necessária para que você consiga declarar e depois utilizar interfaces dentro do seu projeto TS"
       - "Porque habilita strictNullChecks e noImplicitAny — sem elas, null e undefined passam sem verificação e parâmetros sem tipo ficam any silenciosamente. Com strict, o compilador detecta exatamente os erros que TypeScript promete detectar"
     correct: 3
   - question: "Qual é a relação entre interface Artigo e as funções que recebem Artigo como parâmetro?"
     options:
-      - "Funções que recebem Artigo precisam ser declaradas dentro da interface"
+      - "As funções que recebem um Artigo precisam, obrigatoriamente, ser declaradas dentro do corpo da própria interface Artigo no código"
       - "A interface descreve a forma do dado — o compilador verifica que qualquer valor passado para um parâmetro do tipo Artigo satisfaz essa forma. Mudar a interface propaga o erro para todos os chamadores automaticamente"
-      - "Funções e interfaces são independentes — não há relação"
-      - "A interface precisa ser importada na mesma linha da função"
+      - "As funções e as interfaces são coisas totalmente independentes no TypeScript, então não existe nenhuma relação entre as duas"
+      - "A interface Artigo precisa ser importada exatamente na mesma linha em que a função que a utiliza como parâmetro está declarada"
     correct: 1
   - question: "Quando você deve usar unknown em vez de any?"
     options:
       - "Sempre que você precisar aceitar qualquer valor mas ainda quiser proteção — unknown exige narrowing ou cast antes de usar, enquanto any desabilita toda verificação"
-      - "unknown é uma versão mais lenta de any"
-      - "unknown é apenas para erros no catch"
-      - "any e unknown são equivalentes com strict: true"
+      - "Você deve usar unknown porque ele é simplesmente uma versão mais lenta e um pouco mais segura do tipo any dentro da linguagem"
+      - "Você deve usar unknown apenas para tipar o parâmetro de erro que é capturado dentro de um bloco catch, e em mais nenhum outro caso"
+      - "Os tipos any e unknown se tornam totalmente equivalentes entre si quando a opção strict: true está ativada no arquivo tsconfig"
     correct: 0
   - question: "O que significa 'anote nas bordas, infira no meio'?"
     options:
-      - "Anotar tipos nas primeiras e últimas linhas de cada arquivo"
-      - "Anotar apenas em interfaces, nunca em funções"
+      - "Significa anotar os tipos apenas nas primeiras e nas últimas linhas de cada arquivo de código do projeto, e nunca no meio dele"
+      - "Significa anotar tipos somente dentro das interfaces que você declara, e nunca anotar os tipos diretamente nas funções do projeto"
       - "Anotar nos pontos onde dados entram ou saem de um módulo (parâmetros de funções exportadas, interfaces de domínio) e deixar TypeScript inferir internamente (variáveis temporárias, callbacks, resultados intermediários)"
-      - "Anotar apenas parâmetros, nunca retornos"
+      - "Significa anotar apenas os parâmetros que as funções recebem, e nunca anotar o tipo de retorno de nenhuma dessas funções"
     correct: 2
 ---
 

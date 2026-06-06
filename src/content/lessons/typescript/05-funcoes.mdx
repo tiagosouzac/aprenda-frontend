@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a diferença entre um parâmetro opcional (x?: string) e um com valor padrão (x: string = 'padrão')?"
     options:
-      - "Não há diferença prática — são equivalentes"
-      - "Parâmetro opcional é para strings; valor padrão é para numbers"
-      - "Parâmetro com valor padrão não pode ser omitido na chamada"
+      - "Não existe diferença prática entre os dois: um parâmetro opcional e um com valor padrão funcionam exatamente da mesma maneira"
+      - "O parâmetro opcional serve apenas para valores do tipo string, enquanto o parâmetro com valor padrão serve só para numbers"
+      - "O parâmetro que tem um valor padrão definido não pode, de forma alguma, ser omitido no momento em que a função é chamada"
       - "x?: string tem tipo string | undefined e pode ser omitido; x: string = 'padrão' também pode ser omitido, mas dentro da função sempre terá tipo string (o padrão é usado quando omitido)"
     correct: 3
   - question: "O que é um tipo de função em TypeScript?"
     options:
-      - "O tipo de retorno de uma função"
+      - "É simplesmente o tipo do valor que uma função devolve quando termina de executar, ou seja, o seu tipo de retorno final"
       - "Uma descrição do formato de uma função — seus parâmetros e tipo de retorno. Usado para tipar variáveis que guardam funções ou parâmetros que recebem funções"
-      - "Uma função que recebe tipos como argumento"
-      - "Uma função definida com type em vez de function"
+      - "É uma função especial que recebe outros tipos como argumento e devolve um novo tipo a partir deles em tempo de compilação"
+      - "É uma função que foi declarada usando a palavra-chave type no lugar da palavra-chave function tradicional do JavaScript"
     correct: 1
   - question: "Quando o retorno de uma função é never em vez de void?"
     options:
       - "Quando a função NUNCA completa — sempre lança um erro ou entra em loop infinito. void é para funções que retornam undefined; never é para funções que não retornam de forma alguma"
-      - "Quando a função não retorna um valor útil"
-      - "Quando a função retorna null"
-      - "never e void são intercambiáveis"
+      - "Quando a função simplesmente não devolve nenhum valor que seja de fato útil para quem a chamou no restante do código"
+      - "Quando a função retorna explicitamente o valor null como resultado padrão sempre que chega ao fim da sua execução normal"
+      - "Os tipos never e void são totalmente intercambiáveis, então tanto faz qual dos dois você usa como retorno da função"
     correct: 0
   - question: "Por que desestruturar os parâmetros de uma função e anotar com uma interface é preferível a listar cada parâmetro individualmente?"
     options:
-      - "Porque interfaces compilam mais rápido"
-      - "Porque TypeScript não suporta mais de 4 parâmetros"
+      - "Porque as interfaces são compiladas pelo TypeScript de forma perceptivelmente mais rápida do que listar cada parâmetro um a um"
+      - "Porque o TypeScript impõe um limite e não dá suporte a funções que recebem mais de quatro parâmetros declarados separadamente"
       - "Porque quando a função recebe muitos campos de um mesmo objeto, a desestruturação com interface é mais legível e reutilizável — a interface descreve a forma uma vez e pode ser usada em outros lugares"
-      - "Porque desestruturação é obrigatória com strict mode"
+      - "Porque a desestruturação dos parâmetros passou a ser obrigatória em qualquer função quando o strict mode está ativado no projeto"
     correct: 2
 ---
 

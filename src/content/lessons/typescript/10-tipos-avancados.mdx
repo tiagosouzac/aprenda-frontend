@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "O que um mapped type faz?"
     options:
-      - "Transforma cada item de um array"
-      - "Mapeia strings para números"
-      - "Cria um Record automaticamente"
+      - "Um mapped type transforma cada um dos itens presentes dentro de um array, aplicando a mesma operação a todos os elementos dele"
+      - "Um mapped type serve para mapear valores do tipo string para valores numéricos, criando uma espécie de tabela de conversão"
+      - "Um mapped type cria automaticamente um tipo Record a partir de um conjunto de chaves informadas no momento da sua declaração"
       - "Itera sobre as chaves de um tipo e cria um novo tipo transformando cada propriedade — é como map() para tipos, não para valores"
     correct: 3
   - question: "Quando um conditional type T extends U ? X : Y é avaliado?"
     options:
-      - "Em runtime, quando o código executa"
+      - "É avaliado em tempo de execução, no momento exato em que o código realmente roda e os valores ficam disponíveis na memória"
       - "Em tempo de compilação — o compilador verifica se T é compatível com U e escolhe X ou Y. O resultado é um tipo, não um valor"
-      - "Apenas quando T é uma union"
-      - "Conditional types nunca são avaliados automaticamente"
+      - "Um conditional type só é avaliado pelo compilador quando o tipo T informado nele é, especificamente, uma união de tipos"
+      - "Os conditional types nunca são avaliados de forma automática: é preciso forçar a avaliação manualmente em algum ponto do código"
     correct: 1
   - question: "O que `type Evento = `on${string}`` representa?"
     options:
       - "Qualquer string que comece com 'on' — como 'onClick', 'onSubmit', 'onChange'. Template literal types criam padrões de string no sistema de tipos"
-      - "A string literal 'onstring'"
-      - "Uma concatenação de strings em runtime"
-      - "Um tipo de array"
+      - "Representa exatamente a string literal 'onstring', com essas oito letras todas juntas, e não um padrão genérico de strings possíveis"
+      - "Representa uma operação de concatenação de strings que acontece em tempo de execução, juntando o texto 'on' com outro texto"
+      - "Representa um tipo de array cujos elementos são strings que precisam obrigatoriamente começar com o prefixo 'on' no início"
     correct: 0
   - question: "Quando faz sentido usar tipos avançados (mapped, conditional, template literal)?"
     options:
-      - "Sempre que possível — mais tipos é melhor"
-      - "Apenas em projetos grandes"
+      - "Sempre que for possível usar, porque ter mais tipos avançados no projeto é sempre melhor do que recorrer a tipos mais simples"
+      - "Faz sentido usar tipos avançados apenas quando o projeto em questão já é considerado grande o suficiente em quantidade de código"
       - "Quando você está construindo bibliotecas ou utilitários reutilizáveis — para código de aplicação, interfaces e unions normalmente são suficientes e mais legíveis"
-      - "Apenas quando strict: true está ativado"
+      - "Faz sentido usar tipos avançados apenas nos projetos em que a opção strict: true está ativada dentro do arquivo tsconfig.json"
     correct: 2
 ---
 

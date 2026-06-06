@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "O que strict: true no tsconfig.json habilita?"
     options:
-      - "Apenas strictNullChecks"
-      - "Apenas noImplicitAny"
-      - "Verificações de performance em runtime"
+      - "Habilita apenas a verificação strictNullChecks, deixando as demais checagens rigorosas desligadas por padrão no projeto"
+      - "Habilita apenas a verificação noImplicitAny, sem ativar nenhuma das outras checagens mais rígidas do compilador do TS"
+      - "Habilita um conjunto de verificações de performance que rodam em tempo de execução para encontrar gargalos no código"
       - "Um conjunto de verificações rigorosas incluindo strictNullChecks, noImplicitAny e outras — é o modo recomendado para projetos novos"
     correct: 3
   - question: "Por que noEmitOnError é recomendado?"
     options:
-      - "Para compilar mais rápido"
+      - "É recomendado principalmente porque faz o compilador TypeScript terminar a compilação do projeto de forma bem mais rápida"
       - "Para evitar que o compilador gere arquivos JavaScript quando há erros de tipo — evita implantar código com bugs conhecidos"
-      - "Para compatibilidade com Node.js"
-      - "Para reduzir o tamanho dos arquivos gerados"
+      - "É recomendado apenas por uma questão de compatibilidade com o ambiente Node.js, que exige essa opção ligada para funcionar"
+      - "É recomendado porque reduz de forma bastante significativa o tamanho dos arquivos JavaScript que o compilador acaba gerando"
     correct: 1
   - question: "Qual é a diferença entre target e module no tsconfig.json?"
     options:
       - "target define para qual versão de JavaScript o código TypeScript é compilado; module define qual sistema de módulos é usado (CommonJS, ESM)"
-      - "São sinônimos — qualquer um pode ser usado"
-      - "target é para o navegador; module é para Node.js"
-      - "target afeta os tipos; module afeta a sintaxe"
+      - "Não existe diferença entre target e module: qualquer um dos dois pode ser usado para a mesma finalidade dentro do tsconfig"
+      - "O target é a opção usada para o navegador, enquanto o module é a opção usada especificamente para projetos rodando em Node.js"
+      - "O target afeta apenas os tipos do projeto, enquanto o module afeta apenas a sintaxe que é aceita pelo compilador do TypeScript"
     correct: 0
   - question: "Por que usar tsc --noEmit no lugar de tsc para verificar tipos?"
     options:
-      - "tsc --noEmit é mais rápido"
-      - "tsc --noEmit é a única forma de compilar TypeScript"
+      - "O comando tsc --noEmit é executado de forma perceptivelmente mais rápida do que o comando tsc completo na maioria dos casos"
+      - "O comando tsc --noEmit é, na verdade, a única forma possível de compilar código TypeScript para JavaScript em um projeto real"
       - "tsc --noEmit verifica tipos sem gerar arquivos JavaScript — útil em CI ou quando um bundler (Vite, esbuild) já cuida da transpilação"
-      - "tsc --noEmit funciona sem tsconfig.json"
+      - "O comando tsc --noEmit é capaz de funcionar normalmente mesmo sem nenhum arquivo tsconfig.json presente na raiz do projeto"
     correct: 2
 ---
 

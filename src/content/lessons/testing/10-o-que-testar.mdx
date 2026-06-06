@@ -9,30 +9,30 @@ hero:
 quiz:
   - question: "O que significa testar comportamento em vez de implementação?"
     options:
-      - "Testar apenas a UI visível, não o JavaScript interno"
+      - "Significa testar apenas a interface visível da aplicação na tela, sem nunca chegar a testar o código JavaScript que roda por dentro dela"
       - "Verificar o que o sistema faz do ponto de vista do usuário ou do chamador — 'clicar curtir incrementa o contador' — não como ele faz internamente — 'useState foi chamado com o valor correto'. Se a implementação muda mas o comportamento é o mesmo, o teste não deve quebrar"
-      - "Usar apenas testes E2E, que testam o comportamento real"
-      - "Não testar funções internas, apenas APIs públicas"
+      - "Significa usar exclusivamente testes do tipo E2E na suíte, já que somente eles conseguem de fato verificar o comportamento real do sistema"
+      - "Significa nunca testar nenhuma função interna do código, e passar a testar exclusivamente as APIs que são públicas e ficam expostas para fora"
     correct: 1
   - question: "Qual é o sinal mais claro de um teste frágil?"
     options:
       - "Renomear uma variável de estado, extrair uma função auxiliar ou mover um componente para outra pasta quebra o teste — mesmo que o comportamento público seja idêntico. O teste está testando a estrutura do código, não o comportamento"
-      - "O teste leva mais de 1 segundo para rodar"
-      - "O teste usa async/await"
-      - "O teste tem mais de 10 linhas"
+      - "O sinal mais claro de um teste frágil é quando ele acaba levando mais de um segundo inteiro para conseguir terminar de rodar dentro da suíte"
+      - "O sinal mais claro de um teste frágil é o simples fato de ele utilizar async e await em algum ponto do seu próprio corpo durante a execução"
+      - "O sinal mais claro de um teste frágil é quando ele acaba ficando com mais de dez linhas de código escritas dentro do seu próprio bloco de teste"
     correct: 0
   - question: "Por que 100% de cobertura de código não garante que o software funciona corretamente?"
     options:
-      - "Porque ferramentas de cobertura têm bugs"
-      - "Porque cobertura só funciona com testes unitários"
+      - "Porque as ferramentas que medem a cobertura de código costumam ter bugs internos que acabam reportando números errados de cobertura no final"
+      - "Porque a métrica de cobertura de código só consegue funcionar de forma correta quando o projeto usa exclusivamente testes do tipo unitário"
       - "Cobertura mede quais linhas foram executadas — não quantos cenários foram verificados. Uma linha pode ser executada por um teste que não verifica seu resultado. Você pode ter 100% de cobertura com testes que não fazem nenhuma asserção real"
-      - "Porque 100% é impossível na prática"
+      - "Porque atingir cem por cento de cobertura de código é, na prática, algo totalmente impossível de se alcançar dentro de qualquer projeto real"
     correct: 2
   - question: "O que NÃO precisa de teste automatizado?"
     options:
-      - "Funções que formatam dados"
-      - "Componentes React com estado"
-      - "Fluxos de formulário"
+      - "As funções que servem apenas para formatar dados não precisam de nenhum teste automatizado, já que o comportamento delas é sempre simples"
+      - "Os componentes React que possuem algum tipo de estado interno não precisam de nenhum teste automatizado, porque o próprio React já os gerencia"
+      - "Os fluxos de formulário da aplicação, com todos os seus campos e validações, não precisam de nenhum teste automatizado por serem repetitivos"
       - "Configuração de bibliotecas (como o setup do Vitest), código gerado automaticamente, tipos TypeScript puros (sem lógica), e código tão simples que o teste seria mais complexo que o código testado"
     correct: 3
 ---

@@ -9,30 +9,30 @@ hero:
 quiz:
   - question: "O que representa cada etapa do padrão Arrange/Act/Assert?"
     options:
-      - "Arrange: escrever o teste. Act: rodar o teste. Assert: ler o resultado"
+      - "Arrange é a etapa de escrever o teste, Act é a etapa de rodar o teste no terminal e Assert é a etapa de ler o resultado final dele"
       - "Arrange: preparar o cenário e os dados necessários. Act: executar a ação testada (chamar a função, simular o clique). Assert: verificar que o resultado é o esperado"
-      - "Arrange: importar módulos. Act: chamar funções. Assert: usar expect"
-      - "São três arquivos separados em um projeto de testes"
+      - "Arrange é a etapa de importar os módulos necessários, Act é a etapa de chamar as funções e Assert é a etapa de usar o expect no final"
+      - "São, na verdade, três arquivos separados que ficam organizados dentro de um mesmo projeto de testes automatizados, em pastas distintas"
     correct: 1
   - question: "Por que o nome do teste importa?"
     options:
       - "Um bom nome documenta o comportamento esperado — quando o teste falha, você sabe imediatamente o que o sistema deveria fazer. 'test formatarData' não diz nada; 'retorna há 5 minutos para data de 5 minutos atrás' diz tudo"
-      - "Nomes longos tornam os testes mais lentos"
-      - "O nome é apenas para organização visual no terminal"
-      - "Nomes não importam — o que importa é o expect"
+      - "Porque nomes de teste mais longos acabam deixando a execução de toda a suíte de testes do projeto perceptivelmente mais lenta no final"
+      - "Porque o nome do teste serve apenas como uma forma de organização visual dos testes dentro da saída que é exibida no terminal ao rodar"
+      - "Na verdade o nome do teste não tem nenhuma importância real: o que de fato importa em um teste é apenas o expect que está escrito nele"
     correct: 0
   - question: "Para que serve o beforeEach?"
     options:
-      - "Para executar testes em paralelo"
-      - "Para importar dependências apenas quando necessário"
+      - "Serve para conseguir executar todos os testes daquele arquivo em paralelo entre si, o que acelera bastante a rodada completa da suíte"
+      - "Serve para importar as dependências usadas no teste apenas quando elas forem realmente necessárias, economizando memória do processo"
       - "Para executar código antes de cada teste no describe — ideal para limpar estado compartilhado (localStorage, mocks) e preparar dados comuns, garantindo que cada teste começa em um estado limpo e previsível"
-      - "Para ordenar a execução dos testes"
+      - "Serve para definir e controlar a ordem exata em que cada um dos testes daquele bloco describe vai acabar sendo executado pelo runner"
     correct: 2
   - question: "Quais são os três tipos de caso que uma boa suite de testes deve cobrir?"
     options:
-      - "Rápidos, médios e lentos"
-      - "Unitários, de integração e E2E"
-      - "Síncronos, assíncronos e de componente"
+      - "Os três tipos de caso são os testes considerados rápidos, os testes de velocidade média e os testes lentos dentro de uma suíte"
+      - "Os três tipos de caso que se deve cobrir são os testes unitários, os testes de integração e os testes de ponta a ponta (E2E)"
+      - "Os três tipos de caso são os testes síncronos, os testes assíncronos e os testes que verificam um componente isolado da interface"
       - "Caso feliz (happy path) com entrada válida, casos limite (edge cases — vazio, zero, máximo) e caso de erro com entrada inválida ou estado inesperado"
     correct: 3
 ---

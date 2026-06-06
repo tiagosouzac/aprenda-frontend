@@ -9,30 +9,30 @@ hero:
 quiz:
   - question: "Qual é a filosofia central da Testing Library?"
     options:
-      - "Testar a implementação interna dos componentes para garantir que o estado correto é usado"
+      - "A filosofia é testar a implementação interna de cada componente, para garantir que o estado correto está sendo usado por dentro dele"
       - "Testar como o usuário usa a interface — queries baseadas em papel (role), texto visível e labels de acessibilidade, não em detalhes de implementação como nomes de variáveis ou classes CSS internas"
-      - "Testar todos os hooks e estados do componente individualmente"
-      - "Garantir 100% de cobertura de cada componente"
+      - "A filosofia é testar todos os hooks e todos os estados de cada componente de forma individual e isolada, um de cada vez separadamente"
+      - "A filosofia central da biblioteca é garantir que o projeto atinja sempre cem por cento de cobertura de cada componente que for testado"
     correct: 1
   - question: "Por que getByRole é preferível a getByTestId?"
     options:
       - "getByRole encontra elementos pelo seu papel de acessibilidade (button, heading, textbox) — a mesma forma que leitores de tela e o usuário interagem. getByTestId depende de atributos data-testid adicionados apenas para testes, que não refletem a experiência real do usuário"
-      - "getByRole é mais rápido de executar"
-      - "getByTestId não funciona com Vitest"
-      - "getByRole funciona com TypeScript; getByTestId não"
+      - "O getByRole é executado de forma perceptivelmente mais rápida do que o getByTestId durante toda a rodada completa dos testes do projeto"
+      - "O getByTestId, por algum motivo de compatibilidade, simplesmente não consegue mais funcionar quando é executado dentro do Vitest moderno"
+      - "O getByRole funciona normalmente em projetos com TypeScript, enquanto o getByTestId não oferece nenhum suporte ao uso de TypeScript no código"
     correct: 0
   - question: "Qual a diferença entre getBy*, queryBy* e findBy*?"
     options:
-      - "Apenas diferenças de performance"
-      - "findBy* é mais preciso; getBy* é mais rápido"
+      - "Existem apenas diferenças de performance entre os três: cada um deles é otimizado para um tipo diferente de consulta na árvore do DOM"
+      - "O findBy* é considerado o mais preciso na hora de encontrar elementos, enquanto o getBy* é apenas perceptivelmente mais rápido de executar"
       - "getBy* lança erro se não encontrar — para assertivas de presença. queryBy* retorna null se não encontrar — para assertivas de ausência. findBy* é assíncrono — aguarda o elemento aparecer, ideal para conteúdo que chega após fetch ou state update"
-      - "queryBy* só funciona com texto; getBy* funciona com qualquer seletor"
+      - "O queryBy* só consegue funcionar quando você busca por um texto visível, enquanto o getBy* funciona com qualquer outro tipo de seletor possível"
     correct: 2
   - question: "Por que usar userEvent.setup() em vez de fireEvent para simular interações?"
     options:
-      - "userEvent é mais rápido que fireEvent"
-      - "fireEvent não funciona com React 18"
-      - "userEvent.setup() funciona com async/await; fireEvent não"
+      - "Porque o userEvent é executado de forma perceptivelmente mais rápida do que o fireEvent durante toda a rodada completa dos testes do projeto"
+      - "Porque o fireEvent, por algum motivo de compatibilidade, simplesmente não consegue mais funcionar de forma correta a partir da versão 18 do React"
+      - "Porque apenas o userEvent.setup() consegue funcionar em conjunto com async/await, enquanto o fireEvent não oferece nenhum suporte a isso no código"
       - "userEvent.setup() simula a sequência completa de eventos do usuário (hover, focus, keydown, keyup, click) — mais próximo do comportamento real do browser. fireEvent dispara apenas um evento DOM sintético, podendo passar por casos que um usuário real ativaria"
     correct: 3
 ---

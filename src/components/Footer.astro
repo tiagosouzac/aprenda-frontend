@@ -12,10 +12,12 @@ const moduleLinks: FooterLink[] = modules.map((m) => ({
   href: `/${m.slug}`,
 }));
 
+const repoUrl = "https://github.com/tiagosouzac/learn-frontend";
+
 const projectLinks: FooterLink[] = [
-  { label: "GitHub", href: "https://github.com", external: true },
-  { label: "Feedback", href: "https://github.com", external: true },
-  { label: "Changelog", href: "https://github.com", external: true },
+  { label: "GitHub", href: repoUrl, external: true },
+  { label: "Feedback", href: `${repoUrl}/issues`, external: true },
+  { label: "Commits", href: `${repoUrl}/commits/main`, external: true },
 ];
 ---
 
@@ -93,7 +95,7 @@ const projectLinks: FooterLink[] = [
       </div>
       <div class="flex items-center gap-4 text-white/55">
         <a
-          href="https://github.com"
+          href={repoUrl}
           target="_blank"
           rel="noopener"
           aria-label="GitHub"

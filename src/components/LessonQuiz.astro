@@ -101,7 +101,7 @@ const { questions, lessonHref } = Astro.props;
     </div>
 
     <!-- Outcome host: filled by script via templates -->
-    <div data-quiz-outcome></div>
+    <div data-quiz-outcome role="status" aria-live="polite" tabindex="-1" class="outline-none"></div>
 
     <!-- Success template -->
     <template data-quiz-success-template>
@@ -243,13 +243,22 @@ const { questions, lessonHref } = Astro.props;
   }
 
   function getCompleted(): Set<string> {
-    return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]"));
+    try {
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
+      return new Set(Array.isArray(raw) ? raw : []);
+    } catch {
+      return new Set();
+    }
   }
 
   function markComplete(href: string) {
     const s = getCompleted();
     s.add(href);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(s)));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(s)));
+    } catch {
+      // storage unavailable (private mode / quota) — progress just won't persist
+    }
     document.dispatchEvent(new CustomEvent("progress-update"));
   }
 
@@ -370,7 +379,7 @@ const { questions, lessonHref } = Astro.props;
       render();
     }
 
-    function showOutcome(kind: Outcome) {
+    function showOutcome(kind: Outcome, focusResult = false) {
       activePhase.classList.add("hidden");
       outcomeEl.replaceChildren();
 
@@ -422,26 +431,21 @@ const { questions, lessonHref } = Astro.props;
         node.querySelector<HTMLButtonElement>("[data-quiz-redo]")?.addEventListener("click", reset);
         outcomeEl.appendChild(node);
       }
+
+      if (focusResult) outcomeEl.focus();
     }
 
     function submit() {
       const allOk = steps.every((s) => s.options[s.selected ?? -1]?.isCorrect === true);
       if (allOk) {
         markComplete(lessonHref);
-        showOutcome("success");
+        showOutcome("success", true);
       } else {
-        showOutcome("error");
+        showOutcome("error", true);
       }
     }
 
-    // Wire option clicks once (they don't change after shuffle)
-    originalSteps.forEach((step, _stepIdx) => {
-      step.options.forEach((_opt, _optIdx) => {
-        // Capture per-element click; we resolve indexes against current state at click time
-      });
-    });
-
-    // Use delegation so we don't re-bind after shuffle
+    // Use event delegation so clicks keep working after a reshuffle
     stepsEl.addEventListener("click", (e) => {
       const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-quiz-option]");
       if (!btn) return;

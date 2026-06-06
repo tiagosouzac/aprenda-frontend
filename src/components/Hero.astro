@@ -49,8 +49,8 @@
     </div>
   </div>
 
-  <!-- Marquee bar -->
-  <div class="relative border-y border-line bg-bone/40 overflow-hidden">
+  <!-- Marquee bar (decorative — hidden from assistive tech) -->
+  <div class="relative border-y border-line bg-bone/40 overflow-hidden" aria-hidden="true">
     <div class="flex whitespace-nowrap py-3" style="animation: marquee 48s linear infinite;">
       {
         Array.from({ length: 2 }).map(() => (

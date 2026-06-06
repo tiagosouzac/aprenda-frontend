@@ -90,10 +90,17 @@ const course = await getCourseModules();
 <script>
   const STORAGE_KEY = "aprenda-progress";
 
+  function readCompleted(): Set<string> {
+    try {
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
+      return new Set<string>(Array.isArray(raw) ? raw : []);
+    } catch {
+      return new Set<string>();
+    }
+  }
+
   function updateSidebarProgress() {
-    const completed = new Set<string>(
-      JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]")
-    );
+    const completed = readCompleted();
     document.querySelectorAll<HTMLElement>("[data-lesson-href]").forEach((el) => {
       const href = el.getAttribute("data-lesson-href");
       const check = el.querySelector<HTMLElement>(".progress-check");

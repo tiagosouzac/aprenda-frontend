@@ -9,13 +9,23 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "og": "node scripts/generate-og.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.4",
     "@astrojs/sitemap": "^3.7.2",
+    "@fontsource-variable/bricolage-grotesque": "^5.2.10",
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@fontsource/instrument-serif": "^5.2.8",
     "@tailwindcss/vite": "^4.2.4",
     "astro": "^6.1.9",
     "tailwindcss": "^4.2.4"
+  },
+  "devDependencies": {
+    "@fontsource/bricolage-grotesque": "^5.2.10",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@resvg/resvg-js": "^2.6.2",
+    "satori": "^0.26.0"
   }
 }

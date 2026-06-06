@@ -1,10 +1,16 @@
 @import "tailwindcss";
 
+/* Self-hosted fonts (no render-blocking Google Fonts request) */
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource/instrument-serif/400.css";
+@import "@fontsource/instrument-serif/400-italic.css";
+@import "@fontsource-variable/jetbrains-mono";
+
 @theme {
-  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, monospace;
 
   --color-canvas: #ffffff;
   --color-ink: #0a0a0b;
@@ -30,6 +36,27 @@
 html {
   scroll-behavior: smooth;
   background: var(--color-canvas);
+}
+
+/* Respect users who prefer reduced motion: kill smooth scroll, marquee,
+   entrance reveals and every looping illustration. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .rise,
+  .module-block {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 body {

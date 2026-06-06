@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://aprenda-frontend.tiagocastro.dev/sitemap-index.xml

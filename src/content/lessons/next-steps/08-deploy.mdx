@@ -10,30 +10,30 @@ quiz:
   - question: "O que é CI (Continuous Integration) e qual o seu benefício principal?"
     options:
       - "A prática de rodar lint, type-check, testes e build automaticamente a cada push — garantindo que código que quebra a suite não chegue à branch principal. O feedback chega em minutos, não em horas de code review"
-      - "Um serviço de hospedagem de código como o GitHub"
-      - "Um sistema de versionamento de código"
-      - "A automação do processo de deploy em produção"
+      - "É um serviço de hospedagem de código-fonte na nuvem, bem parecido com o que o próprio GitHub já oferece para os repositórios"
+      - "É um sistema de controle de versão de código, usado para acompanhar o histórico de todas as mudanças que são feitas no projeto"
+      - "É, de forma resumida, apenas a automação de todo o processo de fazer o deploy de uma aplicação para o ambiente de produção"
     correct: 0
   - question: "Por que o blog React (SPA) precisa de configuração especial de rotas no Vercel/Netlify?"
     options:
-      - "Porque o React não funciona sem servidor"
-      - "Porque o Vite gera arquivos separados para cada rota"
+      - "Porque a biblioteca React simplesmente não consegue funcionar de jeito nenhum sem ter um servidor ativo rodando por trás dela"
+      - "Porque a ferramenta de build Vite acaba gerando um arquivo HTML separado e diferente para cada uma das rotas da aplicação"
       - "Uma SPA tem apenas um index.html — todas as rotas como /artigos/css-grid são gerenciadas pelo JavaScript no browser. Sem configuração, o servidor retorna 404 para essas URLs porque não existe um arquivo css-grid.html no disco"
-      - "Porque o Netlify não suporta React"
+      - "Porque o serviço de hospedagem Netlify, por algum motivo de compatibilidade, não oferece nenhum tipo de suporte a aplicações em React"
     correct: 2
   - question: "O que são preview deployments e por que são úteis?"
     options:
-      - "Versões de produção mais rápidas de carregar"
-      - "Versões do site com dados fictícios para testes"
-      - "Deploys que rodam apenas em ambiente de staging"
+      - "São versões do ambiente de produção que foram otimizadas para carregar de forma perceptivelmente mais rápida para o usuário final"
+      - "São versões especiais do site que rodam com dados totalmente fictícios, criadas apenas para a realização de testes manuais da equipe"
+      - "São deploys que acabam rodando exclusivamente dentro de um ambiente de staging, separado por completo do ambiente de produção real"
       - "Deploys automáticos criados para cada pull request — uma URL única que permite revisar as mudanças ao vivo antes de mesclar na branch principal. Elimina o 'funciona na minha máquina' durante revisões de código"
     correct: 3
   - question: "Por que variáveis de ambiente com segredos não devem ser commitadas no repositório?"
     options:
-      - "Porque o Git não suporta arquivos .env"
+      - "Porque o próprio Git, por uma limitação técnica, simplesmente não oferece nenhum suporte ao versionamento de arquivos com a extensão .env"
       - "Porque o repositório pode ser público agora ou no futuro, e segredos expostos (chaves de API, senhas de banco) permitem que qualquer pessoa acesse sistemas privados. Segredos vivem em variáveis de ambiente configuradas no painel do serviço de hosting"
-      - "Porque variáveis de ambiente não funcionam em produção"
-      - "Apenas por convenção — não há risco técnico"
+      - "Porque as variáveis de ambiente, por uma questão técnica, acabam não funcionando de forma correta quando a aplicação já está rodando em produção"
+      - "É apenas por uma questão de convenção entre os desenvolvedores: na prática, não existe nenhum risco técnico real em commitar os segredos no repositório"
     correct: 1
 ---
 

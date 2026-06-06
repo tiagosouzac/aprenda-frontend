@@ -10,30 +10,30 @@ quiz:
   - question: "Qual é a principal diferença de modelo mental entre Vue e React?"
     options:
       - "Vue usa templates HTML com diretivas especiais (v-if, v-for, @click) e reatividade baseada em proxies — o estado é um objeto observável. React usa JSX e reatividade explícita via hooks (useState, useReducer)"
-      - "Vue usa JavaScript; React usa TypeScript"
-      - "Vue é mais rápido que React em qualquer cenário"
-      - "Vue não tem sistema de componentes"
+      - "A principal diferença é que o Vue usa JavaScript puro nos componentes, enquanto o React exige o uso obrigatório de TypeScript em tudo"
+      - "A principal diferença é que o Vue é, em qualquer cenário de uso possível, perceptivelmente mais rápido de executar do que o React puro"
+      - "A principal diferença é que o Vue simplesmente não possui nenhum sistema de componentes, ao contrário do que acontece dentro do React"
     correct: 0
   - question: "O que torna o Svelte diferente de React e Vue em termos de arquitetura?"
     options:
-      - "Svelte não tem componentes"
-      - "Svelte usa TypeScript obrigatoriamente"
+      - "O que torna o Svelte diferente é que ele simplesmente não possui nenhum conceito de componentes, ao contrário do React e do Vue"
+      - "O que torna o Svelte diferente é que ele exige o uso obrigatório de TypeScript em absolutamente todos os componentes do projeto"
       - "Svelte é um compilador — transforma componentes em JavaScript puro sem nenhum runtime no browser. React e Vue enviam um runtime (a biblioteca em si) para o browser executar. Svelte gera código vanilla JS que manipula o DOM diretamente"
-      - "Svelte só funciona com SSR"
+      - "O que torna o Svelte diferente é que ele só consegue funcionar em conjunto com renderização no servidor (SSR), e nunca sozinho"
     correct: 2
   - question: "Por que conhecer outras bibliotecas além do React vale a pena?"
     options:
-      - "Para poder usar qualquer framework em qualquer projeto"
-      - "Porque o mercado exige conhecimento de todas as bibliotecas"
-      - "Porque React vai ser descontinuado em breve"
+      - "Vale a pena para que você consiga usar qualquer framework do mercado em qualquer projeto novo, sem nenhuma restrição na sua escolha"
+      - "Vale a pena porque o mercado de trabalho hoje exige que todo desenvolvedor conheça absolutamente todas as bibliotecas existentes"
+      - "Vale a pena principalmente porque a previsão é que a biblioteca React vai acabar sendo descontinuada pela comunidade muito em breve"
       - "Para entender o que React faz de especial — e o que é uma convenção específica do React que poderia ter sido diferente. Diferentes modelos mentais iluminam o porquê de escolhas de design"
     correct: 3
   - question: "O que é reatividade granular no Solid.js?"
     options:
-      - "Uma forma de re-renderizar o componente inteiro mais rapidamente"
+      - "É uma forma especial que o Solid usa para conseguir re-renderizar o componente inteiro de uma vez de maneira perceptivelmente mais rápida"
       - "Quando o sistema de reatividade atualiza apenas o nó do DOM que realmente mudou, sem re-executar a função do componente inteiro — em contraste com React, que re-executa o componente e compara o virtual DOM"
-      - "Uma técnica de memoização automática"
-      - "O mesmo que o sistema de signals do Angular"
+      - "É uma técnica de memoização totalmente automática, em que o Solid guarda em cache o resultado de cada componente entre um render e outro"
+      - "É exatamente o mesmo conceito que o sistema de signals usado pelo framework Angular, apenas com um outro nome um pouco diferente para ele"
     correct: 1
 ---
 

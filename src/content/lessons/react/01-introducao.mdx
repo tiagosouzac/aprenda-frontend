@@ -10,30 +10,30 @@ quiz:
   - question: "Qual é a diferença fundamental entre a abordagem imperativa (DOM puro) e a abordagem declarativa (React)?"
     options:
       - "Com DOM puro você descreve COMO mudar a UI (encontre o elemento, mude o atributo, atualize o texto). Com React você descreve COMO a UI deve ser dado o estado atual — React cuida do COMO mudar"
-      - "React é mais rápido que DOM puro em todos os casos"
-      - "React usa HTML diretamente; DOM puro usa JavaScript"
-      - "Dom puro não suporta eventos; React sim"
+      - "O React é sempre mais rápido que o DOM puro porque escreve as alterações direto na placa de vídeo, sem passar pela árvore de elementos do navegador"
+      - "O React monta a interface escrevendo HTML diretamente no arquivo, enquanto a abordagem com DOM puro só consegue montar a tela usando JavaScript"
+      - "No DOM puro não existe suporte nativo a eventos de usuário, então o React foi criado principalmente para permitir cliques e envios de formulário"
     correct: 0
   - question: "O que é o virtual DOM?"
     options:
-      - "Um DOM mais rápido fornecido pelos navegadores modernos"
-      - "Um arquivo HTML separado mantido pelo React"
+      - "É um DOM mais rápido que os navegadores modernos já trazem embutido e que o React simplesmente ativa quando o componente é montado"
+      - "É um arquivo HTML separado que o React mantém em disco e sincroniza com a página sempre que algum estado da aplicação muda"
       - "Uma representação em memória da UI que React mantém. Quando o estado muda, React recalcula o virtual DOM e aplica apenas as diferenças no DOM real — evitando operações desnecessárias"
-      - "Uma versão comprimida do DOM para mobile"
+      - "É uma versão comprimida do DOM, usada apenas em dispositivos móveis para economizar memória durante a renderização das telas"
     correct: 2
   - question: "Por que a abordagem imperativa escala mal à medida que o estado cresce?"
     options:
-      - "Porque o JavaScript fica mais lento com mais código"
-      - "Porque o DOM tem um limite de elementos"
-      - "Porque eventos não funcionam com estado complexo"
+      - "Porque o motor JavaScript vai ficando mais lento conforme a quantidade de linhas de código do projeto aumenta ao longo do tempo"
+      - "Porque o DOM impõe um limite máximo de elementos por página e a abordagem imperativa atinge esse teto rapidamente"
+      - "Porque os eventos de interação deixam de funcionar quando o estado da aplicação passa a ter muitas propriedades aninhadas"
       - "Porque você precisa rastrear manualmente quais elementos do DOM refletem qual parte do estado — cada novo estado ou interação exige atualizar todos os pontos relevantes, e é fácil esquecer algum"
     correct: 3
   - question: "O que é um componente React?"
     options:
-      - "Um arquivo CSS separado para cada parte da UI"
+      - "Um arquivo CSS separado, criado para cada parte da interface, que o React injeta automaticamente na página quando ela precisa daquele trecho"
       - "Uma função com nome em PascalCase que retorna JSX — uma descrição de parte da UI. Componentes se compõem: ArticlePage usa Header, ArticleCard, LikeButton"
-      - "Uma classe que herda de React.Component"
-      - "Um módulo JavaScript que manipula o DOM diretamente"
+      - "Uma classe que obrigatoriamente herda de React.Component e implementa um método render para devolver a marcação que vai para a tela"
+      - "Um módulo JavaScript cuja função é localizar elementos e manipular o DOM diretamente, como se fazia antes do React existir"
     correct: 1
 ---
 

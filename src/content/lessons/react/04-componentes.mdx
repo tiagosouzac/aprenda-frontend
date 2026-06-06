@@ -10,30 +10,30 @@ quiz:
   - question: "Por que componentes React têm nome em PascalCase?"
     options:
       - "Porque o compilador JSX usa a capitalização para distinguir componentes React de tags HTML — <div> é uma tag HTML, <ArticleCard> é um componente"
-      - "Por convenção de estilo sem impacto técnico"
-      - "Porque PascalCase melhora a performance"
-      - "Por compatibilidade com TypeScript"
+      - "É apenas uma convenção de estilo adotada pela comunidade, sem nenhum efeito sobre como o componente é compilado ou renderizado"
+      - "Porque nomes escritos em PascalCase são processados mais rápido pelo React durante a renderização do que nomes em minúsculas"
+      - "Por uma exigência de compatibilidade com o TypeScript, que recusa componentes cujo nome comece com uma letra minúscula"
     correct: 0
   - question: "Por que named exports são preferíveis a default exports para componentes?"
     options:
-      - "Porque default exports não funcionam em TypeScript"
-      - "Porque named exports são mais rápidos"
+      - "Porque default exports simplesmente não funcionam em projetos que usam TypeScript e acabam gerando um erro de compilação"
+      - "Porque named exports são carregados mais rápido pelo bundler e reduzem o tamanho final do pacote da aplicação"
       - "Porque named exports obrigam o importador a usar o nome correto — ferramentas de refactor (Rename Symbol) funcionam consistentemente. Com default, o importador pode dar qualquer nome"
-      - "Porque o Vite não suporta default exports"
+      - "Porque o Vite não dá suporte a default exports e exige que todo componente seja exportado com um nome explícito"
     correct: 2
   - question: "O que significa retornar null de um componente React?"
     options:
-      - "Causa um erro — componentes devem sempre retornar JSX"
-      - "O componente é removido da árvore de componentes"
-      - "O componente renderiza um elemento vazio <span>"
+      - "Provoca um erro em tempo de execução, já que todo componente React é obrigado a sempre retornar algum JSX válido"
+      - "Faz com que o componente seja removido em definitivo da árvore de componentes e precise ser remontado depois do zero"
+      - "Renderiza no lugar do componente um elemento <span> vazio, que fica presente no DOM mas sem nenhum conteúdo visível"
       - "O componente não renderiza nada no DOM — é uma forma válida de esconder um componente sem removê-lo da árvore"
     correct: 3
   - question: "Qual é a vantagem de compor componentes pequenos em vez de um componente grande?"
     options:
-      - "Componentes menores são mais rápidos"
+      - "Componentes menores são sempre renderizados mais rápido porque o React processa funções curtas antes das mais longas"
       - "Cada componente tem uma responsabilidade clara, pode ser testado isoladamente, pode ser reutilizado em outros contextos e é mais fácil de entender sem ler o arquivo inteiro"
-      - "O React exige que componentes tenham menos de 100 linhas"
-      - "Componentes menores usam menos memória"
+      - "Porque o React impõe um limite máximo de cem linhas por componente e qualquer arquivo maior que isso deixa de compilar"
+      - "Componentes menores consomem bem menos memória em tempo de execução, o que melhora o desempenho geral da aplicação"
     correct: 1
 ---
 

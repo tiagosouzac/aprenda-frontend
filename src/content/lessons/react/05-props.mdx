@@ -10,30 +10,30 @@ quiz:
   - question: "Em que direção os dados fluem via props em React?"
     options:
       - "Apenas de pai para filho — unidirecional. Para comunicar eventos do filho ao pai, use callbacks passados como props"
-      - "Em qualquer direção — props podem ir de filho para pai"
-      - "Apenas de componente raiz para folhas"
-      - "Bidirecional quando o componente usa useState"
+      - "Em qualquer direção: as props podem ser passadas tanto de pai para filho quanto de filho de volta para o componente pai"
+      - "Apenas do componente raiz da aplicação diretamente para os componentes folha, pulando os intermediários da árvore"
+      - "De forma bidirecional sempre que o componente que recebe a prop também utilizar o hook useState internamente"
     correct: 0
   - question: "Por que props são imutáveis dentro do componente que as recebe?"
     options:
-      - "Por limitação técnica do JavaScript"
-      - "Porque TypeScript impede a mutação"
+      - "Por uma limitação técnica do próprio JavaScript, que bloqueia a reatribuição de qualquer parâmetro recebido por uma função"
+      - "Porque o TypeScript marca todas as props como readonly e impede qualquer tentativa de mutação já em tempo de compilação"
       - "Porque mutar props diretamente tornaria o fluxo de dados imprevisível — o pai não saberia que a prop mudou. Quando um filho precisa derivar estado de uma prop, usa useState com a prop como valor inicial"
-      - "Por convenção sem impacto técnico"
+      - "É apenas uma convenção recomendada pela documentação, sem nenhum efeito prático sobre o comportamento do componente"
     correct: 2
   - question: "O que é children em React?"
     options:
-      - "Uma array de todos os componentes filhos da aplicação"
-      - "Um hook para acessar elementos do DOM"
-      - "O componente pai de um componente"
+      - "É um array que reúne todos os componentes filhos existentes em qualquer ponto da aplicação naquele instante do render"
+      - "É um hook especial usado para acessar diretamente os elementos do DOM que foram renderizados pelo componente filho"
+      - "É uma referência ao componente pai daquele componente, permitindo que o filho leia as props de quem o renderizou"
       - "A prop especial que recebe o conteúdo entre as tags de abertura e fechamento do componente — <Card>conteúdo aqui</Card>"
     correct: 3
   - question: "Qual é a diferença entre desestruturar props no parâmetro vs. acessar via objeto props?"
     options:
-      - "Desestruturar é mais rápido"
+      - "Desestruturar as props direto no parâmetro é sempre mais rápido em tempo de execução do que acessá-las pelo objeto props"
       - "São equivalentes funcionalmente. Desestruturar no parâmetro ({ titulo, artigo }) é mais conciso e deixa claro quais props o componente usa. Acessar via props.titulo é útil quando você precisa repassar todas as props com spread"
-      - "Você só pode usar spread com o objeto props inteiro"
-      - "TypeScript só suporta desestruturação"
+      - "Você só consegue usar o operador spread quando trabalha com o objeto props inteiro, nunca com props que já foram desestruturadas"
+      - "O TypeScript só dá suporte à forma desestruturada das props e acusa um erro sempre que você acessa um valor via props.titulo"
     correct: 1
 ---
 

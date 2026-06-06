@@ -10,30 +10,30 @@ quiz:
   - question: "O que é o Context no React e para que serve?"
     options:
       - "Um mecanismo para disponibilizar um valor para toda a subárvore de componentes sem passar props manualmente em cada nível. Não substitui useState — o estado ainda vive em useState, Context distribui o acesso"
-      - "Um banco de dados interno do React para persistir dados entre sessões"
-      - "Um substituto para useEffect ao sincronizar dados externos"
-      - "Uma forma de comunicação entre componentes irmãos sem passar pelo pai"
+      - "É um banco de dados interno que o React mantém para persistir os dados da aplicação entre diferentes sessões do usuário"
+      - "É um substituto para o useEffect, usado especificamente quando você precisa sincronizar dados vindos de uma fonte externa"
+      - "É uma forma de comunicação direta entre componentes irmãos, permitindo que um envie dados ao outro sem passar pelo pai"
     correct: 0
   - question: "O que acontece quando o value de um Provider muda?"
     options:
-      - "Apenas o Provider re-renderiza"
-      - "Apenas os filhos diretos do Provider re-renderizam"
+      - "Apenas o próprio componente Provider é re-renderizado, sem afetar nenhum dos componentes que consomem aquele contexto"
+      - "Apenas os componentes que são filhos diretos do Provider re-renderizam, e os que estão mais profundos na árvore permanecem intactos"
       - "Todos os componentes que consomem aquele Context com useContext re-renderizam, independentemente de onde estão na árvore"
-      - "Nada — o Context é imutável"
+      - "Nada acontece na tela, porque o valor exposto por um Context é imutável depois que o Provider é montado pela primeira vez"
     correct: 2
   - question: "Por que é boa prática criar um custom hook para encapsular useContext?"
     options:
-      - "Para que o TypeScript consiga inferir os tipos corretamente"
-      - "Porque useContext não pode ser chamado diretamente em componentes"
-      - "Para evitar re-renderizações desnecessárias"
+      - "Para que o TypeScript consiga inferir corretamente os tipos do valor que o contexto retorna dentro de cada componente"
+      - "Porque o useContext não pode ser chamado diretamente em um componente e precisa sempre estar embrulhado dentro de outro hook"
+      - "Para evitar que os componentes que consomem o valor exposto por aquele contexto sofram re-renderizações desnecessárias"
       - "Para encapsular o useContext e adicionar uma verificação de que o hook está sendo usado dentro do Provider correto — lançando um erro descritivo se não estiver, em vez de retornar o valor padrão silenciosamente"
     correct: 3
   - question: "Quando Context NÃO é a solução certa?"
     options:
-      - "Quando você tem mais de dois componentes usando o mesmo valor"
+      - "Sempre que você tiver mais de dois componentes diferentes precisando ler e usar exatamente o mesmo valor compartilhado"
       - "Para estado que muda com alta frequência (como posição do mouse ou progresso de scroll) — todos os consumidores re-renderizam a cada mudança. Também quando a solução mais simples seria prop drilling em 2–3 níveis ou composition"
-      - "Quando o estado é um objeto"
-      - "Context é sempre a solução certa para estado compartilhado"
+      - "Quando o valor que você precisa compartilhar entre os componentes é um objeto, em vez de um valor primitivo mais simples"
+      - "Nunca: o Context é sempre a solução certa para qualquer caso de estado que precise ser compartilhado entre componentes"
     correct: 1
 ---
 

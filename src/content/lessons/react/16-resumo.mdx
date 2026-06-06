@@ -10,22 +10,22 @@ quiz:
   - question: "Qual das afirmações sobre keys em listas React está correta?"
     options:
       - "Keys devem ser únicas no contexto da lista e estáveis entre renders. Use o id do dado, não o índice — índice causa bugs ao reordenar porque React não consegue distinguir quais itens mudaram"
-      - "Keys são opcionais — React funciona sem elas"
-      - "Keys devem ser únicas em toda a aplicação"
-      - "Keys são passadas como prop para o componente filho"
+      - "As keys são totalmente opcionais em listas, e o React continua funcionando normalmente mesmo quando nenhuma é informada nos itens"
+      - "As keys precisam ser únicas em toda a aplicação, e não apenas dentro do contexto da lista específica que está sendo renderizada"
+      - "As keys são entregues ao componente filho como uma prop comum, acessível por props.key dentro do corpo do componente"
     correct: 0
   - question: "Qual é a principal diferença entre usar useState local e Context?"
     options:
-      - "Context é mais performático que useState"
-      - "Context não pode ser usado com TypeScript"
+      - "O Context é sempre mais performático que o useState local e por isso deveria ser a escolha padrão para qualquer tipo de estado"
+      - "O Context não pode ser usado em projetos com TypeScript, porque não existe forma de tipar corretamente o valor que ele distribui"
       - "useState local é para estado que pertence a um componente específico. Context é para estado que precisa ser compartilhado por componentes em vários níveis da árvore sem prop drilling. Context não substitui useState — usa useState internamente"
-      - "useState local não funciona com efeitos"
+      - "O useState local não funciona em conjunto com efeitos, então qualquer estado lido dentro de um useEffect precisa vir do Context"
     correct: 2
   - question: "Por que os testes serão o próximo passo no curso?"
     options:
-      - "Porque React não funciona sem testes"
-      - "Porque o próximo módulo é sobre TypeScript"
-      - "Testes são opcionais — o próximo passo é Next.js"
+      - "Porque o React simplesmente não funciona de forma confiável em produção sem uma suíte de testes automatizados acompanhando o projeto"
+      - "Porque o próximo módulo do curso é, na verdade, sobre TypeScript, que precisa ser dominado antes de avançar para os testes"
+      - "Os testes são totalmente opcionais no aprendizado, e o próximo passo natural depois do módulo de React seria partir direto para o Next.js"
       - "Os componentes do blog foram testados apenas manualmente até agora. Testes automatizados garantem que uma mudança em LikeButton não quebra ArticleCard silenciosamente — e documentam o comportamento esperado de cada peça de forma executável"
     correct: 3
 ---

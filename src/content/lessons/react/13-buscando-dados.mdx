@@ -10,30 +10,30 @@ quiz:
   - question: "Por que todo fetch em React precisa dos três estados: carregando, erro e dados?"
     options:
       - "Uma requisição de rede tem três desfechos possíveis: está em andamento (carregando), falhou (erro) ou concluiu com sucesso (dados). Sem esses três estados, a UI fica sem saber o que mostrar enquanto espera ou quando algo dá errado"
-      - "É uma exigência técnica do useEffect"
-      - "Para compatibilidade com TypeScript"
-      - "Apenas carregando e dados são necessários — erro é opcional"
+      - "É uma exigência técnica do próprio useEffect, que não roda corretamente se você não declarar três estados separados no componente"
+      - "É necessário apenas por questão de compatibilidade com o TypeScript, que exige os três estados para tipar a resposta da API"
+      - "Na prática só carregando e dados são realmente necessários: o estado de erro é opcional e pode ser ignorado na maioria dos casos"
     correct: 0
   - question: "O que é uma race condition em fetch e como AbortController resolve?"
     options:
-      - "Um bug que acontece quando dois usuários fazem requests ao mesmo tempo"
-      - "AbortController não resolve race conditions — apenas cancela fetches em andamento"
+      - "É um bug que só acontece quando dois usuários diferentes fazem requisições para o mesmo endpoint exatamente ao mesmo tempo"
+      - "O AbortController não resolve race conditions de fato: ele apenas cancela fetches em andamento, sem influenciar qual resultado vence"
       - "Quando múltiplos fetches são disparados (ex: usuário digita rápido), um fetch mais antigo pode completar depois de um mais recente — sobrescrevendo o resultado correto. AbortController cancela o fetch anterior quando a query muda, garantindo que apenas o último importa"
-      - "Race conditions acontecem apenas com useState, não com fetch"
+      - "As race conditions acontecem apenas quando você usa useState, e nunca surgem em código que faz requisições com fetch"
     correct: 2
   - question: "Qual é a vantagem de extrair a lógica de fetch para um custom hook?"
     options:
-      - "Custom hooks são mais rápidos que usar useEffect diretamente"
-      - "Custom hooks evitam re-renderizações"
-      - "É a única forma de usar fetch com TypeScript"
+      - "Os custom hooks são executados mais rápido pelo React do que usar o useEffect diretamente dentro de cada componente"
+      - "Os custom hooks evitam que os componentes que usam a lógica de fetch sofram re-renderizações desnecessárias na tela"
+      - "É a única forma possível de usar fetch em um projeto com TypeScript, já que o useEffect direto não aceita os tipos"
       - "Reutilizar a lógica de carregando/erro/dados em múltiplos componentes sem duplicar código. O hook encapsula useEffect, fetch e os três estados — o componente só declara o que precisa e renderiza"
     correct: 3
   - question: "O que TanStack Query oferece que useEffect + fetch manual não oferece?"
     options:
-      - "Suporte a TypeScript — useEffect não suporta"
+      - "Oferece suporte a TypeScript, algo que o useEffect combinado com fetch manual simplesmente não consegue dar ao seu código"
       - "Cache automático (não refaz o fetch se os dados ainda são válidos), deduplicação (múltiplos componentes pedindo o mesmo dado disparam um único fetch), revalidação em background e estados de loading/erro já gerenciados — eliminando muito do boilerplate manual"
-      - "Suporte a requisições POST"
-      - "Cancelamento automático de requisições"
+      - "Oferece suporte a requisições do tipo POST, que não podem ser feitas usando apenas o fetch dentro de um useEffect comum"
+      - "Oferece cancelamento automático de requisições em andamento, um recurso impossível de implementar com fetch manual"
     correct: 1
 ---
 

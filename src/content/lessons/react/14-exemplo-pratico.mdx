@@ -10,30 +10,30 @@ quiz:
   - question: "Por que o filtro de artigos por query e tag não usa useEffect?"
     options:
       - "Porque o filtro é uma transformação de dados que pode ser calculada durante o render — dado que artigos, query e tagAtiva já são valores disponíveis, o resultado filtrado é apenas uma derivação deles. useEffect seria um render a mais desnecessário"
-      - "Porque useEffect é muito lento para filtros"
-      - "Porque arrays não funcionam com useEffect"
-      - "useEffect é necessário para filtros — esse exemplo está incorreto"
+      - "Porque o useEffect é uma ferramenta lenta demais para aplicar filtros e acabaria travando a interface a cada caractere digitado"
+      - "Porque arrays de objetos não podem ser manipulados dentro de um useEffect, que só aceita valores primitivos como dependências"
+      - "Na verdade o useEffect é necessário para qualquer filtro de lista, então o exemplo desta lição está implementado de forma incorreta"
     correct: 0
   - question: "Por que o estado de curtidas vive no Context e não dentro de cada ArticleCard?"
     options:
-      - "Por limitação técnica do React"
-      - "Context é mais performático que useState local"
+      - "Por uma limitação técnica do React, que não deixa guardar o estado de curtidas dentro de componentes renderizados em lista"
+      - "Porque o Context é sempre mais performático que o useState local e reduz o número de renderizações de cada ArticleCard na tela"
       - "Porque o mesmo conjunto de artigos curtidos precisa ser compartilhado entre a HomePage (que exibe cards) e uma eventual ArticlePage (que exibe o botão de curtir do artigo completo). Estado local em cada card ficaria dessincronizado entre páginas"
-      - "Porque ArticleCard não pode usar useState"
+      - "Porque o componente ArticleCard, por ser renderizado dentro de um .map(), não tem permissão para chamar o hook useState"
     correct: 2
   - question: "O que é necessário para que a barra de progresso de leitura funcione com scroll?"
     options:
-      - "Um timer com setInterval"
-      - "Uma biblioteca externa de animação"
-      - "O CSS scroll-timeline resolve sem JavaScript"
+      - "Um timer criado com setInterval que verifica a posição de scroll da página em intervalos regulares e atualiza a porcentagem lida"
+      - "Uma biblioteca externa de animação, responsável por observar a rolagem e preencher a barra de progresso conforme o usuário desce"
+      - "A propriedade scroll-timeline do CSS, que resolve o cálculo do progresso de leitura inteiramente sem precisar de JavaScript"
       - "Um useEffect que adiciona um listener de evento 'scroll' no window, calcula a porcentagem lida com base em scrollY e a altura total do documento, e atualiza o estado. O cleanup remove o listener ao desmontar o componente"
     correct: 3
   - question: "Qual é o motivo de separar a lógica de fetchArtigo em um custom hook useArtigo?"
     options:
-      - "Porque useEffect não pode ser usado diretamente em componentes de página"
+      - "Porque o hook useEffect não pode ser chamado diretamente dentro de componentes que representam páginas inteiras do blog"
       - "Para separar o que o componente renderiza do como os dados chegam — o componente foca na UI, o hook foca no fetch. Também permite reutilizar a lógica de carregando/erro/dados em outros contextos e facilita testes"
-      - "Custom hooks são obrigatórios para fetch em páginas"
-      - "Para que TypeScript consiga inferir o tipo dos dados"
+      - "Porque os custom hooks são obrigatórios sempre que uma página precisa buscar dados com fetch, segundo as regras dos hooks"
+      - "Para que o TypeScript consiga inferir corretamente o tipo dos dados que chegam da API durante a renderização da página"
     correct: 1
 ---
 

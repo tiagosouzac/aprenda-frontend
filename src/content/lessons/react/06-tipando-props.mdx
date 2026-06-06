@@ -10,30 +10,30 @@ quiz:
   - question: "Por que extends React.ButtonHTMLAttributes<HTMLButtonElement> é útil?"
     options:
       - "Para que o componente aceite todos os atributos HTML nativos do botão (disabled, type, form, aria-*) sem precisar redeclará-los um a um na interface de props"
-      - "Para herdar o comportamento do botão"
-      - "Para compatibilidade com versões antigas do React"
-      - "Para que onClick funcione corretamente"
+      - "Serve para que o componente herde automaticamente todo o comportamento visual e os eventos de clique do botão HTML nativo"
+      - "É necessário apenas para manter compatibilidade com versões mais antigas do React que ainda não tipavam os elementos nativos"
+      - "Existe unicamente para garantir que o evento onClick do botão seja reconhecido e funcione corretamente dentro do componente"
     correct: 0
   - question: "Qual é a diferença entre ReactNode e ReactElement?"
     options:
-      - "São sinônimos — use qualquer um"
-      - "ReactElement aceita null; ReactNode não"
+      - "São sinônimos perfeitos no React: você pode usar qualquer um dos dois tipos sem nenhuma diferença prática no resultado final"
+      - "ReactElement é o tipo que aceita o valor null entre os filhos, enquanto ReactNode recusa null e undefined como conteúdo válido"
       - "ReactNode é mais amplo — aceita JSX, strings, números, null, undefined e arrays. ReactElement é apenas o resultado de createElement/JSX. Para children, prefira ReactNode"
-      - "ReactNode é para componentes de classe; ReactElement é para componentes de função"
+      - "ReactNode é usado apenas em componentes de classe e ReactElement apenas em componentes de função, por razões históricas"
     correct: 2
   - question: "Qual é o tipo correto para o handler do evento onChange de um input?"
     options:
-      - "Event"
-      - "HTMLInputElement"
-      - "InputEvent"
+      - "O tipo Event genérico do DOM, o mesmo usado no addEventListener do JavaScript puro, sem nenhuma tipagem específica do React"
+      - "O tipo HTMLInputElement, que descreve o elemento de input em si e não o evento que é disparado quando o valor muda"
+      - "O tipo InputEvent nativo do navegador, que representa o texto digitado diretamente dentro do campo pelo usuário"
       - "React.ChangeEvent<HTMLInputElement> — o evento sintético do React tipado para o elemento específico"
     correct: 3
   - question: "O que React.ComponentProps<'button'> retorna?"
     options:
-      - "O tipo do componente button"
+      - "Retorna o tipo do componente button em si, ou seja, a assinatura da função que o React usa para renderizá-lo na tela"
       - "O tipo de todas as props que o elemento <button> HTML nativo aceita — equivalente a React.ButtonHTMLAttributes<HTMLButtonElement> com sintaxe mais curta"
-      - "O tipo de retorno da função button"
-      - "Um objeto com os métodos do button"
+      - "Retorna o tipo do valor devolvido pela função button quando ela é executada durante a renderização do componente"
+      - "Retorna um objeto contendo todos os métodos que o elemento button expõe para serem chamados através de uma referência"
     correct: 1
 ---
 

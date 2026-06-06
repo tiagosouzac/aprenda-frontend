@@ -10,30 +10,30 @@ quiz:
   - question: "Por que Vite é preferível ao Create React App para projetos novos?"
     options:
       - "Porque Vite usa esbuild para transpilação — o servidor de desenvolvimento inicia em milissegundos e o HMR (hot module replacement) é quase instantâneo. CRA usa webpack e fica mais lento à medida que o projeto cresce"
-      - "Porque Vite é feito pela equipe do React"
-      - "Porque CRA foi descontinuado oficialmente"
-      - "Porque Vite não precisa de tsconfig.json"
+      - "Porque o Vite é desenvolvido e mantido pela própria equipe principal do React, o que garante uma integração perfeita entre as duas ferramentas"
+      - "Porque o Create React App foi formalmente descontinuado e removido do registro do npm, deixando de funcionar em qualquer projeto novo"
+      - "Porque o Vite dispensa por completo o arquivo tsconfig.json e configura o TypeScript sozinho, sem você manter nenhum arquivo de configuração"
     correct: 0
   - question: "O que o arquivo main.tsx faz?"
     options:
-      - "Define os estilos globais da aplicação"
-      - "Define as rotas da aplicação"
+      - "É o arquivo responsável por definir todos os estilos globais que valem para a aplicação inteira, antes de qualquer componente ser montado"
+      - "É onde ficam declaradas as rotas da aplicação e o mapeamento de cada caminho de URL para a tela que deve ser exibida"
       - "É o ponto de entrada — monta o componente raiz (App) no elemento #root do index.html usando createRoot().render()"
-      - "Exporta todos os componentes do projeto"
+      - "É um índice que reexporta todos os componentes do projeto para deixar os imports mais curtos nos outros arquivos"
     correct: 2
   - question: "Por que artigos.json vai na pasta public/ em vez de src/?"
     options:
-      - "Porque JSON não pode ser importado em TypeScript"
-      - "Porque public/ é mais rápida que src/"
-      - "Porque src/ não suporta arquivos JSON"
+      - "Porque arquivos no formato JSON não podem ser importados em código TypeScript e, por isso, precisam ficar fora da pasta src"
+      - "Porque a pasta public é servida a partir de um disco mais rápido que a src, o que acelera o carregamento dos dados do blog"
+      - "Porque a pasta src aceita apenas arquivos .ts e .tsx, então qualquer arquivo .json colocado dentro dela é ignorado pelo bundler"
       - "Porque arquivos em public/ são servidos diretamente pelo servidor HTTP — o fetch('/artigos.json') acessa via URL, não via import. Arquivos em src/ são processados pelo bundler"
     correct: 3
   - question: "O que o operador ! (non-null assertion) faz em document.getElementById('root')!?"
     options:
-      - "Cria o elemento #root se ele não existir"
+      - "Cria automaticamente o elemento #root na página caso ele ainda não exista no HTML no momento em que o código é executado"
       - "Diz ao TypeScript que você garante que o valor não é null — o compilador aceita sem verificação. Se o elemento não existir em runtime, o erro aparece aí"
-      - "Lança um erro se o elemento não existir"
-      - "Converte o elemento para HTMLElement automaticamente"
+      - "Lança um erro em tempo de compilação sempre que o elemento procurado não puder ser encontrado dentro do documento HTML"
+      - "Converte o elemento retornado para o tipo HTMLElement de forma automática, dispensando qualquer anotação de tipo manual"
     correct: 1
 ---
 

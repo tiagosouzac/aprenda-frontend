@@ -10,30 +10,30 @@ quiz:
   - question: "Qual é o risco de usar {lista.length && <Componente />} em vez de {lista.length > 0 && <Componente />}?"
     options:
       - "Se lista estiver vazia, lista.length é 0 — um valor falsy numérico. React renderiza o 0 no DOM em vez de não renderizar nada"
-      - "Nenhum — as duas formas são equivalentes"
-      - "A primeira forma não compila com TypeScript"
-      - "A segunda forma é mais lenta"
+      - "Nenhum risco: as duas formas se comportam exatamente igual e nunca renderizam nada quando a lista está vazia na tela"
+      - "A primeira forma não compila com TypeScript, porque o operador && exige um valor booleano de cada lado da expressão"
+      - "A segunda forma é perceptivelmente mais lenta, já que comparar o length com zero adiciona uma operação extra a cada render"
     correct: 0
   - question: "Por que usar o índice do array como key é problemático quando a lista pode ser reordenada?"
     options:
-      - "O índice não é permitido pelo TypeScript"
-      - "O índice muda entre renders e isso causa erros de runtime"
+      - "Porque o uso do índice como key não é permitido pelo TypeScript, que exige sempre uma string única em cada elemento"
+      - "Porque o índice muda de valor entre um render e outro e isso acaba provocando erros de runtime durante a reordenação"
       - "React usa a key para rastrear quais itens mudaram. Se você reordena e usa o índice, React acha que o item na posição 0 é o mesmo — mas agora é outro. O estado (como inputs preenchidos) fica preso na posição, não no item"
-      - "Não é problemático — é apenas uma convenção"
+      - "Não é realmente problemático: usar o índice como key é apenas uma convenção que a maioria dos projetos prefere seguir"
     correct: 2
   - question: "Qual é a diferença entre {condição && <A />} e {condição ? <A /> : null}?"
     options:
-      - "O operador && nunca renderiza null"
-      - "O ternário não funciona com componentes"
-      - "O && é mais rápido"
+      - "O operador && nunca consegue renderizar null, então ele não serve para esconder um elemento quando a condição é falsa"
+      - "O operador ternário não funciona quando os ramos retornam componentes, apenas quando retornam strings ou números simples"
+      - "O operador && é perceptivelmente mais rápido que o ternário porque avalia um lado a menos da expressão a cada render"
       - "São funcionalmente idênticos — a segunda forma é mais explícita sobre o caso negativo"
     correct: 3
   - question: "Onde a prop key deve ser colocada?"
     options:
-      - "Dentro do componente que a recebe, via props.key"
+      - "Dentro do próprio componente que a recebe, lendo o valor por meio de props.key como qualquer outra propriedade comum"
       - "No elemento raiz retornado pelo .map() — não é acessível como prop dentro do componente"
-      - "Em qualquer elemento da lista, não precisa ser o raiz"
-      - "No componente pai que renderiza a lista"
+      - "Em qualquer elemento da lista, não precisa estar necessariamente no elemento raiz retornado pela função do .map()"
+      - "No componente pai que renderiza a lista inteira, e não em cada item individual produzido pela iteração do array"
     correct: 1
 ---
 

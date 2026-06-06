@@ -10,30 +10,30 @@ quiz:
   - question: "O que significa 'lifting state up' em React?"
     options:
       - "Mover o estado para o componente pai mais próximo que precisa compartilhá-lo com dois ou mais filhos. O pai gerencia o estado e distribui para os filhos via props"
-      - "Usar um gerenciador de estado global como Redux"
-      - "Usar localStorage para compartilhar estado"
-      - "Duplicar o estado em cada componente que precisa dele"
+      - "É a técnica de usar um gerenciador de estado global como o Redux para que qualquer componente acesse o valor de qualquer lugar"
+      - "É guardar o estado no localStorage do navegador para que os componentes consigam compartilhar o mesmo valor entre si"
+      - "É duplicar o mesmo estado em cada componente que precisa dele e manter todas as cópias sincronizadas manualmente a cada mudança"
     correct: 0
   - question: "O que é prop drilling e quando começa a ser problemático?"
     options:
-      - "Prop drilling é quando você passa props diretamente de pai para filho — sempre problemático"
-      - "Prop drilling só acontece com arrays"
+      - "É quando você passa props diretamente de um pai para o seu filho imediato — e, segundo a regra, isso é sempre problemático"
+      - "É um problema que só acontece quando o valor repassado entre os componentes da árvore é especificamente um array de itens"
       - "Prop drilling é passar props por componentes intermediários que não usam o valor — apenas repassam. É aceitável em 2–3 níveis. Começa a ser problemático quando muitos componentes precisam repassar props que não os dizem respeito, tornando o código frágil a mudanças"
-      - "Prop drilling é um padrão recomendado para qualquer profundidade"
+      - "É um padrão recomendado pela documentação do React para compartilhar dados em qualquer profundidade da árvore de componentes"
     correct: 2
   - question: "Como um componente filho comunica eventos ao seu pai em React?"
     options:
-      - "Mutando diretamente a prop recebida"
-      - "Usando uma variável global"
-      - "Chamando um método no componente pai via ref"
+      - "Mutando diretamente a prop que recebeu, de modo que a alteração suba de volta para o componente pai que a enviou"
+      - "Usando uma variável global declarada fora dos componentes, que o filho escreve e o pai lê quando precisa reagir à mudança"
+      - "Chamando um método exposto pelo componente pai por meio de uma ref, da mesma forma que se faz com um elemento do DOM"
       - "Via callback passado como prop pelo pai. O filho chama a função com os dados relevantes — o pai decide o que fazer. Dados descem via props, eventos sobem via callbacks"
     correct: 3
   - question: "Quais são os sinais de que o estado está no lugar errado na árvore?"
     options:
-      - "O componente tem mais de um useState"
+      - "Quando o componente passa a declarar mais de um useState ao mesmo tempo dentro do corpo da sua função"
       - "Props passando por vários níveis sem uso intermediário, ou dois componentes distantes na árvore precisando do mesmo valor sem um ancestral comum razoável. Ambos indicam que o estado deve subir ou usar Context"
-      - "O estado é um objeto em vez de um primitivo"
-      - "O componente tem muitos filhos"
+      - "Quando o valor guardado no estado é um objeto ou um array, em vez de um valor primitivo como um número ou uma string"
+      - "Quando o componente que detém o estado renderiza uma quantidade grande de componentes filhos dentro de si"
     correct: 1
 ---
 

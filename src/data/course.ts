@@ -35,7 +35,7 @@ export interface AdjacentLesson {
   module: CourseModule;
 }
 
-function parseEntryId(id: string): { moduleSlug: string; lessonSlug: string; filenameOrder: number | null } {
+export function parseEntryId(id: string): { moduleSlug: string; lessonSlug: string; filenameOrder: number | null } {
   const parts = id.split("/");
   const moduleSlug = parts[0];
   const filename = parts[parts.length - 1];

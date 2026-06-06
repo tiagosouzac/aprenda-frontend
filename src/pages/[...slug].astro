@@ -4,14 +4,12 @@ import LessonLayout from '../layouts/LessonLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import MdxPre from '../components/MdxPre.astro';
 import LessonQuiz from '../components/LessonQuiz.astro';
+import { parseEntryId } from '../data/course';
 
 export async function getStaticPaths() {
   const lessons = await getCollection('lessons');
   return lessons.map((lesson) => {
-    const parts = lesson.id.split('/');
-    const moduleSlug = parts[0];
-    const filename = parts[parts.length - 1];
-    const lessonSlug = filename.replace(/^\d+-/, '');
+    const { moduleSlug, lessonSlug } = parseEntryId(lesson.id);
     return {
       params: { slug: `${moduleSlug}/${lessonSlug}` },
       props: { lesson },

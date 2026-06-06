@@ -17,11 +17,16 @@ const lessons = defineCollection({
       .optional(),
     quiz: z
       .array(
-        z.object({
-          question: z.string(),
-          options: z.array(z.string()).min(2),
-          correct: z.number().int().nonnegative(),
-        }),
+        z
+          .object({
+            question: z.string(),
+            options: z.array(z.string()).min(2),
+            correct: z.number().int().nonnegative(),
+          })
+          .refine((q) => q.correct < q.options.length, {
+            message: "`correct` must be a valid index into `options`",
+            path: ["correct"],
+          }),
       )
       .optional(),
     comingSoon: z.boolean().optional(),

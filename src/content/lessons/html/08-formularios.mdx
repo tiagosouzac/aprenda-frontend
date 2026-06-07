@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a diferença entre os métodos GET e POST em um formulário?"
     options:
-      - "GET é mais seguro; POST é mais rápido"
-      - "GET funciona sem JavaScript; POST precisa de JavaScript"
+      - "O método GET é, por sua própria natureza, bem mais seguro de se usar, enquanto o método POST é apenas mais rápido"
+      - "O método GET consegue funcionar mesmo sem nenhum JavaScript na página, enquanto o método POST depende de JavaScript"
       - "GET envia os dados na URL; POST os envia no corpo da requisição"
-      - "GET é para formulários simples; POST é para formulários com mais de três campos"
+      - "O método GET serve apenas para formulários simples, enquanto o método POST serve para formulários com mais de três campos"
     correct: 2
   - question: "Por que o label é essencial em formulários?"
     options:
-      - "Para estilizar o campo com CSS"
-      - "Para aumentar a área clicável em torno do input"
-      - "Para que o JavaScript consiga encontrar o campo"
+      - "Serve principalmente para conseguir estilizar o campo do formulário usando CSS de uma forma um pouco mais fácil e organizada"
+      - "Serve para aumentar a área que pode ser clicada em volta do campo de input, facilitando bastante o toque em telas menores"
+      - "Serve para que o código JavaScript da página consiga localizar aquele campo específico do formulário com mais facilidade"
       - "Para associar um texto descritivo ao campo, tornando-o acessível para leitores de tela"
     correct: 3
   - question: "O que o atributo required faz em um input?"
     options:
-      - "Marca o campo como somente leitura"
+      - "Marca aquele campo do formulário como sendo um campo somente leitura, que não pode ter o seu valor alterado pelo usuário"
       - "Impede o envio do formulário se o campo estiver vazio"
-      - "Aplica um estilo visual de destaque ao campo"
-      - "Pré-preenche o campo com um valor padrão"
+      - "Aplica um estilo visual de destaque sobre aquele campo do formulário, deixando-o mais chamativo do que os demais campos"
+      - "Pré-preenche automaticamente aquele campo do formulário com um valor padrão definido antes mesmo de o usuário digitar nele"
     correct: 1
   - question: "Qual é a vantagem de usar button type='submit' em vez de input type='submit'?"
     options:
       - "Permite ter HTML como conteúdo do botão, como ícones e texto formatado"
-      - "É obrigatório no HTML5"
-      - "Funciona sem JavaScript"
-      - "Envia o formulário mais rapidamente"
+      - "É um elemento totalmente obrigatório no HTML5, e por isso todo formulário precisa usar o button type='submit' para enviar"
+      - "É o único dos dois que consegue funcionar de forma correta mesmo quando a página não tem nenhum código JavaScript carregado"
+      - "Ele consegue enviar os dados do formulário para o servidor de uma forma perceptivelmente mais rápida do que o input type='submit'"
     correct: 0
 ---
 

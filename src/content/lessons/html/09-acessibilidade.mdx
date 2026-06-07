@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "O que é acessibilidade web?"
     options:
-      - "Fazer o site funcionar em conexões lentas"
-      - "Otimizar o site para mecanismos de busca"
+      - "É a prática de fazer com que o site funcione de forma correta mesmo quando o usuário está acessando por uma conexão lenta"
+      - "É a prática de otimizar todo o conteúdo do site para que ele apareça melhor posicionado dentro dos mecanismos de busca"
       - "Garantir que qualquer pessoa consiga usar o site, independente de limitações físicas, cognitivas ou situacionais"
-      - "Fazer o site funcionar sem JavaScript"
+      - "É a prática de garantir que o site continue funcionando de forma totalmente correta mesmo quando o JavaScript está desativado"
     correct: 2
   - question: "Um alt bem escrito para uma imagem deve:"
     options:
-      - "Começar com 'imagem de' ou 'foto de'"
-      - "Ser o mesmo que o nome do arquivo"
-      - "Ter no máximo cinco palavras"
+      - "Deve sempre começar com a expressão 'imagem de' ou 'foto de', para deixar claro para o leitor de tela que aquilo é uma imagem"
+      - "Deve ser exatamente igual ao nome do arquivo da imagem, incluindo a extensão dele, como por exemplo banner-principal.png"
+      - "Deve ter, no máximo, cinco palavras de comprimento, para que a descrição daquela imagem fique sempre curta e bem objetiva"
       - "Descrever o conteúdo da imagem e o que ela comunica naquele contexto"
     correct: 3
   - question: "Qual é o papel do atributo aria-label?"
     options:
-      - "Aplicar um label visual estilizado ao elemento"
+      - "Serve para aplicar ao elemento um rótulo visual já estilizado, que aparece na tela bem ao lado do elemento interativo"
       - "Fornecer um nome acessível a elementos interativos quando o texto visível não é suficiente"
-      - "Associar um input a um label no formulário"
-      - "Ocultar o elemento de leitores de tela"
+      - "Serve para associar um campo de input ao seu elemento label correspondente dentro de um formulário qualquer da página"
+      - "Serve para ocultar por completo aquele elemento específico dos leitores de tela, sem afetar em nada a exibição visual dele"
     correct: 1
   - question: "Por que nunca usar outline:none sem alternativa em elementos focáveis?"
     options:
       - "Porque remove o indicador visual de foco, tornando a navegação por teclado impossível"
-      - "Porque outline é necessário para o CSS funcionar"
-      - "Porque o navegador ignora CSS em elementos focáveis"
-      - "Porque afeta o desempenho de renderização"
+      - "Porque o atributo outline é totalmente necessário para que todo o restante do CSS aplicado na página consiga funcionar direito"
+      - "Porque o navegador acaba ignorando por completo qualquer regra de CSS que seja aplicada a elementos que possam receber foco"
+      - "Porque o uso de outline:none afeta de forma negativa e bastante perceptível o desempenho de renderização da página inteira"
     correct: 0
 ---
 

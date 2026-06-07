@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que o atributo alt é obrigatório em imagens informativas?"
     options:
-      - "Porque sem ele a imagem não carrega"
-      - "Para melhorar a velocidade de carregamento"
+      - "Porque, sem o atributo alt preenchido, a imagem simplesmente não chega a ser carregada nem exibida pelo navegador na tela"
+      - "Serve principalmente para melhorar de forma perceptível a velocidade com que aquela imagem consegue carregar na página"
       - "Para descrever a imagem a quem não pode vê-la — leitores de tela e falhas de carregamento"
-      - "Porque o CSS não consegue estilizar imagens sem alt"
+      - "Porque o CSS da página não consegue aplicar nenhum tipo de estilo visual a uma imagem que esteja sem o atributo alt definido"
     correct: 2
   - question: "Por que declarar width e height em imagens HTML?"
     options:
-      - "Para aumentar a qualidade da imagem"
-      - "Porque sem esses atributos a imagem não aparece"
-      - "Para comprimir a imagem automaticamente"
+      - "Serve para aumentar a qualidade e a nitidez da imagem que vai ser exibida dentro daquela página para o usuário final"
+      - "Porque, sem esses dois atributos definidos na tag, a imagem simplesmente não chega a aparecer para o usuário na página"
+      - "Serve para comprimir a imagem de forma automática, reduzindo bastante o tamanho do arquivo dela antes de ela ser exibida"
       - "Para que o navegador reserve o espaço correto antes da imagem carregar, evitando layout shift"
     correct: 3
   - question: "Quando usar alt='' (alt vazio)?'"
     options:
-      - "Quando a imagem é grande e demoraria para carregar"
+      - "Quando a imagem em questão é grande e, por causa disso, acabaria demorando bastante tempo para terminar de carregar"
       - "Quando a imagem é decorativa e não acrescenta informação ao conteúdo"
-      - "Quando não se sabe qual texto escrever no alt"
-      - "Quando a imagem já tem uma legenda visível"
+      - "Quando você ainda não sabe ao certo qual é o texto mais adequado para escrever dentro do atributo alt daquela imagem"
+      - "Quando aquela imagem específica já possui uma legenda visível escrita logo abaixo dela, descrevendo o seu conteúdo"
     correct: 1
   - question: "O que o atributo loading='lazy' faz?"
     options:
       - "Adia o carregamento da imagem até ela estar próxima da viewport"
-      - "Aplica um efeito de blur enquanto a imagem carrega"
-      - "Carrega a imagem em baixa resolução primeiro e depois em alta"
-      - "Desativa o cache da imagem no navegador"
+      - "Aplica automaticamente um efeito visual de desfoque (blur) sobre a imagem enquanto ela ainda está sendo carregada"
+      - "Faz o navegador carregar primeiro uma versão da imagem em baixa resolução e, só depois, a versão dela em alta resolução"
+      - "Desativa por completo o cache daquela imagem específica dentro do navegador, forçando um novo download a cada acesso"
     correct: 0
 ---
 

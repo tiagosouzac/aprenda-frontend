@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a diferença entre linting e formatação?"
     options:
-      - "Linting analisa o código em busca de padrões problemáticos (variáveis não usadas, hooks chamados condicionalmente, uso de == em vez de ===). Formatação ajusta a aparência visual (espaços, ponto-e-vírgula, aspas) sem mudar o comportamento"
-      - "O linting e a formatação são, na verdade, exatamente a mesma coisa: são apenas dois nomes diferentes usados para o mesmo processo"
-      - "O linting é uma etapa que serve apenas para o código TypeScript, enquanto a formatação é uma etapa que serve apenas para os arquivos CSS"
-      - "A formatação é uma etapa de execução perceptivelmente mais lenta do que o linting na maioria dos projetos, independentemente do tamanho"
+      - "Linting busca padrões problemáticos no código; formatação ajusta só a aparência"
+      - "Linting e formatação são a mesma coisa — dois nomes para o mesmo processo"
+      - "Linting serve só para TypeScript e formatação só para arquivos CSS"
+      - "A formatação é uma etapa mais lenta de rodar do que o linting"
     correct: 0
   - question: "Por que vale configurar o strict mode do TypeScript em projetos novos?"
     options:
-      - "Vale a pena configurar o strict mode para que o TypeScript passe a aceitar uma quantidade bem maior de sintaxes diferentes do JavaScript"
-      - "Vale a pena configurar o strict mode principalmente porque ele acaba acelerando bastante o tempo total de compilação do código TypeScript"
-      - "strict: true ativa um conjunto de verificações mais rigorosas — noImplicitAny (proíbe any implícito), strictNullChecks (null e undefined precisam ser tratados explicitamente), e outras. Detecta mais erros em tempo de desenvolvimento, reduzindo bugs em produção"
-      - "Vale a pena configurar o strict mode porque ele é um pré-requisito necessário para que o TypeScript consiga funcionar em conjunto com o React"
+      - "Para que o TypeScript passe a aceitar mais sintaxes diferentes do JavaScript"
+      - "Porque ele acaba acelerando bastante o tempo de compilação do TypeScript"
+      - "Ativa verificações rigorosas (noImplicitAny, strictNullChecks…) e pega mais erros cedo"
+      - "Porque é um pré-requisito para o TypeScript funcionar em conjunto com o React"
     correct: 2
   - question: "O que o Biome faz que ESLint + Prettier juntos fazem, mas em uma única ferramenta?"
     options:
-      - "O Biome faz apenas a formatação do código do projeto, e não realiza nenhum tipo de linting, ao contrário do que muita gente acaba imaginando"
-      - "O Biome também é capaz de fazer o bundle do projeto inteiro, além de cuidar de toda a parte de lint e de formatação do código de uma vez só"
-      - "O Biome é uma ferramenta que só consegue funcionar em projetos que usam TypeScript, e não funciona com JavaScript puro de forma alguma"
-      - "Lint e formatação em um único binário escrito em Rust — significativamente mais rápido que ESLint + Prettier separados, com configuração menor e sem os conflitos que podem surgir entre as duas ferramentas quando mal configuradas"
+      - "O Biome faz só a formatação do código e não realiza nenhum tipo de linting"
+      - "O Biome também faz o bundle do projeto, além de cuidar do lint e da formatação"
+      - "O Biome só funciona em projetos TypeScript, nunca com JavaScript puro"
+      - "Lint e formatação num único binário em Rust: mais rápido e sem conflitos de config"
     correct: 3
   - question: "Por que é importante integrar ESLint/Biome ao CI além de ao editor?"
     options:
-      - "Porque pode acontecer de o editor de código do desenvolvedor não estar com a extensão necessária do linter devidamente instalada nele"
-      - "Porque a integração com o editor depende do desenvolvedor ter configurado corretamente. O CI garante que código que viola as regras não passe para a branch principal — independentemente de como o editor de cada pessoa está configurado"
-      - "Porque o ambiente de CI é, de modo geral, perceptivelmente mais rápido na hora de rodar o linter do que o editor de cada uma das pessoas"
-      - "Não é realmente necessário integrar o linter ao CI: ter o linter rodando dentro do editor de código de cada um já é totalmente suficiente"
+      - "Porque o editor do desenvolvedor pode estar sem a extensão do linter instalada"
+      - "A config do editor depende de cada um; o CI barra código que viola as regras"
+      - "Porque o ambiente de CI roda o linter mais rápido do que o editor de cada um"
+      - "Não é necessário: o linter rodando no editor de cada pessoa já é suficiente"
     correct: 1
 ---
 

@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "O que o backend faz que o frontend não pode fazer?"
     options:
-      - "Acessar banco de dados, gerenciar autenticação e segredos (senhas de banco, chaves de API), processar lógica que não deve ser exposta ao cliente, e servir dados para múltiplos clientes (browser, mobile, outros serviços)"
-      - "O backend é o único que consegue exibir o HTML já renderizado dentro do navegador do usuário que está acessando aquela página"
-      - "O backend é o único capaz de executar código JavaScript, já que o frontend simplesmente não tem acesso a nenhum motor de execução"
-      - "O backend é o único que consegue de fato fazer requisições HTTP para outros servidores e serviços que estão espalhados pela internet"
+      - "Acessar o banco, guardar segredos e rodar lógica que não pode ficar exposta no cliente"
+      - "Exibir o HTML já renderizado dentro do navegador do usuário"
+      - "Executar código JavaScript, coisa que o frontend não consegue fazer"
+      - "Fazer requisições HTTP para outros servidores e serviços da internet"
     correct: 0
   - question: "Qual é a diferença entre REST e GraphQL?"
     options:
-      - "O REST sempre troca dados usando o formato JSON, enquanto o GraphQL troca todos os seus dados usando o formato XML por padrão"
-      - "O REST é, por sua própria natureza, uma abordagem bem mais segura de se construir uma API do que o GraphQL em qualquer projeto"
-      - "REST define um endpoint por recurso (GET /artigos, GET /artigos/:id). GraphQL tem um único endpoint e o cliente especifica exatamente os campos que precisa — eliminando over-fetching (dados desnecessários) e under-fetching (precisar de múltiplos requests)"
-      - "O GraphQL é, em todos os casos possíveis, perceptivelmente mais rápido para responder a uma requisição do que uma API REST comum"
+      - "O REST troca dados em JSON e o GraphQL troca tudo em XML por padrão"
+      - "O REST é, por natureza, uma forma bem mais segura de API que o GraphQL"
+      - "REST tem um endpoint por recurso; GraphQL tem um só e o cliente pede os campos exatos"
+      - "O GraphQL é sempre mais rápido para responder que uma API REST comum"
     correct: 2
   - question: "Para que serve um ORM como Prisma?"
     options:
-      - "Um ORM como o Prisma serve principalmente para criar as interfaces de usuário de uma aplicação web a partir das tabelas do banco"
-      - "Um ORM como o Prisma serve para gerar, de forma totalmente automática, uma API REST completa a partir das tabelas do banco de dados"
-      - "Um ORM como o Prisma serve essencialmente para conectar o código do frontend diretamente ao código do backend daquela aplicação"
-      - "Para acessar o banco de dados usando JavaScript/TypeScript em vez de SQL puro — o ORM traduz chamadas de código para queries SQL, valida tipos, e gera migrações de schema"
+      - "Criar as interfaces de usuário da aplicação a partir das tabelas do banco"
+      - "Gerar automaticamente uma API REST completa a partir das tabelas do banco"
+      - "Conectar diretamente o código do frontend ao código do backend da aplicação"
+      - "Acessar o banco com JavaScript/TypeScript em vez de SQL puro, com tipos e migrações"
     correct: 3
   - question: "O que é um BFF (Backend for Frontend)?"
     options:
-      - "É uma biblioteca específica criada para construir o código de servidores e de backends inteiros usando a própria sintaxe do React"
-      - "Uma camada de backend dedicada a servir um frontend específico — agrega dados de múltiplas APIs internas, formata os dados no shape exato que o cliente precisa, e evita que o frontend faça múltiplas requisições para obter os dados de uma tela"
-      - "É um tipo de banco de dados que foi especialmente otimizado para ser usado em conjunto com aplicações que são construídas em React"
-      - "É exatamente a mesma coisa que uma API REST convencional, apenas sendo chamada por um outro nome um pouco mais moderno no mercado"
+      - "Uma biblioteca para construir servidores e backends com a sintaxe do React"
+      - "Uma camada de backend dedicada a um frontend: agrega várias APIs no formato exato que a tela precisa"
+      - "Um tipo de banco de dados otimizado para aplicações feitas em React"
+      - "É exatamente a mesma coisa que uma API REST convencional, só com outro nome"
     correct: 1
 ---
 

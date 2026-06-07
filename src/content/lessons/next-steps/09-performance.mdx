@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "O que o LCP (Largest Contentful Paint) mede?"
     options:
-      - "O tempo até o maior elemento visível na viewport (geralmente a imagem de capa ou o título principal) ter carregado. É a métrica mais próxima de 'quando a página parece pronta' para o usuário"
-      - "Mede o tempo que leva até o primeiro pixel qualquer ser pintado na tela do navegador depois do início do carregamento da página"
-      - "Mede o tempo total que a página leva até que absolutamente todos os seus recursos tenham terminado de carregar por completo no fim"
-      - "Mede a quantidade total de elementos diferentes que existem dentro da árvore do DOM da página naquele exato momento do carregamento"
+      - "O tempo até o maior elemento visível da viewport carregar — quando a página parece pronta"
+      - "O tempo até o primeiro pixel ser pintado na tela do navegador"
+      - "O tempo total até todos os recursos da página terminarem de carregar"
+      - "A quantidade total de elementos na árvore do DOM da página"
     correct: 0
   - question: "O que é CLS (Cumulative Layout Shift) e como evitá-lo?"
     options:
-      - "É o tempo total que o navegador leva para processar e aplicar todo o CSS da página antes de conseguir exibi-la para o usuário final"
-      - "É a quantidade total de classes CSS diferentes que acabam sendo aplicadas a um único elemento da página durante o seu carregamento"
-      - "A soma de todos os deslocamentos de layout inesperados durante a vida da página — elementos que pulam quando imagens carregam ou fonts renderizam. Evitar reservando espaço com width/height em imagens e usando font-display: swap com cuidado"
-      - "É o tempo que o código JavaScript da página leva para terminar de executar por completo depois que ela termina de carregar na tela"
+      - "O tempo que o navegador leva para processar e aplicar todo o CSS da página"
+      - "A quantidade de classes CSS diferentes aplicadas a um único elemento"
+      - "A soma dos deslocamentos de layout inesperados; evitar reservando espaço para imagens e fontes"
+      - "O tempo que o JavaScript da página leva para terminar de executar"
     correct: 2
   - question: "O que é code splitting e por que ajuda na performance?"
     options:
-      - "É uma técnica usada apenas para dividir o código TypeScript do projeto em vários arquivos diferentes e um pouco mais organizados entre si"
-      - "É o processo de minificar o código JavaScript da aplicação para conseguir reduzir o tamanho total dos arquivos que vão para produção"
-      - "É a prática de separar o código que vem das bibliotecas externas do código que foi escrito especificamente para a aplicação em si"
-      - "Dividir o bundle JavaScript em chunks menores carregados sob demanda — o usuário baixa apenas o código necessário para a página atual, não o bundle inteiro da aplicação. Reduz o JavaScript inicial e acelera o first load"
+      - "Uma técnica para dividir o código TypeScript em vários arquivos"
+      - "O processo de minificar o JavaScript para reduzir o tamanho dos arquivos"
+      - "Separar o código das bibliotecas externas do código da aplicação"
+      - "Dividir o bundle em chunks sob demanda: o usuário baixa só o código da página atual"
     correct: 3
   - question: "Por que servir imagens em WebP ou AVIF em vez de JPEG?"
     options:
-      - "Porque o formato JPEG, ao contrário do WebP e do AVIF, simplesmente não oferece nenhum suporte a imagens que tenham fundo transparente"
-      - "WebP oferece compressão 25-35% melhor que JPEG com qualidade visual equivalente. AVIF é ainda mais eficiente (~50% menor que JPEG). Menos bytes para baixar = carregamento mais rápido, especialmente em conexões lentas"
-      - "Porque os navegadores mais antigos do mercado já não conseguem mais exibir de forma correta as imagens que estejam no formato JPEG comum"
-      - "Por questões relacionadas a direitos autorais, já que o formato de imagem JPEG ainda possui uma série de patentes ativas registradas sobre ele"
+      - "Porque o JPEG, ao contrário do WebP e do AVIF, não suporta transparência"
+      - "WebP comprime ~25-35% melhor que JPEG, e o AVIF ainda mais; menos bytes = mais rápido"
+      - "Porque os navegadores mais antigos já não exibem imagens em JPEG"
+      - "Por questões de direitos autorais, já que o JPEG ainda tem patentes ativas"
     correct: 1
 ---
 

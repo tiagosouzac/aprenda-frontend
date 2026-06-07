@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "O que uma ferramenta de build faz com o código TypeScript e JSX antes de entregar ao browser?"
     options:
-      - "Transpila TypeScript para JavaScript, JSX para chamadas de função, resolve módulos ES (imports), agrupa tudo em um ou poucos arquivos, e minifica o resultado — eliminando espaços, comentários e encurtando nomes de variáveis"
-      - "Ela apenas executa o código uma única vez e então salva o resultado final dessa execução em um cache para reaproveitar depois"
-      - "Ela apenas faz a verificação dos tipos do código usando o TypeScript, sem realizar nenhuma outra transformação no código-fonte"
-      - "Ela apenas comprime e reduz o tamanho dos arquivos do projeto, sem chegar a modificar de fato o conteúdo do código que foi escrito"
+      - "Transpila TS para JS e JSX para funções, resolve imports, junta tudo e minifica"
+      - "Apenas executa o código uma vez e guarda o resultado em cache"
+      - "Apenas verifica os tipos com o TypeScript, sem transformar o código"
+      - "Apenas comprime os arquivos, sem modificar o conteúdo do código"
     correct: 0
   - question: "Por que o Vite é mais rápido no desenvolvimento que ferramentas baseadas em bundle??"
     options:
-      - "Porque o Vite utiliza, por baixo dos panos, um compilador interno bem mais eficiente do que o usado pelas outras ferramentas de build"
-      - "Porque o Vite escreve todo o bundle gerado diretamente na memória RAM da máquina, em vez de salvá-lo em arquivos no disco rígido"
-      - "Em desenvolvimento, Vite usa ESM nativo do browser — serve cada módulo individualmente sem fazer bundle. O browser importa apenas o que precisa. Ferramentas como webpack fazem bundle de tudo antes de servir, o que fica lento em projetos grandes"
-      - "Porque o Vite consegue distribuir o trabalho de build entre várias threads diferentes da CPU ao mesmo tempo durante a sua execução"
+      - "Porque o Vite usa um compilador interno mais eficiente que as outras ferramentas"
+      - "Porque o Vite escreve todo o bundle na memória RAM, e não em disco"
+      - "Em dev, o Vite serve cada módulo via ESM nativo, sem fazer bundle de tudo antes"
+      - "Porque o Vite distribui o trabalho de build entre várias threads da CPU"
     correct: 2
   - question: "O que é tree-shaking?"
     options:
-      - "É uma técnica usada especificamente para otimizar e reduzir o tamanho das imagens que são carregadas pela aplicação dentro do navegador"
-      - "É uma técnica usada para dividir o bundle final da aplicação em vários pedaços (chunks) menores, que são carregados sob demanda"
-      - "É o processo responsável por minificar todo o CSS do projeto, removendo dele os espaços e os comentários antes de ele ir para produção"
-      - "Eliminação de código morto no bundle — código importado mas não usado é removido. Se você importa { formatarData } de utils.ts mas não usa calcularTempoLeitura, esta não vai no bundle final"
+      - "Uma técnica para otimizar e reduzir o tamanho das imagens da aplicação"
+      - "Uma técnica para dividir o bundle em vários chunks carregados sob demanda"
+      - "O processo de minificar o CSS, removendo espaços e comentários"
+      - "Remove do bundle o código importado mas que nunca chega a ser usado (código morto)"
     correct: 3
   - question: "Quando você precisa se aprofundar em configuração de build?"
     options:
-      - "Você precisa se aprofundar em configuração de build sempre, porque absolutamente todo projeto acaba precisando de uma configuração personalizada"
-      - "Quando o projeto tem requisitos específicos: proxy para API em desenvolvimento, aliases de caminho (@/ para src/), variáveis de ambiente diferentes por ambiente, otimizações de bundle para produção, ou integração com ferramentas que não têm plugin oficial"
-      - "Você só precisa se aprofundar em configuração de build quando o projeto em questão chega a ter mais de cem arquivos diferentes no total"
-      - "Você só precisa se aprofundar em configuração de build especificamente quando o projeto está usando o webpack como a sua ferramenta de build"
+      - "Sempre — todo projeto acaba precisando de configuração personalizada"
+      - "Quando há requisitos específicos: proxy de API, aliases, env por ambiente, otimizações"
+      - "Só quando o projeto chega a ter mais de cem arquivos diferentes"
+      - "Só quando o projeto está usando o webpack como ferramenta de build"
     correct: 1
 ---
 

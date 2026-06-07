@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a principal vantagem do Tailwind CSS em relação ao CSS puro?"
     options:
-      - "Utility-first: classes atômicas que eliminam a necessidade de nomear seletores. O bundle de produção contém apenas as classes usadas. Em equipes, elimina divergências de nomeação e convenções de CSS"
-      - "A principal vantagem é que o Tailwind acaba gerando um CSS final perceptivelmente mais rápido de ser executado pelo navegador"
-      - "A principal vantagem é que o Tailwind permite estilizar a aplicação inteira sem precisar de absolutamente nenhum arquivo CSS no projeto"
-      - "A principal vantagem é que o Tailwind oferece um suporte bem melhor à criação de animações complexas do que o CSS escrito à mão"
+      - "Utility-first: classes atômicas, sem nomear seletores; o bundle final só traz as classes usadas"
+      - "O Tailwind gera um CSS final mais rápido de executar no navegador"
+      - "O Tailwind permite estilizar tudo sem nenhum arquivo CSS no projeto"
+      - "O Tailwind oferece um suporte a animações bem melhor que o CSS puro"
     correct: 0
   - question: "O que CSS Modules resolve que CSS global não resolve?"
     options:
-      - "Os CSS Modules dão suporte ao uso de variáveis dentro do CSS, algo que o CSS global tradicional simplesmente não consegue oferecer"
-      - "Os CSS Modules são, de modo geral, perceptivelmente mais rápidos de serem executados pelo navegador do que o CSS global comum"
-      - "CSS Modules geram nomes de classe únicos em build time — garantindo que os estilos de um componente não vazam para outros. Com CSS global, .titulo no ArticleCard pode entrar em conflito com .titulo no Header"
-      - "Os CSS Modules conseguem funcionar normalmente sem precisar de absolutamente nenhuma configuração extra dentro do projeto que os utiliza"
+      - "Os CSS Modules dão suporte a variáveis, algo que o CSS global não tem"
+      - "Os CSS Modules são mais rápidos de executar que o CSS global comum"
+      - "Gera nomes de classe únicos em build time, então os estilos de um componente não vazam"
+      - "Os CSS Modules funcionam sem nenhuma configuração extra no projeto"
     correct: 2
   - question: "Qual é o problema de styled-components em comparação com soluções build-time?"
     options:
-      - "O principal problema é que o styled-components simplesmente não oferece nenhum tipo de suporte ao uso de TypeScript dentro de um projeto"
-      - "O principal problema é que o styled-components não dá suporte a temas, então não dá para alternar entre modo claro e escuro usando ele"
-      - "O principal problema é que a sintaxe do styled-components é muito mais verbosa e trabalhosa de escrever do que as outras soluções de estilo"
-      - "styled-components injeta estilos em runtime via JavaScript — aumenta o bundle, pode causar flash de estilos não estilizados (FOUC), e em SSR exige configuração adicional. Soluções build-time (CSS Modules, vanilla-extract) não têm esse custo"
+      - "O styled-components não oferece nenhum suporte ao uso de TypeScript"
+      - "O styled-components não dá suporte a temas claro e escuro na página"
+      - "A sintaxe do styled-components é mais verbosa que as outras soluções"
+      - "Injeta estilos em runtime via JS: aumenta o bundle, pode causar FOUC e complica o SSR"
     correct: 3
   - question: "Quando faz sentido usar CSS global em vez de qualquer solução de escopo?"
     options:
-      - "Nunca faz sentido usar o CSS global, porque ele acaba sempre causando algum tipo de problema de conflito de estilos no projeto inteiro"
-      - "Para tokens de design (variáveis CSS), reset/normalize, fontes (@font-face), e estilos de elementos HTML base. O CSS global complementa as soluções de escopo — não as substitui"
-      - "Faz sentido usar o CSS global apenas nos projetos que são considerados pequenos o suficiente na quantidade total de código que possuem"
-      - "Faz sentido usar o CSS global apenas quando o projeto utiliza algum framework mais completo por baixo, como é o caso específico do Next.js"
+      - "Nunca: o CSS global sempre causa algum conflito de estilos no projeto"
+      - "Para tokens de design, reset/normalize, fontes e estilos de elementos base"
+      - "Apenas nos projetos pequenos o suficiente em quantidade de código"
+      - "Apenas quando o projeto usa um framework como o Next.js por baixo"
     correct: 1
 ---
 

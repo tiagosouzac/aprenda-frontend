@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é o principal problema do React puro como SPA para sites com conteúdo como o blog?"
     options:
-      - "O servidor entrega HTML praticamente vazio — o JavaScript monta a página no browser. Robôs de busca veem pouco conteúdo (SEO fraco) e o usuário vê uma tela branca enquanto o JS carrega (first paint lento)"
-      - "O principal problema é que o React puro simplesmente não oferece nenhum tipo de suporte ao uso de TypeScript em projetos de blog"
-      - "O principal problema é que o React puro não vem com nenhum sistema de roteamento entre páginas embutido dentro da própria biblioteca"
-      - "O principal problema é que a biblioteca React é grande e pesada demais para ser usada em um site simples de conteúdo como é um blog"
+      - "O HTML do servidor vem quase vazio: SEO fraco e tela branca até o JS carregar"
+      - "Porque o React puro não dá suporte a TypeScript em sites de blog"
+      - "Porque o React puro não traz um sistema de roteamento embutido"
+      - "Porque o React é grande e pesado demais para um simples blog"
     correct: 0
   - question: "Qual a diferença entre SSR e SSG?"
     options:
-      - "O SSR é uma técnica usada apenas em projetos React, enquanto o SSG é uma técnica usada apenas nos outros frameworks do mercado"
-      - "O SSG é, em todos os casos possíveis, perceptivelmente mais rápido do que o SSR para qualquer tipo de conteúdo de qualquer site"
-      - "SSR (Server-Side Rendering) renderiza o HTML no servidor a cada requisição — ideal para conteúdo dinâmico por usuário. SSG (Static Site Generation) gera o HTML em tempo de build — ideal para conteúdo que não muda entre deploys, como artigos de blog"
-      - "Não existe nenhuma diferença técnica real entre SSR e SSG: os dois são apenas termos diferentes usados para exatamente a mesma coisa"
+      - "O SSR só serve para React; o SSG, para outros frameworks"
+      - "O SSG é sempre mais rápido que o SSR para qualquer conteúdo"
+      - "SSR renderiza o HTML no servidor a cada acesso; SSG, no build"
+      - "Não há diferença técnica — são termos equivalentes"
     correct: 2
   - question: "Por que o Astro seria a escolha mais direta para o blog do curso?"
     options:
-      - "Porque o Astro, por baixo dos panos, na verdade usa o próprio React internamente para conseguir renderizar todas as páginas do site"
-      - "Porque o Astro é o framework que oferece, de longe, o melhor suporte ao uso de TypeScript dentro de todo o ecossistema web atual"
-      - "Porque o Astro é, atualmente, o framework frontend mais popular e o mais utilizado em todo o mercado de desenvolvimento web"
-      - "Porque Astro gera HTML estático por padrão e tem zero JS no cliente a menos que você peça — para um blog de conteúdo, a maioria das páginas não precisa de JavaScript interativo, e Astro é otimizado exatamente para esse caso"
+      - "Porque o Astro usa o próprio React internamente por baixo"
+      - "Porque o Astro tem o melhor suporte a TypeScript do mercado"
+      - "Porque o Astro é o framework frontend mais popular hoje"
+      - "Porque o Astro gera HTML estático e zero JS por padrão — ideal para blog"
     correct: 3
   - question: "Quando Next.js faz mais sentido que Astro?"
     options:
-      - "O Next.js faz mais sentido sempre, em qualquer situação possível, porque ele é simplesmente um framework muito mais completo do que o Astro"
-      - "Quando a aplicação tem partes altamente interativas (dashboards, feeds em tempo real, experiências personalizadas por usuário) e precisa de SSR com lógica de servidor, autenticação, ou APIs integradas — não apenas páginas de conteúdo estático"
-      - "O Next.js faz mais sentido especificamente quando você quer poder utilizar o TypeScript no seu projeto, algo que o Astro não chega a permitir"
-      - "O Next.js faz mais sentido especificamente quando o projeto em questão já é considerado um projeto grande em quantidade total de código"
+      - "Sempre — o Next.js é simplesmente mais completo que o Astro"
+      - "Quando há partes muito interativas e SSR com lógica de servidor, auth ou APIs"
+      - "Quando você quer usar TypeScript, o que o Astro não permite"
+      - "Quando o projeto já é grande em quantidade de código"
     correct: 1
 ---
 

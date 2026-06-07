@@ -10,30 +10,30 @@ quiz:
   - question: "O que a declaração grid-template-columns: repeat(3, 1fr) cria?"
     options:
       - "Três colunas que dividem igualmente o espaço disponível"
-      - "Três linhas de altura igual"
-      - "Uma coluna com três trilhas"
-      - "Um grid de nove células"
+      - "Cria três linhas no grid, todas elas com exatamente a mesma altura, distribuída de forma igual pelo espaço disponível"
+      - "Cria uma única coluna no grid, mas que é dividida internamente em três trilhas menores de tamanhos iguais entre si na página"
+      - "Cria um grid completo, formado por um total de nove células organizadas em uma disposição de três por três dentro do container"
     correct: 0
   - question: "O que é a unidade fr em CSS Grid?"
     options:
-      - "Um pixel fracionário"
-      - "A frequência de atualização do grid"
+      - "É uma unidade que representa um pixel fracionário, ou seja, uma fração de tamanho menor do que o de um pixel inteiro na tela"
+      - "É a unidade que representa a frequência com que o grid da página é atualizado e redesenhado pelo navegador a cada segundo"
       - "Uma fração do espaço restante após descontar itens de tamanho fixo"
-      - "Um alias para flex: 1"
+      - "É apenas um nome alternativo (alias) para o valor flex: 1, usado dentro do contexto de layouts que são criados com o CSS Grid"
     correct: 2
   - question: "Qual é a principal diferença entre Grid e Flexbox?"
     options:
-      - "Grid usa JavaScript; Flexbox usa CSS puro"
-      - "Grid é mais rápido que Flexbox"
-      - "Flexbox suporta mais navegadores que Grid"
+      - "O Grid funciona usando JavaScript por baixo, enquanto o Flexbox consegue funcionar usando apenas CSS puro, sem nenhum script"
+      - "O Grid é, de modo geral, perceptivelmente mais rápido de ser renderizado pelo navegador do que o Flexbox na maioria dos casos"
+      - "O Flexbox oferece suporte a uma quantidade bem maior de navegadores diferentes do que o CSS Grid consegue oferecer hoje em dia"
       - "Grid trabalha em duas dimensões (linhas e colunas simultaneamente); Flexbox trabalha em uma dimensão por vez"
     correct: 3
   - question: "O que acontece com um grid item que não cabe nas colunas definidas por grid-template-columns?"
     options:
-      - "Ele é removido do layout"
+      - "Aquele grid item simplesmente é removido por completo do layout da página, deixando de ser exibido para o usuário na tela"
       - "Ele vai para o grid implícito — linhas criadas automaticamente com tamanho definido por grid-auto-rows"
-      - "Ele cria uma nova coluna automática"
-      - "Ele herda o tamanho da última coluna definida"
+      - "Aquele grid item acaba criando, ele mesmo, uma nova coluna automática dentro do grid para conseguir caber junto dos demais"
+      - "Aquele grid item herda automaticamente o mesmo tamanho que foi definido para a última coluna declarada no grid-template-columns"
     correct: 1
 ---
 

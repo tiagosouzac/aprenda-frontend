@@ -23,17 +23,17 @@ quiz:
     correct: 2
   - question: "Qual é a diferença entre :first-child e :first-of-type?"
     options:
-      - "Não há diferença — são sinônimos"
-      - ":first-child funciona apenas com parágrafos; :first-of-type com qualquer elemento"
-      - ":first-child é mais específico que :first-of-type"
+      - "Não existe diferença alguma entre os dois: tanto faz usar o :first-child ou o :first-of-type em qualquer situação no CSS"
+      - "O seletor :first-child só funciona quando é aplicado a parágrafos, enquanto o :first-of-type funciona com qualquer elemento"
+      - "O seletor :first-child é, por natureza, sempre mais específico do que o seletor :first-of-type no cálculo de prioridade"
       - ":first-child seleciona o primeiro filho de qualquer tipo; :first-of-type seleciona o primeiro do mesmo tipo de tag"
     correct: 3
   - question: "O que os pseudo-elementos ::before e ::after precisam obrigatoriamente para renderizar?"
     options:
-      - "Um id no elemento pai"
+      - "Precisam que exista um id definido no elemento pai daquele pseudo-elemento para que consigam aparecer corretamente na tela"
       - "A propriedade content, mesmo que vazia"
-      - "A propriedade display: block"
-      - "Um position: relative no elemento pai"
+      - "Precisam que a propriedade display esteja definida com o valor block para que consigam ser renderizados dentro da página"
+      - "Precisam que o elemento pai tenha a propriedade position definida como relative para conseguirem ser exibidos na tela"
     correct: 1
 ---
 

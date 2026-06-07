@@ -16,24 +16,24 @@ quiz:
     correct: 0
   - question: "O que flex: 1 significa?"
     options:
-      - "O item tem largura de 1px"
-      - "O item é o primeiro na ordem visual"
+      - "Significa que aquele item do flex passa a ter exatamente 1px de largura total dentro do container flex que existe na página"
+      - "Significa que aquele item é sempre o primeiro a aparecer na ordem visual dentro do container flex, vindo antes dos demais"
       - "flex-grow: 1, flex-shrink: 1, flex-basis: 0 — o item cresce para preencher o espaço disponível"
-      - "O item tem opacidade de 1"
+      - "Significa que aquele item do flex passa a ter o valor 1 aplicado na sua propriedade de opacidade, ficando assim bem visível"
     correct: 2
   - question: "Qual é a diferença entre justify-content e align-items?"
     options:
-      - "justify-content alinha no eixo cruzado; align-items no eixo principal"
-      - "Não há diferença — são sinônimos"
-      - "justify-content é para grid; align-items é para flexbox"
+      - "O justify-content faz o alinhamento no eixo cruzado, enquanto o align-items faz o alinhamento ao longo do eixo principal"
+      - "Não existe diferença alguma entre os dois: justify-content e align-items são apenas sinônimos um do outro dentro do flexbox"
+      - "O justify-content é uma propriedade que serve apenas para o grid, enquanto o align-items serve apenas para o flexbox na página"
       - "justify-content distribui ao longo do eixo principal; align-items alinha no eixo cruzado"
     correct: 3
   - question: "Por que flex-wrap: nowrap (o padrão) pode ser problemático?"
     options:
-      - "Porque impede o uso de gap"
+      - "Porque o uso do flex-wrap: nowrap acaba impedindo por completo que você consiga usar a propriedade gap naquele container flex"
       - "Porque os items encolhem indefinidamente para caber numa linha, podendo ficar menores do que o conteúdo permite"
-      - "Porque desativa o eixo cruzado"
-      - "Porque não funciona em mobile"
+      - "Porque o flex-wrap: nowrap acaba desativando por completo o eixo cruzado do container flex, impedindo o alinhamento dos itens"
+      - "Porque a propriedade flex-wrap: nowrap simplesmente não consegue funcionar de forma correta quando se está em dispositivos mobile"
     correct: 1
 ---
 

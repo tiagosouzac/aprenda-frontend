@@ -10,30 +10,30 @@ quiz:
   - question: "Qual é a vantagem de usar rem em vez de px para font-size?"
     options:
       - "rem é relativo ao font-size do elemento raiz (html), então respeita a preferência de tamanho de texto do usuário"
-      - "rem é mais rápido de processar pelo navegador"
-      - "rem evita margin collapsing"
-      - "rem não pode ser usado com media queries"
+      - "O rem é, de modo geral, perceptivelmente mais rápido de ser processado pelo navegador do que a unidade px na maioria dos casos"
+      - "O uso da unidade rem ajuda a evitar o problema de margin collapsing que costuma acontecer entre os elementos dentro da página"
+      - "A unidade rem, ao contrário da unidade px, simplesmente não pode ser usada dentro das condições de uma media query no arquivo CSS"
     correct: 0
   - question: "Para que serve a unidade ch em CSS?"
     options:
-      - "Altura de uma letra maiúscula"
-      - "Equivalente a 1% da altura da viewport"
+      - "É a unidade que representa a altura exata de uma letra maiúscula qualquer dentro da fonte que está sendo usada naquele momento"
+      - "É uma unidade equivalente a 1% da altura total da viewport do navegador, bem parecida com o funcionamento da unidade vh no CSS"
       - "Largura do caractere '0' na fonte atual — útil para definir max-width de texto legível"
-      - "Unidade de cor hue"
+      - "É a unidade usada para representar o matiz (hue) de uma cor dentro do sistema de cores hsl que é utilizado pelo CSS na página"
     correct: 2
   - question: "Qual é a vantagem do formato de cor hsl sobre hex?"
     options:
-      - "hsl é mais compacto que hex"
-      - "hsl suporta transparência; hex não"
-      - "hsl é suportado em mais navegadores"
+      - "O formato hsl é, de modo geral, bem mais compacto e curto de se escrever no código do que o formato de cor hexadecimal"
+      - "O formato hsl oferece suporte ao uso de transparência nas cores, enquanto o formato hexadecimal simplesmente não oferece isso"
+      - "O formato de cor hsl tem suporte em uma quantidade bem maior de navegadores diferentes do que o formato hexadecimal hoje"
       - "hsl descreve matiz, saturação e luminosidade — mais intuitivo para criar variações de uma cor"
     correct: 3
   - question: "O que é line-height sem unidade, como line-height: 1.6?"
     options:
-      - "160px de espaço entre linhas"
+      - "Significa um espaço fixo de exatamente 160px de altura entre cada uma das linhas de texto que existem dentro daquele elemento"
       - "Um multiplicador do font-size atual — o espaço entre linhas é 1.6 × font-size"
-      - "1.6 vezes a altura da viewport"
-      - "Equivalente a 1.6rem"
+      - "Significa um valor equivalente a 1.6 vezes a altura total da viewport do navegador entre cada uma das linhas de texto do elemento"
+      - "É um valor exatamente equivalente a 1.6rem de espaço que é aplicado entre cada uma das linhas de texto dentro daquele elemento"
     correct: 1
 ---
 

@@ -16,24 +16,24 @@ quiz:
     correct: 0
   - question: "Qual é a forma recomendada de conectar CSS ao HTML em projetos reais?"
     options:
-      - "Atributo style em cada elemento HTML"
-      - "Tag style no body"
+      - "Usar o atributo style diretamente em cada um dos elementos HTML da página que você quer estilizar de forma individual"
+      - "Escrever todos os estilos dentro de uma única tag style que fica colocada bem no final do body do documento HTML"
       - "Link rel='stylesheet' no head apontando para um arquivo externo"
-      - "Importar o CSS pelo JavaScript"
+      - "Importar e aplicar o arquivo CSS na página por meio de código JavaScript depois que o documento já terminou de carregar"
     correct: 2
   - question: "O que é uma declaração CSS?"
     options:
-      - "O seletor que aponta para um elemento"
-      - "O arquivo .css inteiro"
-      - "Um comentário que explica a regra"
+      - "É o seletor que aponta para qual elemento da página aquele bloco de regras de estilo deve acabar sendo aplicado de fato"
+      - "É o arquivo .css inteiro, com todas as regras de estilo da página escritas e organizadas uma após a outra dentro dele"
+      - "É um comentário escrito no CSS cuja função é apenas explicar o que aquela regra de estilo faz para quem está lendo o código"
       - "Um par propriedade: valor terminado com ponto e vírgula"
     correct: 3
   - question: "Por que o link para o arquivo CSS vai no head e não no final do body?"
     options:
-      - "É apenas uma convenção sem impacto real"
+      - "É apenas uma convenção adotada pela comunidade na hora de escrever o CSS, sem nenhum impacto técnico real sobre a página"
       - "Para que o CSS esteja pronto antes do body ser renderizado, evitando flash de conteúdo sem estilo"
-      - "Porque o JavaScript precisa que o CSS esteja carregado primeiro"
-      - "Para melhorar o SEO da página"
+      - "Porque o código JavaScript da página precisa que todo o CSS dela já esteja completamente carregado antes de ele executar"
+      - "Para conseguir melhorar de forma perceptível o posicionamento daquela página dentro dos mecanismos de busca da internet"
     correct: 1
 ---
 

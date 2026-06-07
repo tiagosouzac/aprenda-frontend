@@ -16,24 +16,24 @@ quiz:
     correct: 0
   - question: "Por que definir custom properties em :root é recomendado para design tokens?"
     options:
-      - "Porque :root tem especificidade mais alta que outros seletores"
-      - "Porque apenas :root pode conter custom properties"
+      - "Porque o seletor :root possui um valor de especificidade mais alto do que o de todos os outros seletores que existem no CSS"
+      - "Porque apenas o seletor :root tem permissão para conter custom properties declaradas dentro dele em todo o arquivo de estilos"
       - "Porque :root é o elemento de nível mais alto — custom properties definidas lá são acessíveis em qualquer elemento do documento"
-      - "Porque :root é necessário para o JavaScript acessar as variáveis"
+      - "Porque o seletor :root é totalmente necessário para que o código JavaScript da página consiga acessar os valores dessas variáveis"
     correct: 2
   - question: "O que acontece quando você redefine uma custom property dentro de um seletor filho?"
     options:
-      - "Causa um erro — custom properties não podem ser redefinidas"
-      - "A redefinição substitui o valor original em toda a página"
-      - "A redefinição é ignorada se a propriedade já foi definida em :root"
+      - "Provoca um erro no CSS, porque as custom properties simplesmente não podem ser redefinidas depois de já terem sido declaradas antes"
+      - "A redefinição acaba substituindo o valor original daquela custom property na página inteira, e não apenas em um trecho específico"
+      - "A redefinição é totalmente ignorada pelo navegador sempre que aquela mesma propriedade já tiver sido definida antes no seletor :root"
       - "A redefinição afeta apenas aquele elemento e seus descendentes — o restante da página continua usando o valor de :root"
     correct: 3
   - question: "Qual é a vantagem de usar custom properties para implementar tema escuro, em vez de redeclarar todas as propriedades de cor?"
     options:
-      - "Custom properties são mais rápidas de processar em modo escuro"
+      - "As custom properties são, de modo geral, perceptivelmente mais rápidas de serem processadas pelo navegador quando no modo escuro"
       - "A variável continua a mesma; apenas o valor muda. Todas as regras que usam var(--cor-fundo) atualizam automaticamente sem precisar de nenhum seletor extra"
-      - "É a única forma de implementar modo escuro sem JavaScript"
-      - "Reduz o número de media queries necessárias"
+      - "Usar custom properties é, na prática, a única forma possível de se implementar um modo escuro na página sem usar nenhum JavaScript"
+      - "O uso de custom properties acaba reduzindo de forma bem significativa a quantidade total de media queries que são necessárias na página"
     correct: 1
 ---
 

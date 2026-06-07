@@ -10,22 +10,22 @@ quiz:
   - question: "O que significa dizer que um elemento é display: block?"
     options:
       - "Ele ocupa toda a largura disponível e começa em nova linha"
-      - "Ele ocupa apenas o espaço do seu conteúdo e flui com o texto"
-      - "Ele é removido do layout completamente"
-      - "Ele é posicionado em relação à viewport"
+      - "Ele ocupa apenas o espaço exato do seu próprio conteúdo e continua fluindo na mesma linha junto com o texto que está ao redor"
+      - "Ele é removido por completo do layout da página, deixando de ocupar qualquer espaço que fosse visível dentro do documento"
+      - "Ele passa a ser posicionado sempre em relação à viewport do navegador, e não mais em relação ao seu elemento pai na página"
     correct: 0
   - question: "Por que margin-top e margin-bottom não funcionam em elementos inline?"
     options:
-      - "É um bug do navegador — deveriam funcionar"
-      - "Porque elementos inline não têm modelo de caixa"
+      - "Na verdade isso é um bug do próprio navegador: as margens verticais deveriam funcionar normalmente nos elementos inline também"
+      - "Porque os elementos inline simplesmente não possuem nenhum modelo de caixa ao seu redor, ao contrário dos elementos block"
       - "Porque margens verticais em inline não deslocam vizinhos — o elemento flui com o texto e não pode criar espaço vertical"
-      - "Porque margin apenas funciona em elementos com position: absolute"
+      - "Porque a propriedade margin só consegue funcionar de fato quando ela é aplicada a elementos que estão com position: absolute"
     correct: 2
   - question: "Qual é a diferença entre display: none e visibility: hidden?"
     options:
-      - "display: none e visibility: hidden têm o mesmo efeito"
-      - "display: none é mais acessível que visibility: hidden"
-      - "visibility: hidden remove o elemento; display: none apenas o esconde"
+      - "Não existe diferença alguma entre os dois: tanto o display: none quanto o visibility: hidden produzem exatamente o mesmo efeito"
+      - "O display: none é uma opção bem mais acessível para os leitores de tela do que o uso da propriedade visibility: hidden na página"
+      - "O visibility: hidden remove o elemento por completo do layout, enquanto o display: none apenas o esconde mas mantém o espaço dele"
       - "display: none remove o elemento do layout e leitores de tela; visibility: hidden o esconde visualmente mas mantém o espaço e é lido por leitores de tela"
     correct: 3
   - question: "Qual elemento HTML é naturalmente display: inline?"

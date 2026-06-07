@@ -10,22 +10,22 @@ quiz:
   - question: "Um elemento com position: absolute é posicionado em relação a quê?"
     options:
       - "Em relação ao ancestral mais próximo que não seja position: static"
-      - "Sempre em relação ao elemento body"
-      - "Em relação à viewport, como fixed"
-      - "Em relação ao seu irmão anterior"
+      - "Ele é posicionado sempre em relação ao elemento body do documento, independentemente de onde ele esteja na árvore da página"
+      - "Ele é posicionado em relação à viewport do navegador, exatamente do mesmo jeito que acontece com um elemento position: fixed"
+      - "Ele é posicionado em relação ao seu elemento irmão anterior, aquele que vem logo antes dele dentro do mesmo elemento pai"
     correct: 0
   - question: "Qual é a característica principal de position: sticky?"
     options:
-      - "Remove o elemento do fluxo como absolute"
-      - "Mantém o elemento fixo na viewport em qualquer momento"
+      - "A sua característica principal é remover o elemento por completo do fluxo normal da página, exatamente como faz o absolute"
+      - "A sua característica principal é manter o elemento sempre fixo em uma mesma posição da viewport, em qualquer momento do scroll"
       - "Comporta-se como relative até atingir um limiar de scroll, depois gruda como fixed dentro do pai"
-      - "É idêntico a fixed, mas apenas em dispositivos mobile"
+      - "A sua característica principal é ser idêntico ao position: fixed, mas funcionando apenas quando se está em dispositivos mobile"
     correct: 2
   - question: "z-index: 999 em um elemento garante que ele apareça sobre todos os outros da página?"
     options:
-      - "Sim, z-index alto sempre vence"
-      - "Apenas se o elemento também tiver position: fixed"
-      - "Apenas se não houver outros elementos com z-index declarado"
+      - "Sim, um valor de z-index alto sempre vence e garante que aquele elemento apareça por cima de todos os outros da página"
+      - "Apenas se aquele elemento também tiver a propriedade position definida com o valor fixed aplicada a ele junto do z-index"
+      - "Apenas se não houver nenhum outro elemento na página que também tenha um valor de z-index declarado explicitamente nele"
       - "Não — z-index funciona dentro do stacking context do elemento; um z-index alto dentro de um contexto não vence z-index baixo em outro contexto"
     correct: 3
   - question: "Qual propriedade CSS cria um novo stacking context?"

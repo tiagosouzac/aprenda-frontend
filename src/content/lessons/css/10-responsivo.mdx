@@ -10,30 +10,30 @@ quiz:
   - question: "Por que a abordagem mobile-first é recomendada em CSS?"
     options:
       - "Porque os estilos base são aplicados a todos os dispositivos e media queries adicionam complexidade apenas onde necessário, além de forçar a resolver as restrições da tela menor primeiro"
-      - "Porque celulares têm processadores mais lentos e precisam de menos CSS"
-      - "Porque max-width é mais rápido que min-width"
-      - "Porque o Google penaliza sites que não são mobile-first"
+      - "Porque os celulares costumam ter processadores mais lentos e, por causa disso, acabam precisando de uma quantidade menor de CSS"
+      - "Porque a propriedade max-width é, de modo geral, perceptivelmente mais rápida de ser processada do que a propriedade min-width"
+      - "Porque o Google acaba penalizando no ranking de busca todos os sites que não seguem a abordagem mobile-first na sua construção"
     correct: 0
   - question: "O que a declaração font-size: clamp(1rem, 2vw + 0.5rem, 1.5rem) produz?"
     options:
-      - "Um tamanho fixo de 1rem"
-      - "Um tamanho que usa 2vw em mobile e 0.5rem em desktop"
+      - "Produz um tamanho de fonte totalmente fixo de exatamente 1rem, que não muda em nenhuma situação, independentemente da viewport"
+      - "Produz um tamanho que usa o valor 2vw quando em telas mobile e passa a usar o valor 0.5rem quando em telas maiores de desktop"
       - "Um tamanho que cresce linearmente com a viewport, mas nunca menor que 1rem nem maior que 1.5rem"
-      - "Um tamanho que alterna entre 1rem e 1.5rem dependendo da viewport"
+      - "Produz um tamanho que fica alternando apenas entre os dois valores 1rem e 1.5rem, dependendo da largura atual da viewport da tela"
     correct: 2
   - question: "Qual é a diferença entre vh e dvh?"
     options:
-      - "Não há diferença — são sinônimos"
-      - "dvh é suportado apenas em Safari; vh em todos os navegadores"
-      - "dvh é uma porcentagem; vh é em pixels"
+      - "Não existe diferença alguma entre as duas unidades: tanto o vh quanto o dvh são apenas dois nomes para exatamente a mesma coisa"
+      - "A unidade dvh só tem suporte dentro do navegador Safari, enquanto a unidade vh consegue funcionar em todos os outros navegadores"
+      - "A unidade dvh representa um valor em porcentagem da tela, enquanto a unidade vh representa o seu valor diretamente em pixels"
       - "dvh (dynamic viewport height) desconta a barra de endereço e outros elementos dinâmicos do navegador mobile; vh usa a altura total incluindo essas barras"
     correct: 3
   - question: "O que object-fit: cover faz em uma imagem?"
     options:
-      - "Estica a imagem para preencher o container, distorcendo a proporção"
+      - "Estica a imagem para preencher todo o container, mas acaba distorcendo a proporção original dela e deixando a imagem deformada na tela"
       - "Recorta a imagem para preencher o container mantendo a proporção — sem distorção"
-      - "Reduz a imagem até caber no container"
-      - "Cria um fundo de cor sólida ao redor da imagem"
+      - "Reduz o tamanho da imagem aos poucos até que ela consiga caber por inteiro dentro dos limites do container que a envolve na página"
+      - "Cria um fundo de cor sólida em volta da imagem para preencher todo o espaço do container que acaba sobrando ao redor dela na tela"
     correct: 1
 ---
 

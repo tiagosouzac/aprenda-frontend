@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que strict: true é a primeira configuração a ativar em um projeto novo?"
     options:
-      - "Porque ligar essa opção faz a compilação do projeto inteiro acontecer de forma perceptivelmente mais rápida no final das contas"
-      - "Porque a opção strict: true é um pré-requisito obrigatório para que você consiga utilizar generics no seu código TypeScript"
-      - "Porque a opção strict: true é necessária para que você consiga declarar e depois utilizar interfaces dentro do seu projeto TS"
-      - "Porque habilita strictNullChecks e noImplicitAny — sem elas, null e undefined passam sem verificação e parâmetros sem tipo ficam any silenciosamente. Com strict, o compilador detecta exatamente os erros que TypeScript promete detectar"
+      - "Porque ligar essa opção faz a compilação do projeto inteiro acontecer mais rápido"
+      - "Porque o strict: true é um pré-requisito obrigatório para usar generics no código TypeScript"
+      - "Porque o strict: true é necessário para você declarar e usar interfaces dentro do projeto"
+      - "Habilita strictNullChecks e noImplicitAny — sem elas, null/undefined e parâmetros sem tipo passam batido"
     correct: 3
   - question: "Qual é a relação entre interface Artigo e as funções que recebem Artigo como parâmetro?"
     options:
-      - "As funções que recebem um Artigo precisam, obrigatoriamente, ser declaradas dentro do corpo da própria interface Artigo no código"
-      - "A interface descreve a forma do dado — o compilador verifica que qualquer valor passado para um parâmetro do tipo Artigo satisfaz essa forma. Mudar a interface propaga o erro para todos os chamadores automaticamente"
-      - "As funções e as interfaces são coisas totalmente independentes no TypeScript, então não existe nenhuma relação entre as duas"
-      - "A interface Artigo precisa ser importada exatamente na mesma linha em que a função que a utiliza como parâmetro está declarada"
+      - "As funções que recebem um Artigo precisam ser declaradas dentro do corpo da própria interface Artigo"
+      - "A interface descreve a forma do dado; o compilador checa cada valor passado e propaga mudanças a todos os chamadores"
+      - "As funções e as interfaces são independentes no TypeScript, sem nenhuma relação entre as duas"
+      - "A interface Artigo precisa ser importada na mesma linha em que a função que a usa é declarada"
     correct: 1
   - question: "Quando você deve usar unknown em vez de any?"
     options:
-      - "Sempre que você precisar aceitar qualquer valor mas ainda quiser proteção — unknown exige narrowing ou cast antes de usar, enquanto any desabilita toda verificação"
-      - "Você deve usar unknown porque ele é simplesmente uma versão mais lenta e um pouco mais segura do tipo any dentro da linguagem"
-      - "Você deve usar unknown apenas para tipar o parâmetro de erro que é capturado dentro de um bloco catch, e em mais nenhum outro caso"
-      - "Os tipos any e unknown se tornam totalmente equivalentes entre si quando a opção strict: true está ativada no arquivo tsconfig"
+      - "Sempre que precisar aceitar qualquer valor mas ainda quiser proteção — unknown exige narrowing ou cast antes de usar"
+      - "Você deve usar unknown porque ele é só uma versão mais lenta e um pouco mais segura do tipo any"
+      - "Você deve usar unknown apenas para tipar o parâmetro de erro capturado dentro de um bloco catch"
+      - "any e unknown se tornam totalmente equivalentes quando a opção strict: true está ativada no tsconfig"
     correct: 0
   - question: "O que significa 'anote nas bordas, infira no meio'?"
     options:
-      - "Significa anotar os tipos apenas nas primeiras e nas últimas linhas de cada arquivo de código do projeto, e nunca no meio dele"
-      - "Significa anotar tipos somente dentro das interfaces que você declara, e nunca anotar os tipos diretamente nas funções do projeto"
-      - "Anotar nos pontos onde dados entram ou saem de um módulo (parâmetros de funções exportadas, interfaces de domínio) e deixar TypeScript inferir internamente (variáveis temporárias, callbacks, resultados intermediários)"
-      - "Significa anotar apenas os parâmetros que as funções recebem, e nunca anotar o tipo de retorno de nenhuma dessas funções"
+      - "Anotar os tipos apenas nas primeiras e nas últimas linhas de cada arquivo, e nunca no meio dele"
+      - "Anotar tipos somente dentro das interfaces que você declara, e nunca diretamente nas funções"
+      - "Anotar onde os dados entram ou saem de um módulo (parâmetros exportados, interfaces) e inferir o resto internamente"
+      - "Anotar apenas os parâmetros que as funções recebem, e nunca o tipo de retorno de nenhuma delas"
     correct: 2
 ---
 

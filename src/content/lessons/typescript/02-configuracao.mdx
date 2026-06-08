@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "O que strict: true no tsconfig.json habilita?"
     options:
-      - "Habilita apenas a verificação strictNullChecks, deixando as demais checagens rigorosas desligadas por padrão no projeto"
-      - "Habilita apenas a verificação noImplicitAny, sem ativar nenhuma das outras checagens mais rígidas do compilador do TS"
-      - "Habilita um conjunto de verificações de performance que rodam em tempo de execução para encontrar gargalos no código"
-      - "Um conjunto de verificações rigorosas incluindo strictNullChecks, noImplicitAny e outras — é o modo recomendado para projetos novos"
+      - "Habilita apenas a verificação strictNullChecks, deixando as outras checagens desligadas"
+      - "Habilita apenas a verificação noImplicitAny, sem ativar as outras checagens rígidas"
+      - "Habilita verificações de performance que rodam em runtime para achar gargalos no código"
+      - "Um conjunto de checagens rigorosas (strictNullChecks, noImplicitAny e outras) — recomendado para projetos novos"
     correct: 3
   - question: "Por que noEmitOnError é recomendado?"
     options:
-      - "É recomendado principalmente porque faz o compilador TypeScript terminar a compilação do projeto de forma bem mais rápida"
-      - "Para evitar que o compilador gere arquivos JavaScript quando há erros de tipo — evita implantar código com bugs conhecidos"
-      - "É recomendado apenas por uma questão de compatibilidade com o ambiente Node.js, que exige essa opção ligada para funcionar"
-      - "É recomendado porque reduz de forma bastante significativa o tamanho dos arquivos JavaScript que o compilador acaba gerando"
+      - "Porque faz o compilador TypeScript terminar a compilação do projeto bem mais rápido"
+      - "Evitar que o compilador gere JavaScript quando há erros de tipo — não implanta bugs conhecidos"
+      - "Por compatibilidade com o ambiente Node.js, que exige essa opção ligada para funcionar"
+      - "Porque reduz de forma significativa o tamanho dos arquivos JavaScript que o compilador gera"
     correct: 1
   - question: "Qual é a diferença entre target e module no tsconfig.json?"
     options:
-      - "target define para qual versão de JavaScript o código TypeScript é compilado; module define qual sistema de módulos é usado (CommonJS, ESM)"
-      - "Não existe diferença entre target e module: qualquer um dos dois pode ser usado para a mesma finalidade dentro do tsconfig"
-      - "O target é a opção usada para o navegador, enquanto o module é a opção usada especificamente para projetos rodando em Node.js"
-      - "O target afeta apenas os tipos do projeto, enquanto o module afeta apenas a sintaxe que é aceita pelo compilador do TypeScript"
+      - "target define a versão de JavaScript de saída; module define o sistema de módulos (CommonJS, ESM)"
+      - "Não há diferença: qualquer um dos dois pode ser usado para a mesma finalidade no tsconfig"
+      - "O target é a opção para o navegador, e o module a opção para projetos rodando em Node.js"
+      - "O target afeta só os tipos do projeto, e o module só a sintaxe aceita pelo compilador"
     correct: 0
   - question: "Por que usar tsc --noEmit no lugar de tsc para verificar tipos?"
     options:
-      - "O comando tsc --noEmit é executado de forma perceptivelmente mais rápida do que o comando tsc completo na maioria dos casos"
-      - "O comando tsc --noEmit é, na verdade, a única forma possível de compilar código TypeScript para JavaScript em um projeto real"
-      - "tsc --noEmit verifica tipos sem gerar arquivos JavaScript — útil em CI ou quando um bundler (Vite, esbuild) já cuida da transpilação"
-      - "O comando tsc --noEmit é capaz de funcionar normalmente mesmo sem nenhum arquivo tsconfig.json presente na raiz do projeto"
+      - "O comando tsc --noEmit é executado mais rápido do que o tsc completo na maioria dos casos"
+      - "O tsc --noEmit é, na verdade, a única forma possível de compilar TypeScript para JavaScript"
+      - "tsc --noEmit verifica os tipos sem gerar JavaScript — útil em CI ou quando um bundler já transpila"
+      - "O comando tsc --noEmit funciona normalmente mesmo sem nenhum tsconfig.json no projeto"
     correct: 2
 ---
 

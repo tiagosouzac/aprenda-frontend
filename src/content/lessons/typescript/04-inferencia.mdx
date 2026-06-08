@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que parâmetros de função precisam de anotação de tipo?"
     options:
-      - "É apenas uma convenção de estilo recomendada pela comunidade, mas anotar os parâmetros não é de fato obrigatório no TS"
-      - "Porque os parâmetros de função são o único lugar de toda a linguagem onde o mecanismo de inferência de tipos não funciona"
-      - "Porque o compilador do TypeScript exige uma anotação de tipo explícita em absolutamente todos os lugares do código-fonte"
-      - "Porque TypeScript não consegue inferir o tipo de parâmetros pelo contexto de chamada — ao contrário de variáveis com valor inicial, parâmetros não têm valor até a função ser chamada"
+      - "É só uma convenção de estilo da comunidade; anotar os parâmetros não é obrigatório no TS"
+      - "Porque os parâmetros são o único lugar da linguagem onde a inferência de tipos não funciona"
+      - "Porque o compilador exige uma anotação de tipo explícita em todos os lugares do código"
+      - "O TypeScript não infere o tipo dos parâmetros: ao contrário de variáveis com valor inicial, eles só têm valor na chamada"
     correct: 3
   - question: "Quando faz sentido anotar o tipo de retorno de uma função mesmo que TypeScript possa inferi-lo?"
     options:
-      - "Nunca faz sentido anotar o retorno: a inferência do TypeScript já é sempre suficiente para qualquer tipo de função que você escreva"
-      - "Quando a função faz parte de uma API pública ou quando o tipo de retorno é complexo — a anotação serve como documentação e o compilador avisa se a implementação divergir"
-      - "Faz sentido anotar o tipo de retorno apenas quando a função em questão é assíncrona e por isso acaba devolvendo uma Promise"
-      - "Faz sentido anotar o tipo de retorno apenas nas funções que devolvem um objeto como resultado final da sua execução"
+      - "Nunca: a inferência do TypeScript já é sempre suficiente para qualquer tipo de função"
+      - "Quando a função é uma API pública ou o retorno é complexo — serve de documentação e pega divergências"
+      - "Apenas quando a função é assíncrona e por isso acaba devolvendo uma Promise"
+      - "Apenas nas funções que devolvem um objeto como resultado final da sua execução"
     correct: 1
   - question: "O que acontece quando TypeScript infere o tipo de um elemento de array em map()?"
     options:
-      - "TypeScript usa o tipo do array para inferir o tipo do parâmetro do callback — artigos.map(a => ...) infere que a tem o tipo Artigo se artigos for Artigo[]"
-      - "O TypeScript sempre infere o tipo any para o parâmetro de qualquer callback, então a anotação manual acaba sendo sempre necessária"
-      - "O TypeScript exige que você anote explicitamente o tipo do parâmetro do callback, porque não consegue inferi-lo a partir do array"
-      - "O TypeScript infere o tipo do parâmetro do callback a partir do valor que o próprio callback retorna ao final da sua execução"
+      - "O TS usa o tipo do array para inferir o do callback: em artigos.map(a => …), a é Artigo se artigos for Artigo[]"
+      - "O TypeScript sempre infere any para o callback, então a anotação manual é sempre necessária"
+      - "O TypeScript exige anotar o tipo do parâmetro do callback, pois não o infere a partir do array"
+      - "O TypeScript infere o tipo do parâmetro a partir do valor que o próprio callback retorna"
     correct: 0
   - question: "O que é widening de tipo?"
     options:
-      - "É quando o TypeScript estreita um tipo amplo para um mais específico depois de uma verificação com typeof ou if no meio do código"
-      - "É quando o TypeScript acaba convertendo automaticamente um valor do tipo number para o tipo any em determinadas situações"
-      - "Quando TypeScript infere 'string' para uma variável declarada com let e uma string literal — porque let permite reatribuição, qualquer string é possível futuramente"
-      - "É quando o TypeScript adiciona automaticamente o valor null como mais uma das possibilidades de um tipo que já existia"
+      - "Quando o TypeScript estreita um tipo amplo para um mais específico após um typeof ou if"
+      - "Quando o TypeScript converte automaticamente um valor do tipo number para o tipo any"
+      - "Quando o TS infere 'string' (não a literal) para um let, porque ele permite reatribuição depois"
+      - "Quando o TypeScript adiciona o valor null como mais uma possibilidade de um tipo já existente"
     correct: 2
 ---
 

@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que TypeScript não detecta quando uma API retorna dados com formato diferente do esperado?"
     options:
-      - "Porque o TypeScript não oferece nenhum suporte ao uso da função fetch e, por isso, não enxerga as requisições de rede do código"
-      - "Porque toda e qualquer API sempre acaba retornando dados do tipo any, o que faz o compilador desistir de verificá-los na prática"
-      - "Porque a função fetch não é reconhecida nem suportada pelo compilador do TypeScript durante todo o processo de compilação"
-      - "Porque response.json() retorna Promise<any> — o compilador aceita qualquer cast. A verificação de tipos é estática (analisa o código), não dinâmica (não analisa dados em runtime)"
+      - "Porque o TypeScript não dá suporte ao fetch e, por isso, não enxerga as requisições de rede do código"
+      - "Porque toda API sempre retorna dados do tipo any, o que faz o compilador desistir de verificá-los"
+      - "Porque a função fetch não é reconhecida nem suportada pelo compilador durante a compilação"
+      - "Porque response.json() retorna Promise<any>; a verificação é estática (código), não dinâmica (dados em runtime)"
     correct: 3
   - question: "O que as const faz a um objeto literal?"
     options:
-      - "Torna o objeto realmente imutável em tempo de execução, impedindo qualquer alteração nas suas propriedades, exatamente como o Object.freeze()"
-      - "Instrui o compilador a inferir tipos literais para todos os valores — 'claro' vira o tipo 'claro', não string. As propriedades ficam readonly"
-      - "Converte automaticamente o objeto literal em um enum do TypeScript, fazendo com que cada propriedade dele vire um membro desse enum"
-      - "Remove por completo aquele objeto do output JavaScript gerado, deixando-o presente apenas durante a etapa de verificação de tipos"
+      - "Torna o objeto realmente imutável em tempo de execução, como o Object.freeze()"
+      - "Faz o compilador inferir tipos literais ('claro' vira o tipo 'claro', não string) e deixa tudo readonly"
+      - "Converte automaticamente o objeto literal em um enum do TypeScript, propriedade por propriedade"
+      - "Remove o objeto do output JavaScript gerado, deixando-o só na etapa de verificação de tipos"
     correct: 1
   - question: "O que é um arquivo .d.ts?"
     options:
-      - "Um arquivo de declaração de tipos — descreve os tipos de código JavaScript existente sem conter lógica. Permite que TypeScript entenda bibliotecas JS sem código TypeScript"
-      - "É apenas um dos arquivos de configuração do compilador TypeScript, bem parecido com o tsconfig.json mas com um outro nome"
-      - "É um arquivo usado especificamente para definir as rotas de navegação de uma aplicação web que foi escrita em TypeScript"
-      - "É um arquivo que contém dados no formato JSON já devidamente tipados, prontos para serem importados pelo restante do código"
+      - "Um arquivo de declaração de tipos: descreve os tipos de código JavaScript existente, sem lógica, para o TS entender libs JS"
+      - "É apenas um dos arquivos de configuração do compilador TypeScript, parecido com o tsconfig.json"
+      - "É um arquivo usado para definir as rotas de navegação de uma aplicação web escrita em TypeScript"
+      - "É um arquivo com dados no formato JSON já tipados, prontos para serem importados pelo código"
     correct: 0
   - question: "Qual é a diferença entre any e unknown quando você recebe dados de uma API?"
     options:
-      - "Não existe diferença na prática entre any e unknown quando você recebe os dados vindos de uma resposta de API externa qualquer"
-      - "O tipo unknown serve apenas para ser usado dentro de funções, e não para tipar os dados que chegam de uma resposta de uma API"
-      - "any desativa toda verificação — você pode usar os dados sem checar. unknown também aceita qualquer valor mas exige verificação (narrowing ou cast) antes de usar — é a opção segura"
-      - "O tipo any é sempre preferível ao unknown para tipar dados de API, porque deixa o código mais flexível e mais rápido de escrever"
+      - "Não existe diferença na prática entre any e unknown ao receber os dados de uma resposta de API"
+      - "O tipo unknown serve só para usar dentro de funções, não para tipar os dados que chegam de uma API"
+      - "any desativa a verificação; unknown aceita qualquer valor mas exige checagem (narrowing ou cast) antes de usar — a opção segura"
+      - "O tipo any é sempre preferível ao unknown para tipar dados de API, porque deixa o código mais flexível"
     correct: 2
 ---
 

@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a principal diferença prática entre interface e type para descrever objetos?"
     options:
-      - "A interface é compilada de forma perceptivelmente mais rápida pelo TypeScript do que um type equivalente na maioria dos projetos"
-      - "O type só pode ser usado para descrever valores primitivos como string e number, nunca para descrever a forma de um objeto"
-      - "Não existe diferença alguma entre interface e type: os dois são completamente intercambiáveis em qualquer situação possível"
-      - "interface pode ser estendida com extends e permite declaração merging (aberta); type é mais flexível para unions, intersections e mapped types, mas não pode ser reaberta"
+      - "A interface é compilada mais rápido pelo TypeScript do que um type equivalente"
+      - "O type só pode descrever primitivos como string e number, nunca a forma de um objeto"
+      - "Não há diferença alguma: interface e type são completamente intercambiáveis em tudo"
+      - "interface usa extends e declaration merging (aberta); type é melhor para unions e mapped types, mas não reabre"
     correct: 3
   - question: "O que é declaração merging em interfaces?"
     options:
-      - "É o processo de combinar dois arquivos TypeScript diferentes em um único arquivo final durante a etapa de compilação do projeto"
-      - "Declarar a mesma interface em dois lugares diferentes e TypeScript automaticamente combina as propriedades de ambas — útil para estender tipos de bibliotecas"
-      - "É quando você exporta a mesma interface a partir de dois módulos diferentes, e o TypeScript junta as duas exportações em uma só"
-      - "É simplesmente o ato de criar uma interface nova que herda todas as propriedades de uma outra interface que já existia antes"
+      - "Combinar dois arquivos TypeScript diferentes em um só durante a etapa de compilação"
+      - "Declarar a mesma interface em dois lugares e o TS junta as propriedades — útil para estender libs"
+      - "Exportar a mesma interface a partir de dois módulos, e o TypeScript junta as duas exportações"
+      - "Criar uma interface nova que herda todas as propriedades de outra que já existia antes"
     correct: 1
   - question: "Quando usar type em vez de interface?"
     options:
-      - "Para unions (A | B), intersections (A & B), mapped types, aliases de primitivos, e quando você quer garantir que o tipo não pode ser reaberto acidentalmente"
-      - "Deve-se usar type sempre, em qualquer situação, porque o type é em todos os aspectos superior à interface dentro da linguagem"
-      - "Deve-se usar type apenas quando você precisa descrever valores de tipos primitivos, como string, number ou boolean soltos"
-      - "Deve-se usar type exclusivamente dentro de arquivos de declaração com a extensão .d.ts, e nunca em arquivos de código normais"
+      - "Para unions (A | B), intersections (A & B), mapped types e aliases de primitivos, ou para impedir reabertura"
+      - "Deve-se usar type sempre, porque ele é superior à interface em todos os aspectos da linguagem"
+      - "Deve-se usar type apenas para descrever valores de tipos primitivos soltos, como string ou number"
+      - "Deve-se usar type só dentro de arquivos de declaração .d.ts, nunca em código normal"
     correct: 0
   - question: "Como readonly difere de const para propriedades de objetos?"
     options:
-      - "As palavras readonly e const são totalmente equivalentes quando são aplicadas a propriedades de um objeto dentro do TypeScript"
-      - "O readonly é usado especificamente para arrays, enquanto o const é usado especificamente para objetos comuns dentro da linguagem"
-      - "const impede reatribuir a variável; readonly impede reatribuir a propriedade de um objeto — você pode ter const artigo com propriedade readonly id"
-      - "O readonly só funciona quando é aplicado a propriedades declaradas dentro de uma classe, e não em objetos literais comuns do código"
+      - "As palavras readonly e const são totalmente equivalentes para propriedades de um objeto"
+      - "O readonly é usado para arrays, e o const para objetos comuns dentro da linguagem"
+      - "const impede reatribuir a variável; readonly, a propriedade — dá para ter const artigo com readonly id"
+      - "O readonly só funciona em propriedades de classe, e não em objetos literais comuns do código"
     correct: 2
 ---
 

@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que TypeScript exige narrowing antes de usar uma propriedade de um union type?"
     options:
-      - "É exigido apenas por uma convenção de estilo recomendada pela comunidade, mas o narrowing não é de fato obrigatório no TS"
-      - "Porque uma união de tipos simplesmente não dá suporte ao acesso de nenhuma propriedade enquanto ela não for resolvida antes"
-      - "Porque o narrowing dos tipos só é realmente necessário quando o valor do union está sendo usado dentro de uma função"
-      - "Porque se um valor é string | null, acessar .length sem verificar pode falhar em runtime se o valor for null — o compilador obriga a tratar todos os casos do union"
+      - "É exigido só por convenção de estilo da comunidade; o narrowing não é obrigatório no TS"
+      - "Porque uma união de tipos não dá suporte ao acesso de nenhuma propriedade antes de ser resolvida"
+      - "Porque o narrowing só é necessário quando o valor do union é usado dentro de uma função"
+      - "Se um valor é string | null, acessar .length sem checar falha quando for null; o compilador obriga a tratar"
     correct: 3
   - question: "O que é uma discriminated union?"
     options:
-      - "É simplesmente uma união que combina mais de dois tipos diferentes ao mesmo tempo dentro de uma mesma declaração no TypeScript"
-      - "Uma union de objetos onde cada variante tem uma propriedade comum com valor literal diferente — TypeScript usa esse valor para narrowing automático, sabendo exatamente qual variante você está tratando"
-      - "É uma união em que o próprio compilador do TypeScript escolhe e discrimina os tipos automaticamente, sem você precisar fazer nada"
-      - "É um tipo de união especial que tem a garantia de nunca poder assumir o valor null em nenhum momento da execução do programa"
+      - "Uma união que combina mais de dois tipos diferentes ao mesmo tempo dentro de uma declaração"
+      - "Uma union de objetos com uma propriedade comum de valor literal, que o TS usa para narrowing automático"
+      - "Uma união em que o próprio compilador discrimina os tipos sozinho, sem você precisar fazer nada"
+      - "Um tipo de união especial que tem a garantia de nunca poder assumir o valor null"
     correct: 1
   - question: "Qual é o resultado de string & number em uma intersection?"
     options:
-      - "never — não existe nenhum valor que seja simultaneamente string e number"
-      - "string — nesse caso o tipo considerado mais amplo entre os dois é o que acaba vencendo o conflito da intersection no final"
-      - "number — nesse caso o tipo considerado mais específico entre os dois é o que acaba prevalecendo dentro da intersection"
-      - "any — o TypeScript não consegue resolver o conflito entre os dois tipos e por isso acaba caindo no tipo any por segurança"
+      - "never — não existe nenhum valor que seja ao mesmo tempo string e number"
+      - "string — nesse caso o tipo mais amplo entre os dois vence o conflito da intersection"
+      - "number — nesse caso o tipo mais específico entre os dois prevalece na intersection"
+      - "any — o TypeScript não consegue resolver o conflito e cai no tipo any por segurança"
     correct: 0
   - question: "O que o type guard 'titulo' in obj verifica?"
     options:
-      - "Verifica se o valor que está guardado na propriedade obj.titulo é especificamente uma string, e não outro tipo de dado"
-      - "Verifica se a propriedade titulo do objeto foi declarada como readonly, ou seja, se ela pode ou não ser reatribuída depois"
-      - "Se obj tem uma propriedade chamada titulo — e TypeScript usa isso para narrowing, sabendo que dentro do if o objeto tem essa propriedade"
-      - "Verifica se a propriedade titulo do objeto é uma propriedade opcional, ou seja, se ela pode estar ausente daquele objeto"
+      - "Verifica se o valor guardado em obj.titulo é especificamente uma string, e não outro tipo de dado"
+      - "Verifica se a propriedade titulo do objeto foi declarada como readonly, ou seja, se pode ser reatribuída"
+      - "Se obj tem uma propriedade chamada titulo — o TS usa isso para narrowing dentro do if"
+      - "Verifica se a propriedade titulo do objeto é opcional, ou seja, se pode estar ausente dele"
     correct: 2
 ---
 

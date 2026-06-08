@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a diferença entre useEffect sem array de dependências e useEffect com array vazio []?"
     options:
-      - "Sem array, o efeito roda após todo render. Com [] vazio, roda apenas na montagem do componente. São muito diferentes — quase sempre você quer o array vazio ou com dependências específicas"
-      - "Nenhuma diferença entre as duas formas: tanto sem array quanto com array vazio o efeito roda uma única vez na montagem"
-      - "O array vazio faz com que o efeito seja executado antes do render do componente, em vez de depois que o DOM é atualizado"
-      - "Sem o array de dependências, o efeito perde o acesso ao estado e às props atuais do componente durante a sua execução"
+      - "Sem array, roda a cada render; com [] vazio, só na montagem — quase sempre você quer o array"
+      - "Nenhuma diferença: sem array ou com array vazio, o efeito roda uma vez na montagem"
+      - "O array vazio faz o efeito rodar antes do render, em vez de depois que o DOM atualiza"
+      - "Sem o array, o efeito perde o acesso ao estado e às props atuais do componente"
     correct: 0
   - question: "Para que serve a função de cleanup retornada pelo useEffect?"
     options:
-      - "Serve para reinicializar todo o estado do componente de volta ao valor inicial antes que o próximo render aconteça"
-      - "Serve para limpar o cache interno que o React mantém das renderizações anteriores daquele componente específico"
-      - "React a executa antes de rodar o efeito novamente (quando as dependências mudam) e quando o componente desmonta. Essencial para cancelar fetches, limpar timers e desinscrever de eventos — evita memory leaks e operações em componentes desmontados"
-      - "Serve para reverter o DOM ao exato estado em que ele estava antes de o efeito ter sido executado pela primeira vez"
+      - "Serve para reinicializar todo o estado do componente antes do próximo render acontecer"
+      - "Serve para limpar o cache interno que o React mantém das renderizações anteriores"
+      - "Roda antes de repetir o efeito e ao desmontar — cancela fetches, timers e listeners, evitando leaks"
+      - "Serve para reverter o DOM ao estado em que ele estava antes de o efeito rodar"
     correct: 2
   - question: "Por que você não deve usar useEffect para derivar estado de props?"
     options:
-      - "Porque o useEffect não tem acesso às props do componente, o que torna impossível derivar qualquer estado a partir delas"
-      - "Porque o TypeScript não permite usar um useEffect que dependa de props e acusa um erro de compilação nessa situação"
-      - "É permitido derivar estado dentro do useEffect, mas o resultado fica perceptivelmente mais lento do que calcular no render"
-      - "Derivar estado em useEffect cria um render extra desnecessário: o componente renderiza com o estado antigo, useEffect roda, atualiza o estado, e o componente renderiza de novo. Calcular o valor derivado durante o render (sem estado extra) resolve com um render só"
+      - "Porque o useEffect não tem acesso às props, então é impossível derivar estado delas"
+      - "Porque o TypeScript não permite um useEffect que dependa de props e acusa um erro"
+      - "É permitido, mas o resultado fica mais lento do que calcular o valor durante o render"
+      - "Cria um render extra à toa; calcular o valor derivado durante o render resolve com um render só"
     correct: 3
   - question: "O que acontece se você não declarar todas as dependências que o efeito usa no array de dependências?"
     options:
-      - "O TypeScript avisa com um erro de compilação sempre que uma dependência usada pelo efeito fica de fora do array informado"
-      - "O efeito captura os valores no momento em que foi registrado — se uma dependência muda mas não está no array, o efeito continua usando o valor antigo (closure desatualizado). O ESLint com react-hooks avisa sobre dependências faltando"
-      - "O React lança um erro em tempo de execução assim que o efeito tenta ler um valor que não foi declarado nas dependências"
-      - "Não há consequência alguma: o React detecta sozinho as dependências usadas e mantém o efeito sempre com os valores atuais"
+      - "O TypeScript avisa com erro de compilação quando uma dependência fica de fora do array"
+      - "O efeito captura os valores do registro; se uma dep muda fora do array, usa o valor antigo (closure)"
+      - "O React lança um erro em runtime quando o efeito lê um valor não declarado nas deps"
+      - "Não há consequência: o React detecta sozinho as deps e mantém os valores sempre atuais"
     correct: 1
 ---
 

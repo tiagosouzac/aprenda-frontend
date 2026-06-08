@@ -9,24 +9,24 @@ hero:
 quiz:
   - question: "Por que usar <a href='/artigos'> comum em uma SPA React causa problema?"
     options:
-      - "Porque o React não dá suporte ao elemento <a> nativo e exige que toda navegação passe por um componente próprio dele"
-      - "Porque dentro de uma SPA o atributo href precisa apontar sempre para um endereço absoluto, com o domínio completo da aplicação"
-      - "Porque o navegador faz uma nova requisição ao servidor e a página recarrega — a aplicação perde o estado e todos os componentes são remontados do zero"
-      - "Porque o React Router intercepta e bloqueia qualquer navegação feita por um <a> comum, recusando o clique no link"
+      - "Porque o React não dá suporte ao <a> nativo e exige um componente próprio para navegar"
+      - "Porque dentro de uma SPA o href precisa apontar sempre para um endereço absoluto completo"
+      - "O navegador faz uma nova requisição e recarrega; a app perde o estado e remonta tudo do zero"
+      - "Porque o React Router intercepta e bloqueia qualquer navegação feita por um <a> comum"
     correct: 2
   - question: "Qual é a diferença entre Link e NavLink do React Router?"
     options:
-      - "O Link serve apenas para links que apontam para fora da aplicação, enquanto o NavLink é usado somente para a navegação interna"
-      - "O NavLink provoca um recarregamento completo da página a cada clique, enquanto o Link troca de rota sem recarregar nada"
-      - "Ambos geram <a> sem reload. NavLink adiciona automaticamente um estilo ou classe quando a rota atual corresponde ao destino — útil para menus de navegação"
-      - "O Link é o componente antigo do React Router, e o NavLink é a versão mais nova que veio para substituí-lo por completo"
+      - "O Link serve só para links externos, e o NavLink só para a navegação interna da app"
+      - "O NavLink recarrega a página inteira a cada clique, enquanto o Link troca de rota sem reload"
+      - "Ambos geram <a> sem reload; o NavLink ainda aplica uma classe quando a rota está ativa"
+      - "O Link é o componente antigo do React Router e o NavLink veio para substituí-lo por completo"
     correct: 2
   - question: "Como um componente acessa o parâmetro :slug da rota /artigos/:slug?"
     options:
-      - "Recebendo o slug como uma prop comum, declarada na assinatura do componente: function ArticlePage({ slug })"
-      - "Lendo o valor a partir de um contexto interno do router, com useContext(RouterContext) dentro do componente"
-      - "Via useParams, o hook do React Router para parâmetros de rota: const { slug } = useParams() dentro do componente"
-      - "Extraindo o trecho manualmente da URL com useLocation: location.pathname.split('/')[2] no corpo do componente"
+      - "Recebendo o slug como uma prop comum na assinatura: function ArticlePage({ slug })"
+      - "Lendo o valor de um contexto interno do router, com useContext(RouterContext)"
+      - "Via useParams, o hook do React Router para parâmetros de rota: const { slug } = useParams()"
+      - "Extraindo manualmente da URL com useLocation: location.pathname.split('/')[2]"
     correct: 2
 ---
 

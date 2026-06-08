@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "O que significa 'lifting state up' em React?"
     options:
-      - "Mover o estado para o componente pai mais próximo que precisa compartilhá-lo com dois ou mais filhos. O pai gerencia o estado e distribui para os filhos via props"
-      - "É a técnica de usar um gerenciador de estado global como o Redux para que qualquer componente acesse o valor de qualquer lugar"
-      - "É guardar o estado no localStorage do navegador para que os componentes consigam compartilhar o mesmo valor entre si"
-      - "É duplicar o mesmo estado em cada componente que precisa dele e manter todas as cópias sincronizadas manualmente a cada mudança"
+      - "Mover o estado para o ancestral comum mais próximo, que o gerencia e distribui via props"
+      - "Usar um gerenciador de estado global como o Redux para acessar o valor de qualquer lugar"
+      - "Guardar o estado no localStorage do navegador para os componentes compartilharem o valor"
+      - "Duplicar o mesmo estado em cada componente que precisa dele e sincronizar tudo manualmente"
     correct: 0
   - question: "O que é prop drilling e quando começa a ser problemático?"
     options:
-      - "É quando você passa props diretamente de um pai para o seu filho imediato — e, segundo a regra, isso é sempre problemático"
-      - "É um problema que só acontece quando o valor repassado entre os componentes da árvore é especificamente um array de itens"
-      - "Prop drilling é passar props por componentes intermediários que não usam o valor — apenas repassam. É aceitável em 2–3 níveis. Começa a ser problemático quando muitos componentes precisam repassar props que não os dizem respeito, tornando o código frágil a mudanças"
-      - "É um padrão recomendado pela documentação do React para compartilhar dados em qualquer profundidade da árvore de componentes"
+      - "É passar props de um pai direto para o filho imediato — e isso é sempre problemático"
+      - "É um problema que só acontece quando o valor repassado entre os componentes é um array"
+      - "Passar props por intermediários que só repassam; vira problema quando há muitos níveis assim"
+      - "É um padrão recomendado pela documentação para compartilhar dados em qualquer profundidade"
     correct: 2
   - question: "Como um componente filho comunica eventos ao seu pai em React?"
     options:
-      - "Mutando diretamente a prop que recebeu, de modo que a alteração suba de volta para o componente pai que a enviou"
-      - "Usando uma variável global declarada fora dos componentes, que o filho escreve e o pai lê quando precisa reagir à mudança"
-      - "Chamando um método exposto pelo componente pai por meio de uma ref, da mesma forma que se faz com um elemento do DOM"
-      - "Via callback passado como prop pelo pai. O filho chama a função com os dados relevantes — o pai decide o que fazer. Dados descem via props, eventos sobem via callbacks"
+      - "Mutando diretamente a prop recebida, para a alteração subir de volta para o componente pai"
+      - "Usando uma variável global fora dos componentes, que o filho escreve e o pai lê quando reage"
+      - "Chamando um método do componente pai por meio de uma ref, como se faz num elemento do DOM"
+      - "Via callback passado como prop pelo pai: dados descem por props, eventos sobem por callbacks"
     correct: 3
   - question: "Quais são os sinais de que o estado está no lugar errado na árvore?"
     options:
-      - "Quando o componente passa a declarar mais de um useState ao mesmo tempo dentro do corpo da sua função"
-      - "Props passando por vários níveis sem uso intermediário, ou dois componentes distantes na árvore precisando do mesmo valor sem um ancestral comum razoável. Ambos indicam que o estado deve subir ou usar Context"
-      - "Quando o valor guardado no estado é um objeto ou um array, em vez de um valor primitivo como um número ou uma string"
-      - "Quando o componente que detém o estado renderiza uma quantidade grande de componentes filhos dentro de si"
+      - "Quando o componente passa a declarar mais de um useState dentro do corpo da sua função"
+      - "Props passando por vários níveis sem uso, ou dois componentes distantes precisando do mesmo valor"
+      - "Quando o valor guardado no estado é um objeto ou um array, em vez de um valor primitivo"
+      - "Quando o componente que detém o estado renderiza uma quantidade grande de filhos"
     correct: 1
 ---
 

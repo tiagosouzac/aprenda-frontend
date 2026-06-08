@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que uma variável comum não funciona para atualizar a UI em React?"
     options:
-      - "Mudar uma variável comum não avisa o React, então o componente não re-renderiza e o que está na tela continua o valor antigo"
-      - "Variáveis declaradas dentro do componente são somente leitura, e o React lança um erro ao tentar reatribuir o valor"
-      - "O React executa o corpo do componente uma única vez, então qualquer variável local nunca mais é recalculada depois da montagem"
-      - "Variáveis comuns vivem fora da árvore de componentes, e o React só consegue ler valores que estão no objeto de props"
+      - "Mudar uma variável comum não avisa o React, então o componente não re-renderiza"
+      - "Variáveis dentro do componente são somente leitura, e o React lança erro ao reatribuir"
+      - "O React executa o corpo do componente uma vez, e a variável local nunca é recalculada"
+      - "Variáveis comuns vivem fora da árvore, e o React só lê valores que estão nas props"
     correct: 0
   - question: "Por que usar setContagem(prev => prev + 1) em vez de setContagem(contagem + 1)?"
     options:
-      - "A forma funcional é compilada de modo mais eficiente pelo React e reduz bastante o número de re-renderizações que o componente precisa agendar a cada clique"
-      - "A forma direta quebra a inferência de tipos do TypeScript e obriga você a anotar manualmente o tipo do estado toda vez que chamar a função setadora"
-      - "O React agrupa várias atualizações no mesmo ciclo, então a forma funcional garante que cada chamada parta do valor mais recente, não do valor capturado no closure"
-      - "Não existe diferença prática entre as duas: a forma funcional é só uma convenção de estilo recomendada pela documentação para código mais legível"
+      - "A forma funcional é compilada de modo mais eficiente e reduz as re-renderizações por clique"
+      - "A forma direta quebra a inferência do TypeScript e obriga a anotar o tipo do estado"
+      - "O React agrupa várias atualizações no mesmo ciclo, e a forma funcional sempre parte do valor mais recente"
+      - "Não há diferença prática: a forma funcional é só uma convenção de estilo da documentação"
     correct: 2
   - question: "O que significa a regra 'nunca chame hooks dentro de condicionais'?"
     options:
-      - "Significa que hooks não podem ser usados em nenhum componente que contenha um bloco if/else em qualquer ponto do corpo da função"
-      - "Significa que um hook não consegue ler variáveis que tenham sido declaradas dentro de um if executado antes dele no mesmo render"
-      - "É apenas uma recomendação de estilo para deixar o componente mais legível, sem nenhum impacto real sobre o funcionamento do código"
-      - "A ordem das chamadas de hook precisa ser a mesma em todo render — o React identifica cada hook pela posição, então um hook dentro de if pode ser pulado e corromper esse mapeamento"
+      - "Que hooks não podem ser usados em nenhum componente que contenha um if/else no corpo"
+      - "Que um hook não consegue ler variáveis declaradas dentro de um if anterior no mesmo render"
+      - "É só uma recomendação de estilo para o componente ficar mais legível, sem impacto real"
+      - "A ordem das chamadas de hook deve ser a mesma em todo render; um if pode pular um hook e corromper isso"
     correct: 3
   - question: "Ao atualizar um objeto no estado, por que você deve criar um novo objeto em vez de mutar o existente?"
     options:
-      - "Porque o TypeScript marca todo objeto guardado em estado como readonly e impede qualquer mutação já em tempo de compilação, antes de rodar"
-      - "O React compara o estado anterior com o novo por referência — mutar o objeto mantém a mesma referência, então ele não detecta a mudança e não re-renderiza"
-      - "Porque mutar um objeto que está no estado lança um erro de runtime no React que derruba a renderização inteira do componente na tela"
-      - "Porque é uma boa prática herdada do Redux, mas no React puro mutar diretamente o objeto do estado funciona exatamente da mesma forma"
+      - "Porque o TypeScript marca todo objeto em estado como readonly e impede a mutação na compilação"
+      - "O React compara o estado por referência; mutar mantém a mesma referência e ele não detecta a mudança"
+      - "Porque mutar um objeto que está no estado lança um erro de runtime que derruba a renderização"
+      - "Porque é uma prática herdada do Redux, mas no React puro mutar o objeto funciona igual"
     correct: 1
 ---
 

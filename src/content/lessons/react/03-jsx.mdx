@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "O que é JSX na prática?"
     options:
-      - "Açúcar sintático sobre React.createElement() — o compilador transforma JSX em chamadas de função JavaScript. O browser nunca vê JSX diretamente"
-      - "É uma versão aprimorada do HTML, criada pelo Facebook, que os navegadores modernos já sabem interpretar de forma nativa"
-      - "É um arquivo separado, com extensão própria, que descreve apenas a estrutura visual e é carregado à parte do JavaScript"
-      - "É uma linguagem de template que roda no servidor e devolve o HTML já montado para o navegador apenas exibir"
+      - "Açúcar sintático sobre React.createElement() — o browser nunca vê JSX diretamente"
+      - "Uma versão aprimorada do HTML, criada pelo Facebook, que os navegadores já interpretam"
+      - "Um arquivo separado, com extensão própria, que descreve apenas a estrutura visual"
+      - "Uma linguagem de template que roda no servidor e devolve o HTML já montado"
     correct: 0
   - question: "Por que class vira className em JSX?"
     options:
-      - "Por uma simples convenção de estilo adotada pelo React para diferenciar seus atributos dos atributos originais do HTML"
-      - "Porque o atributo className é processado mais rápido pelo navegador do que o atributo class tradicional das folhas de estilo"
-      - "Porque class é uma palavra reservada do JavaScript — como JSX compila para JavaScript, os atributos precisam ser identificadores JS válidos"
-      - "Porque o atributo class só funciona em elementos HTML nativos e quebraria ao ser usado dentro de um componente do React"
+      - "Por uma convenção de estilo do React, para diferenciar dos atributos do HTML"
+      - "Porque className é processado mais rápido pelo navegador que o class tradicional"
+      - "class é palavra reservada do JS, e o JSX compila para JS, que exige identificadores válidos"
+      - "Porque class só funciona em elementos HTML nativos e quebraria em um componente"
     correct: 2
   - question: "Qual é o problema de usar {0 && <Componente />} para renderização condicional?"
     options:
-      - "Não existe problema algum nessa expressão: ela funciona corretamente e não renderiza nada quando a condição é falsa"
-      - "O componente acaba sendo renderizado na tela mesmo quando a condição à esquerda do && tem um valor considerado falsy"
-      - "O JSX não dá suporte ao operador && dentro de expressões, então essa construção provoca um erro de sintaxe na compilação"
-      - "Quando a condição é 0 (número), React renderiza o 0 no DOM — porque 0 é um valor falsy que ainda é renderizável. Use Boolean(0) ou 0 > 0 para evitar"
+      - "Não existe problema: a expressão não renderiza nada quando a condição é falsa"
+      - "O componente é renderizado mesmo quando a condição à esquerda do && é falsy"
+      - "O JSX não dá suporte ao operador && em expressões, gerando erro de sintaxe"
+      - "Quando a condição é 0, o React renderiza o 0 no DOM; use Boolean(0) ou 0 > 0 para evitar"
     correct: 3
   - question: "Quando usar um fragmento (<>...</>) em vez de uma <div> como wrapper?"
     options:
-      - "Sempre que for possível, porque fragmentos são renderizados mais rápido que qualquer elemento e reduzem o trabalho do navegador"
-      - "Quando você precisa retornar múltiplos elementos mas não quer adicionar um nó extra ao DOM — uma <div> extra pode quebrar layouts CSS que dependem da estrutura de elementos"
-      - "Apenas quando você está renderizando listas de itens, situação em que a div tradicional não é aceita como elemento pai pelo React"
-      - "Somente em componentes que representam páginas inteiras, já que fragmentos não funcionam em componentes menores e reutilizáveis"
+      - "Sempre que possível, porque fragmentos são renderizados mais rápido que qualquer elemento"
+      - "Quando você retorna vários elementos sem adicionar um nó extra ao DOM que pode quebrar o CSS"
+      - "Apenas ao renderizar listas, situação em que a div não é aceita como elemento pai"
+      - "Só em componentes de página, já que fragmentos não funcionam em componentes menores"
     correct: 1
 ---
 

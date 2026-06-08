@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que Vite é preferível ao Create React App para projetos novos?"
     options:
-      - "Porque Vite usa esbuild para transpilação — o servidor de desenvolvimento inicia em milissegundos e o HMR (hot module replacement) é quase instantâneo. CRA usa webpack e fica mais lento à medida que o projeto cresce"
-      - "Porque o Vite é desenvolvido e mantido pela própria equipe principal do React, o que garante uma integração perfeita entre as duas ferramentas"
-      - "Porque o Create React App foi formalmente descontinuado e removido do registro do npm, deixando de funcionar em qualquer projeto novo"
-      - "Porque o Vite dispensa por completo o arquivo tsconfig.json e configura o TypeScript sozinho, sem você manter nenhum arquivo de configuração"
+      - "Vite usa esbuild: o dev server inicia em ms e o HMR é quase instantâneo; o CRA usa webpack e fica lento"
+      - "Porque o Vite é mantido pela própria equipe do React, garantindo integração perfeita"
+      - "Porque o Create React App foi descontinuado e removido do npm, deixando de funcionar"
+      - "Porque o Vite dispensa o tsconfig.json e configura o TypeScript sozinho"
     correct: 0
   - question: "O que o arquivo main.tsx faz?"
     options:
-      - "É o arquivo responsável por definir todos os estilos globais que valem para a aplicação inteira, antes de qualquer componente ser montado"
-      - "É onde ficam declaradas as rotas da aplicação e o mapeamento de cada caminho de URL para a tela que deve ser exibida"
-      - "É o ponto de entrada — monta o componente raiz (App) no elemento #root do index.html usando createRoot().render()"
-      - "É um índice que reexporta todos os componentes do projeto para deixar os imports mais curtos nos outros arquivos"
+      - "É o arquivo que define todos os estilos globais que valem para a aplicação inteira"
+      - "É onde ficam declaradas as rotas e o mapeamento de cada URL para uma tela"
+      - "É o ponto de entrada — monta o App no #root do index.html com createRoot().render()"
+      - "É um índice que reexporta todos os componentes para encurtar os imports"
     correct: 2
   - question: "Por que artigos.json vai na pasta public/ em vez de src/?"
     options:
-      - "Porque arquivos no formato JSON não podem ser importados em código TypeScript e, por isso, precisam ficar fora da pasta src"
-      - "Porque a pasta public é servida a partir de um disco mais rápido que a src, o que acelera o carregamento dos dados do blog"
-      - "Porque a pasta src aceita apenas arquivos .ts e .tsx, então qualquer arquivo .json colocado dentro dela é ignorado pelo bundler"
-      - "Porque arquivos em public/ são servidos diretamente pelo servidor HTTP — o fetch('/artigos.json') acessa via URL, não via import. Arquivos em src/ são processados pelo bundler"
+      - "Porque arquivos JSON não podem ser importados em TypeScript e ficam fora da pasta src"
+      - "Porque a pasta public é servida de um disco mais rápido que a src, acelerando o carregamento"
+      - "Porque a pasta src só aceita .ts e .tsx, e ignora qualquer .json colocado dentro dela"
+      - "Arquivos em public/ são servidos via URL (fetch('/artigos.json')), não via import como os de src/"
     correct: 3
   - question: "O que o operador ! (non-null assertion) faz em document.getElementById('root')!?"
     options:
-      - "Cria automaticamente o elemento #root na página caso ele ainda não exista no HTML no momento em que o código é executado"
-      - "Diz ao TypeScript que você garante que o valor não é null — o compilador aceita sem verificação. Se o elemento não existir em runtime, o erro aparece aí"
-      - "Lança um erro em tempo de compilação sempre que o elemento procurado não puder ser encontrado dentro do documento HTML"
-      - "Converte o elemento retornado para o tipo HTMLElement de forma automática, dispensando qualquer anotação de tipo manual"
+      - "Cria automaticamente o elemento #root na página caso ele ainda não exista no HTML"
+      - "Diz ao TS que você garante que o valor não é null; se faltar em runtime, o erro aparece aí"
+      - "Lança um erro em tempo de compilação quando o elemento não puder ser encontrado"
+      - "Converte o elemento para o tipo HTMLElement automaticamente, sem anotação manual"
     correct: 1
 ---
 

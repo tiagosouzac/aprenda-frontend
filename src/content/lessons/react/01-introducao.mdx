@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a diferença fundamental entre a abordagem imperativa (DOM puro) e a abordagem declarativa (React)?"
     options:
-      - "Com DOM puro você descreve COMO mudar a UI (encontre o elemento, mude o atributo, atualize o texto). Com React você descreve COMO a UI deve ser dado o estado atual — React cuida do COMO mudar"
-      - "O React é sempre mais rápido que o DOM puro porque escreve as alterações direto na placa de vídeo, sem passar pela árvore de elementos do navegador"
-      - "O React monta a interface escrevendo HTML diretamente no arquivo, enquanto a abordagem com DOM puro só consegue montar a tela usando JavaScript"
-      - "No DOM puro não existe suporte nativo a eventos de usuário, então o React foi criado principalmente para permitir cliques e envios de formulário"
+      - "Com DOM puro você descreve COMO mudar a UI; com React, COMO ela deve ser para o estado atual"
+      - "O React é sempre mais rápido porque escreve direto na placa de vídeo, sem passar pelo DOM"
+      - "O React monta a interface escrevendo HTML no arquivo; o DOM puro só monta com JavaScript"
+      - "No DOM puro não há suporte a eventos, então o React foi criado para permitir cliques"
     correct: 0
   - question: "O que é o virtual DOM?"
     options:
-      - "É um DOM mais rápido que os navegadores modernos já trazem embutido e que o React simplesmente ativa quando o componente é montado"
-      - "É um arquivo HTML separado que o React mantém em disco e sincroniza com a página sempre que algum estado da aplicação muda"
-      - "Uma representação em memória da UI que React mantém. Quando o estado muda, React recalcula o virtual DOM e aplica apenas as diferenças no DOM real — evitando operações desnecessárias"
-      - "É uma versão comprimida do DOM, usada apenas em dispositivos móveis para economizar memória durante a renderização das telas"
+      - "Um DOM mais rápido que os navegadores já trazem embutido e que o React apenas ativa"
+      - "Um arquivo HTML separado que o React mantém em disco e sincroniza com a página"
+      - "Uma representação da UI em memória; ao mudar o estado, o React aplica só as diferenças no DOM real"
+      - "Uma versão comprimida do DOM, usada só em mobile para economizar memória"
     correct: 2
   - question: "Por que a abordagem imperativa escala mal à medida que o estado cresce?"
     options:
-      - "Porque o motor JavaScript vai ficando mais lento conforme a quantidade de linhas de código do projeto aumenta ao longo do tempo"
-      - "Porque o DOM impõe um limite máximo de elementos por página e a abordagem imperativa atinge esse teto rapidamente"
-      - "Porque os eventos de interação deixam de funcionar quando o estado da aplicação passa a ter muitas propriedades aninhadas"
-      - "Porque você precisa rastrear manualmente quais elementos do DOM refletem qual parte do estado — cada novo estado ou interação exige atualizar todos os pontos relevantes, e é fácil esquecer algum"
+      - "Porque o motor JavaScript vai ficando mais lento conforme o código do projeto cresce"
+      - "Porque o DOM impõe um limite máximo de elementos por página, atingido rapidamente"
+      - "Porque os eventos deixam de funcionar quando o estado tem muitas propriedades aninhadas"
+      - "Você precisa rastrear manualmente que parte do DOM reflete cada estado — e é fácil esquecer algum"
     correct: 3
   - question: "O que é um componente React?"
     options:
-      - "Um arquivo CSS separado, criado para cada parte da interface, que o React injeta automaticamente na página quando ela precisa daquele trecho"
-      - "Uma função com nome em PascalCase que retorna JSX — uma descrição de parte da UI. Componentes se compõem: ArticlePage usa Header, ArticleCard, LikeButton"
-      - "Uma classe que obrigatoriamente herda de React.Component e implementa um método render para devolver a marcação que vai para a tela"
-      - "Um módulo JavaScript cuja função é localizar elementos e manipular o DOM diretamente, como se fazia antes do React existir"
+      - "Um arquivo CSS separado por parte da interface, que o React injeta na página quando precisa"
+      - "Uma função em PascalCase que retorna JSX; componentes se compõem (Header, ArticleCard, LikeButton)"
+      - "Uma classe que herda de React.Component e implementa um método render para a tela"
+      - "Um módulo JavaScript que localiza elementos e manipula o DOM diretamente"
     correct: 1
 ---
 

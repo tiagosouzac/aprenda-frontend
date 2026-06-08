@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "O que é um SyntheticEvent no React?"
     options:
-      - "O wrapper do React em torno dos eventos nativos do browser — mesma API, mas normalizado para funcionar de forma consistente em todos os browsers. Permite que React gerencie a delegação de eventos internamente"
-      - "É um evento criado manualmente no código com new Event(), que o React dispara sempre que o usuário interage com a tela"
-      - "É um tipo de evento exclusivo do React que não possui nenhum equivalente entre os eventos padrão definidos pelo DOM"
-      - "É um evento que só é disparado dentro de componentes de classe e não funciona em componentes de função com hooks"
+      - "O wrapper do React sobre os eventos nativos — mesma API, normalizada para todos os browsers"
+      - "Um evento criado manualmente com new Event(), que o React dispara na interação do usuário"
+      - "Um tipo de evento exclusivo do React, sem nenhum equivalente entre os eventos do DOM"
+      - "Um evento que só dispara em componentes de classe, não nos de função com hooks"
     correct: 0
   - question: "Qual é a diferença entre um formulário controlado e um não controlado?"
     options:
-      - "O formulário controlado usa apenas HTML nativo, enquanto o não controlado é o único que de fato se integra com o estado do React"
-      - "Os formulários controlados são bem mais performáticos porque evitam que o DOM precise guardar o valor de cada campo"
-      - "No formulário controlado, o valor do input é controlado pelo estado React (value + onChange). No não controlado, o DOM gerencia o valor — React acessa via ref quando precisar"
-      - "Os formulários não controlados simplesmente não funcionam quando o projeto usa TypeScript, por falta de tipos para o ref"
+      - "O controlado usa só HTML nativo; o não controlado é o único que integra com o estado do React"
+      - "Os controlados são mais performáticos porque o DOM não precisa guardar o valor de cada campo"
+      - "No controlado, o valor vem do estado (value + onChange); no não controlado, do DOM (via ref)"
+      - "Os não controlados simplesmente não funcionam com TypeScript, por falta de tipos para o ref"
     correct: 2
   - question: "Por que event.preventDefault() é necessário em onSubmit de formulário?"
     options:
-      - "Para impedir que os outros handlers de evento registrados no mesmo formulário sejam chamados em sequência após o envio"
-      - "Para garantir que o estado do React seja totalmente atualizado antes que os dados do formulário sejam de fato enviados"
-      - "Para que o TypeScript consiga inferir e tipar corretamente o objeto de evento que a função de submit recebe"
-      - "Por padrão, o submit de formulário causa um recarregamento da página (comportamento do HTML). preventDefault() cancela esse comportamento padrão do browser, permitindo que React processe o evento no cliente"
+      - "Para impedir que os outros handlers do mesmo formulário sejam chamados após o envio"
+      - "Para garantir que o estado do React seja atualizado antes de os dados serem enviados"
+      - "Para o TypeScript conseguir inferir e tipar o objeto de evento da função de submit"
+      - "Por padrão o submit recarrega a página; preventDefault() cancela isso para o React tratar no cliente"
     correct: 3
   - question: "Quando faz sentido usar useRef em vez de um input controlado?"
     options:
-      - "Sempre que for possível, porque o useRef é mais performático que um input controlado e evita um render a cada tecla digitada"
-      - "Para foco programático, integração com bibliotecas DOM que manipulam o input diretamente, ou formulários muito simples onde você só precisa do valor no submit. Para validação em tempo real e resetar valores, prefira controlado"
-      - "Os dois são totalmente equivalentes na prática, então escolher entre useRef e input controlado é só uma questão de preferência"
-      - "O useRef não funciona com inputs de texto, servindo apenas para elementos como canvas, vídeo e áudio dentro da página"
+      - "Sempre que possível, porque o useRef é mais performático e evita um render a cada tecla"
+      - "Para foco, integração com libs do DOM ou formulários simples; para validação ao vivo, prefira controlado"
+      - "Os dois são equivalentes na prática, então é só uma questão de preferência"
+      - "O useRef não funciona com inputs de texto, só com canvas, vídeo e áudio na página"
     correct: 1
 ---
 

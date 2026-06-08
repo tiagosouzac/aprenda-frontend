@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que componentes React têm nome em PascalCase?"
     options:
-      - "Porque o compilador JSX usa a capitalização para distinguir componentes React de tags HTML — <div> é uma tag HTML, <ArticleCard> é um componente"
-      - "É apenas uma convenção de estilo adotada pela comunidade, sem nenhum efeito sobre como o componente é compilado ou renderizado"
-      - "Porque nomes escritos em PascalCase são processados mais rápido pelo React durante a renderização do que nomes em minúsculas"
-      - "Por uma exigência de compatibilidade com o TypeScript, que recusa componentes cujo nome comece com uma letra minúscula"
+      - "O compilador JSX usa a capitalização para distinguir um componente de uma tag HTML"
+      - "É só uma convenção de estilo, sem nenhum efeito sobre como o componente é compilado"
+      - "Porque nomes em PascalCase são processados mais rápido pelo React na renderização"
+      - "Por exigência do TypeScript, que recusa componentes cujo nome comece com minúscula"
     correct: 0
   - question: "Por que named exports são preferíveis a default exports para componentes?"
     options:
-      - "Porque default exports simplesmente não funcionam em projetos que usam TypeScript e acabam gerando um erro de compilação"
-      - "Porque named exports são carregados mais rápido pelo bundler e reduzem o tamanho final do pacote da aplicação"
-      - "Porque named exports obrigam o importador a usar o nome correto — ferramentas de refactor (Rename Symbol) funcionam consistentemente. Com default, o importador pode dar qualquer nome"
-      - "Porque o Vite não dá suporte a default exports e exige que todo componente seja exportado com um nome explícito"
+      - "Porque default exports não funcionam em projetos TypeScript e geram erro de compilação"
+      - "Porque named exports são carregados mais rápido pelo bundler e reduzem o pacote final"
+      - "Obrigam o importador a usar o nome certo, então o Rename Symbol funciona; default aceita qualquer nome"
+      - "Porque o Vite não dá suporte a default exports e exige sempre um nome explícito"
     correct: 2
   - question: "O que significa retornar null de um componente React?"
     options:
-      - "Provoca um erro em tempo de execução, já que todo componente React é obrigado a sempre retornar algum JSX válido"
-      - "Faz com que o componente seja removido em definitivo da árvore de componentes e precise ser remontado depois do zero"
-      - "Renderiza no lugar do componente um elemento <span> vazio, que fica presente no DOM mas sem nenhum conteúdo visível"
-      - "O componente não renderiza nada no DOM — é uma forma válida de esconder um componente sem removê-lo da árvore"
+      - "Provoca um erro em runtime, já que todo componente é obrigado a retornar algum JSX válido"
+      - "Faz o componente ser removido em definitivo da árvore e precisar ser remontado do zero"
+      - "Renderiza um <span> vazio no lugar, presente no DOM mas sem nenhum conteúdo visível"
+      - "O componente não renderiza nada no DOM — uma forma válida de escondê-lo sem removê-lo da árvore"
     correct: 3
   - question: "Qual é a vantagem de compor componentes pequenos em vez de um componente grande?"
     options:
-      - "Componentes menores são sempre renderizados mais rápido porque o React processa funções curtas antes das mais longas"
-      - "Cada componente tem uma responsabilidade clara, pode ser testado isoladamente, pode ser reutilizado em outros contextos e é mais fácil de entender sem ler o arquivo inteiro"
-      - "Porque o React impõe um limite máximo de cem linhas por componente e qualquer arquivo maior que isso deixa de compilar"
-      - "Componentes menores consomem bem menos memória em tempo de execução, o que melhora o desempenho geral da aplicação"
+      - "Componentes menores são sempre renderizados mais rápido, pois o React processa funções curtas antes"
+      - "Cada um tem responsabilidade clara, é testável e reutilizável, e mais fácil de entender sem ler tudo"
+      - "Porque o React impõe um limite de cem linhas por componente, e acima disso não compila"
+      - "Componentes menores consomem bem menos memória em runtime, melhorando o desempenho"
     correct: 1
 ---
 

@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que mockar fetch nos testes em vez de fazer requisições reais?"
     options:
-      - "Porque a função fetch, por algum motivo de compatibilidade, simplesmente não consegue funcionar quando é usada dentro do Vitest"
-      - "Requisições reais são lentas, dependem da rede e de um servidor disponível, e podem retornar dados diferentes em execuções diferentes — tornando os testes instáveis e dependentes de infraestrutura externa"
-      - "Porque o fetch é uma API que pertence exclusivamente ao navegador e que, por causa disso, não existe de forma alguma dentro do Node.js"
-      - "Porque os mocks são, em todas as situações possíveis, sempre perceptivelmente mais rápidos de executar do que uma chamada de fetch real"
+      - "Porque a função fetch não consegue funcionar quando usada dentro do Vitest"
+      - "Requisições reais são lentas, dependem da rede e tornam os testes instáveis"
+      - "Porque o fetch é uma API exclusiva do navegador e não existe no Node.js"
+      - "Porque os mocks são sempre mais rápidos de executar do que um fetch real"
     correct: 1
   - question: "Qual é a diferença entre vi.fn() e vi.mock()?"
     options:
-      - "vi.fn() cria uma função mock individual; vi.mock() substitui um módulo inteiro — todas as exportações do módulo ficam disponíveis como funções mock"
-      - "O vi.fn() é executado de forma perceptivelmente mais rápida durante os testes, enquanto o vi.mock() é considerado o mais preciso dos dois"
-      - "O vi.fn() só funciona quando é aplicado a funções assíncronas, enquanto o vi.mock() consegue funcionar com qualquer outro tipo de função"
-      - "Os dois são totalmente equivalentes entre si: vi.fn() e vi.mock() são apenas duas sintaxes diferentes para fazer exatamente a mesma coisa"
+      - "vi.fn() cria uma função mock individual; vi.mock() substitui um módulo inteiro"
+      - "O vi.fn() é mais rápido nos testes e o vi.mock() é o mais preciso dos dois"
+      - "O vi.fn() só funciona com funções assíncronas; o vi.mock(), com qualquer uma"
+      - "Os dois são equivalentes: vi.fn() e vi.mock() fazem exatamente a mesma coisa"
     correct: 0
   - question: "O que significa 'testar o mock em vez do código'?"
     options:
-      - "É quando o teste acaba usando o expect diretamente sobre o mock criado, em vez de usar o expect sobre o componente que está sendo testado"
-      - "É simplesmente quando você decide usar o vi.mock() para substituir módulos que vêm de bibliotecas de terceiros dentro daquele teste específico"
-      - "Quando o mock substitui tanto código real que o teste verifica apenas que o mock foi chamado — mas não verifica o comportamento real do sistema. Se o mock diverge da implementação real, o teste passa enquanto o código está quebrado"
-      - "É quando o mock que você escreveu acaba ficando bem mais complexo e maior do que o próprio trecho de código real que ele deveria substituir"
+      - "Quando o teste usa o expect sobre o mock em vez de sobre o componente testado"
+      - "Quando você usa vi.mock() para substituir módulos de bibliotecas de terceiros"
+      - "O mock substitui tanto código real que o teste só confirma que o mock foi chamado"
+      - "Quando o mock que você escreveu fica mais complexo que o código que substitui"
     correct: 2
   - question: "Qual é a heurística correta sobre o que mockar?"
     options:
-      - "A heurística correta é mockar absolutamente tudo o que a função toca, para garantir um isolamento total e completo de cada teste do projeto"
-      - "A heurística correta é mockar apenas as funções que forem assíncronas dentro do código, deixando todas as funções síncronas sem nenhum mock"
-      - "A heurística correta é nunca mockar nada em hipótese alguma, usando sempre dados e dependências reais em absolutamente todos os testes do projeto"
-      - "Mockar dependências externas ao sistema (rede, sistema de arquivos, tempo, serviços de terceiros); não mockar lógica interna da sua aplicação — isso testa o mock, não o código"
+      - "Mockar absolutamente tudo o que a função toca, para isolar cada teste por completo"
+      - "Mockar apenas as funções assíncronas, deixando as síncronas sem nenhum mock"
+      - "Nunca mockar nada, usando sempre dados e dependências reais nos testes"
+      - "Mockar dependências externas (rede, disco, tempo); não mockar a lógica interna da app"
     correct: 3
 ---
 

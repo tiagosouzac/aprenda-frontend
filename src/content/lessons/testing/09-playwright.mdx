@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "O que diferencia um teste E2E de um teste de integração com jsdom?"
     options:
-      - "Os testes E2E são, de forma geral, perceptivelmente mais rápidos e também bem mais precisos do que os testes de integração com jsdom"
-      - "E2E roda um browser real (Chromium, Firefox, WebKit) com a aplicação completa servida — testa fetch real, renderização real, localStorage real, navegação real. jsdom é uma simulação do DOM sem um browser de verdade"
-      - "Os testes E2E sempre usam mocks para todas as dependências externas, enquanto os testes de integração com jsdom nunca utilizam nenhum mock"
-      - "Os testes E2E verificam apenas a interface visual da aplicação, enquanto os testes de integração verificam apenas a lógica escrita em JavaScript"
+      - "Os testes E2E são mais rápidos e bem mais precisos do que os de integração com jsdom"
+      - "E2E roda um browser real com a app completa: fetch, render e navegação reais; jsdom só simula o DOM"
+      - "Os testes E2E sempre usam mocks para tudo; os de integração com jsdom nunca usam"
+      - "Os E2E verificam só a interface visual; os de integração, só a lógica em JavaScript"
     correct: 1
   - question: "Por que Playwright espera automaticamente antes de interagir com elementos?"
     options:
-      - "Porque aplicações web têm estados assíncronos — elementos aparecem após fetch, animações, re-renders. Playwright aguarda automaticamente que o elemento esteja visível, habilitado e estável antes de clicar ou digitar — evitando sleeps manuais"
-      - "É uma limitação puramente técnica da ferramenta: o Playwright simplesmente não consegue interagir com nenhum elemento da página sem esperar antes"
-      - "É um comportamento que foi criado para simular conexões de internet mais lentas durante a execução dos testes de ponta a ponta da aplicação"
-      - "É apenas um comportamento opcional do Playwright, que pode ser ligado ou desligado livremente na configuração de cada teste individual do projeto"
+      - "Apps web têm estados assíncronos; o Playwright espera o elemento ficar pronto, sem sleeps manuais"
+      - "É uma limitação técnica: o Playwright não consegue interagir sem esperar antes"
+      - "É um comportamento criado para simular conexões de internet mais lentas"
+      - "É um comportamento opcional, que pode ser ligado ou desligado por teste"
     correct: 0
   - question: "Por que getByRole é preferível a seletores CSS em testes E2E?"
     options:
-      - "O getByRole é executado de forma perceptivelmente mais rápida dentro do browser do que qualquer seletor CSS equivalente que fosse usado no teste"
-      - "Os seletores CSS, por algum motivo de compatibilidade, simplesmente não conseguem funcionar quando são usados em conjunto com o Playwright"
-      - "Seletores CSS (como .botao-curtir) quebram quando o CSS é refatorado. getByRole('button', { name: 'Curtir' }) encontra o botão pelo seu papel e nome acessível — o mesmo que um leitor de tela usaria — e sobrevive a mudanças de estilo"
-      - "O getByRole é apenas uma convenção de escrita adotada pela comunidade, sem nenhum impacto técnico real sobre o teste de ponta a ponta"
+      - "O getByRole é executado mais rápido dentro do browser do que um seletor CSS"
+      - "Os seletores CSS não conseguem funcionar em conjunto com o Playwright"
+      - "Seletores CSS quebram em refatoração; getByRole acha o botão pelo papel e nome acessível"
+      - "O getByRole é só uma convenção da comunidade, sem impacto técnico real"
     correct: 2
   - question: "O que deve ser testado com E2E em vez de testes de integração?"
     options:
-      - "Deve-se testar com E2E toda e qualquer lógica de negócio que seja considerada crítica dentro da aplicação, sem nenhuma exceção de qualquer tipo"
-      - "Deve-se testar com E2E todos os formulários e todas as validações de campos existentes em qualquer uma das telas da aplicação que for construída"
-      - "Deve-se testar com E2E todas as funções puras e todos os cálculos do sistema, já que eles costumam ser a base de toda a lógica da aplicação"
-      - "Apenas os fluxos mais críticos do produto — os caminhos que, se quebrarem, impedem o usuário de usar o sistema. E2E é lento e caro de manter; integração cobre a maioria dos casos mais rapidamente"
+      - "Toda e qualquer lógica de negócio crítica da aplicação, sem nenhuma exceção"
+      - "Todos os formulários e validações de campos de qualquer tela da aplicação"
+      - "Todas as funções puras e cálculos, que costumam ser a base da lógica da app"
+      - "Apenas os fluxos mais críticos do produto; E2E é lento e caro, integração cobre o resto"
     correct: 3
 ---
 

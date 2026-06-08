@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que a pirâmide de testes recomenda mais testes unitários e poucos E2E?"
     options:
-      - "Porque os testes E2E são, de modo geral, bem mais difíceis e trabalhosos de escrever do que os testes das outras camadas da pirâmide"
-      - "Testes unitários são rápidos, baratos de manter e dão feedback imediato. Testes E2E são lentos, frágeis a mudanças de UI e caros de depurar. A pirâmide equilibra cobertura com velocidade de feedback"
-      - "Porque os frameworks de teste E2E mais conhecidos do mercado, como o Playwright, costumam ser ferramentas pagas e bastante caras"
-      - "Porque os testes unitários, por sua própria natureza, acabam cobrindo uma quantidade muito maior de linhas de código do que os E2E"
+      - "Porque os testes E2E são bem mais difíceis e trabalhosos de escrever"
+      - "Unitários são rápidos e baratos; E2E são lentos e frágeis. A pirâmide equilibra os dois"
+      - "Porque frameworks E2E como o Playwright costumam ser pagos e caros"
+      - "Porque os testes unitários cobrem muito mais linhas de código que os E2E"
     correct: 1
   - question: "O que diferencia um teste de integração de um teste unitário?"
     options:
-      - "Testes unitários verificam uma única função ou componente isolado. Testes de integração verificam múltiplas peças funcionando juntas — um componente com seu hook, um formulário com validação e envio, um fluxo completo de interação"
-      - "Os testes de integração utilizam sempre um banco de dados real durante a sua execução, enquanto os testes unitários usam apenas mocks"
-      - "Os testes de integração são, de forma geral, perceptivelmente mais rápidos de executar do que os testes unitários do mesmo projeto"
-      - "Os testes unitários servem apenas para testar funções soltas, enquanto os testes de integração servem apenas para testar componentes"
+      - "Unitário verifica uma peça isolada; integração verifica várias peças funcionando juntas"
+      - "Os testes de integração usam um banco real e os unitários usam só mocks"
+      - "Os testes de integração são mais rápidos de executar que os unitários"
+      - "Unitários testam só funções soltas; integração testa só componentes"
     correct: 0
   - question: "Qual é a principal vantagem do teste E2E sobre os demais?"
     options:
-      - "É um tipo de teste perceptivelmente mais rápido de executar do que as outras camadas de teste que estão presentes na pirâmide de testes"
-      - "É um tipo de teste bem mais fácil de manter ao longo do tempo, principalmente quando o código da aplicação muda com bastante frequência"
-      - "Roda o navegador real com a aplicação completa — verifica que todas as peças (frontend, fetch, localStorage, DOM) funcionam juntas como o usuário experimenta, não apenas como o código funciona isolado"
-      - "É um tipo de teste que detecta os bugs de lógica do sistema com uma precisão bem maior do que a alcançada pelos testes unitários"
+      - "É um tipo de teste mais rápido de executar que as outras camadas da pirâmide"
+      - "É um tipo de teste bem mais fácil de manter quando o código muda"
+      - "Roda o navegador real com a app completa — verifica tudo como o usuário experimenta"
+      - "Detecta bugs de lógica com mais precisão do que os testes unitários"
     correct: 2
   - question: "Qual teste seria mais adequado para verificar que 'filtrar artigos por tag retorna apenas artigos com aquela tag'?"
     options:
-      - "Deveria ser um teste E2E, porque a funcionalidade de filtrar artigos por tag acaba envolvendo diretamente a interface do usuário na tela"
-      - "Deveria ser um teste de integração, já que o filtro de artigos é considerado uma funcionalidade de negócio importante dentro da aplicação"
-      - "Não seria necessário escrever nenhum teste para isso, porque o comportamento esperado dessa função de filtro já é totalmente óbvio por si só"
-      - "Unitário — a função de filtro é pura, sem dependências externas. Entrada de array + tag, saída de array filtrado. Rápido de escrever e sem nenhuma dependência a mockar"
+      - "E2E, porque a funcionalidade de filtrar por tag envolve a interface do usuário"
+      - "Integração, já que o filtro é uma funcionalidade de negócio da aplicação"
+      - "Nenhum: o comportamento dessa função de filtro já é totalmente óbvio"
+      - "Unitário — a função de filtro é pura: entra array + tag, sai array filtrado, sem mocks"
     correct: 3
 ---
 

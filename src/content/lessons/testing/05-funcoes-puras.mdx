@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que funções puras são as mais fáceis de testar?"
     options:
-      - "Porque as funções puras, de forma geral, acabam sendo perceptivelmente mais rápidas de executar do que as funções impuras do projeto"
-      - "Porque sempre produzem o mesmo output para o mesmo input e não têm efeitos colaterais — não precisam de mocks, não dependem de estado externo, e o teste é uma simples chamada com expect"
-      - "Porque o Vitest oferece um suporte especial e otimizado especificamente para a execução de testes de funções que sejam consideradas puras"
-      - "Porque as funções puras, por definição da própria linguagem, nunca conseguem lançar nenhum tipo de erro durante a sua execução normal"
+      - "Porque as funções puras são mais rápidas de executar do que as impuras"
+      - "Sempre produzem o mesmo output para o mesmo input, sem efeitos colaterais nem mocks"
+      - "Porque o Vitest tem um suporte especial para testar funções puras"
+      - "Porque funções puras nunca conseguem lançar nenhum erro ao executar"
     correct: 1
   - question: "O que é test.each e quando usá-lo?"
     options:
-      - "Uma forma de testar a mesma função com múltiplas entradas sem repetir o bloco it — útil quando você tem uma tabela de casos (entrada → saída esperada) para a mesma lógica"
-      - "É uma forma de conseguir rodar vários testes diferentes em paralelo entre si, o que acaba acelerando bastante a rodada completa da suíte"
-      - "É um matcher especial, criado especificamente para fazer asserções sobre o conteúdo e sobre o tamanho de arrays dentro dos testes"
-      - "É uma forma de pular a execução de alguns testes de maneira condicional, dependendo de um valor que é verificado em tempo de execução"
+      - "Testar a mesma função com vários casos sem repetir o it, a partir de uma tabela de casos"
+      - "Uma forma de rodar vários testes diferentes em paralelo entre si"
+      - "Um matcher especial para fazer asserções sobre o conteúdo de arrays"
+      - "Uma forma de pular alguns testes condicionalmente, conforme um valor"
     correct: 0
   - question: "Por que testar casos que parecem óbvios, como string vazia ou zero?"
     options:
-      - "É feito apenas por uma exigência das ferramentas de cobertura de código, que cobram que esses casos limite também sejam testados"
-      - "É feito apenas para aumentar artificialmente o número total de testes que vão acabar aparecendo no relatório final da suíte de testes"
-      - "Porque comportamentos 'óbvios' frequentemente não estão especificados — o que calcularTempoLeitura deve retornar para string vazia? 0 ou 1? O teste força uma decisão e a documenta, evitando inconsistências silenciosas"
-      - "Não é realmente necessário testar esses casos: comportamentos considerados óbvios, como uma string vazia ou um zero, acabam dispensando testes"
+      - "Por exigência das ferramentas de cobertura, que cobram esses casos limite"
+      - "Apenas para aumentar o número de testes que aparecem no relatório final"
+      - "Comportamentos 'óbvios' não estão especificados; o teste força e documenta a decisão"
+      - "Não é necessário: casos óbvios como string vazia ou zero dispensam teste"
     correct: 2
   - question: "Como testar uma função que depende de Date.now() de forma determinística?"
     options:
-      - "Você deve usar o vi.mock para substituir o objeto Date global por uma versão controlada que sempre devolve exatamente a mesma hora fixa"
-      - "Você deve usar o setTimeout para conseguir controlar e congelar a passagem do tempo durante a execução daquele teste específico da função"
-      - "Não é possível, de forma alguma, testar de maneira determinística uma função que depende da hora atual lida diretamente do relógio do sistema"
-      - "Passar a data como parâmetro em vez de ler Date.now() internamente — funções puras recebem tudo que precisam como argumento, sem ler estado global"
+      - "Usar vi.mock para substituir o Date global por uma versão de hora fixa"
+      - "Usar setTimeout para controlar e congelar a passagem do tempo no teste"
+      - "Não é possível testar de forma determinística uma função que lê a hora atual"
+      - "Passar a data como parâmetro em vez de ler Date.now() dentro da função"
     correct: 3
 ---
 

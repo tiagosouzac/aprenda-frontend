@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Qual é a filosofia central da Testing Library?"
     options:
-      - "A filosofia é testar a implementação interna de cada componente, para garantir que o estado correto está sendo usado por dentro dele"
-      - "Testar como o usuário usa a interface — queries baseadas em papel (role), texto visível e labels de acessibilidade, não em detalhes de implementação como nomes de variáveis ou classes CSS internas"
-      - "A filosofia é testar todos os hooks e todos os estados de cada componente de forma individual e isolada, um de cada vez separadamente"
-      - "A filosofia central da biblioteca é garantir que o projeto atinja sempre cem por cento de cobertura de cada componente que for testado"
+      - "Testar a implementação interna do componente, para checar o estado usado por dentro"
+      - "Testar como o usuário usa a interface — por papel, texto e label, não por detalhes internos"
+      - "Testar todos os hooks e estados de cada componente de forma isolada"
+      - "Garantir que o projeto atinja cem por cento de cobertura de cada componente"
     correct: 1
   - question: "Por que getByRole é preferível a getByTestId?"
     options:
-      - "getByRole encontra elementos pelo seu papel de acessibilidade (button, heading, textbox) — a mesma forma que leitores de tela e o usuário interagem. getByTestId depende de atributos data-testid adicionados apenas para testes, que não refletem a experiência real do usuário"
-      - "O getByRole é executado de forma perceptivelmente mais rápida do que o getByTestId durante toda a rodada completa dos testes do projeto"
-      - "O getByTestId, por algum motivo de compatibilidade, simplesmente não consegue mais funcionar quando é executado dentro do Vitest moderno"
-      - "O getByRole funciona normalmente em projetos com TypeScript, enquanto o getByTestId não oferece nenhum suporte ao uso de TypeScript no código"
+      - "getByRole acha o elemento pelo papel de acessibilidade, como o usuário interage; getByTestId não"
+      - "O getByRole é executado mais rápido do que o getByTestId nos testes"
+      - "O getByTestId não consegue mais funcionar dentro do Vitest moderno"
+      - "O getByRole funciona com TypeScript e o getByTestId não dá suporte a ele"
     correct: 0
   - question: "Qual a diferença entre getBy*, queryBy* e findBy*?"
     options:
-      - "Existem apenas diferenças de performance entre os três: cada um deles é otimizado para um tipo diferente de consulta na árvore do DOM"
-      - "O findBy* é considerado o mais preciso na hora de encontrar elementos, enquanto o getBy* é apenas perceptivelmente mais rápido de executar"
-      - "getBy* lança erro se não encontrar — para assertivas de presença. queryBy* retorna null se não encontrar — para assertivas de ausência. findBy* é assíncrono — aguarda o elemento aparecer, ideal para conteúdo que chega após fetch ou state update"
-      - "O queryBy* só consegue funcionar quando você busca por um texto visível, enquanto o getBy* funciona com qualquer outro tipo de seletor possível"
+      - "Há só diferenças de performance: cada um é otimizado para um tipo de consulta"
+      - "O findBy* é o mais preciso e o getBy* é apenas mais rápido de executar"
+      - "getBy* lança erro (presença); queryBy* retorna null (ausência); findBy* é async e espera aparecer"
+      - "O queryBy* só funciona com texto visível; o getBy*, com qualquer seletor"
     correct: 2
   - question: "Por que usar userEvent.setup() em vez de fireEvent para simular interações?"
     options:
-      - "Porque o userEvent é executado de forma perceptivelmente mais rápida do que o fireEvent durante toda a rodada completa dos testes do projeto"
-      - "Porque o fireEvent, por algum motivo de compatibilidade, simplesmente não consegue mais funcionar de forma correta a partir da versão 18 do React"
-      - "Porque apenas o userEvent.setup() consegue funcionar em conjunto com async/await, enquanto o fireEvent não oferece nenhum suporte a isso no código"
-      - "userEvent.setup() simula a sequência completa de eventos do usuário (hover, focus, keydown, keyup, click) — mais próximo do comportamento real do browser. fireEvent dispara apenas um evento DOM sintético, podendo passar por casos que um usuário real ativaria"
+      - "Porque o userEvent é executado mais rápido do que o fireEvent nos testes"
+      - "Porque o fireEvent não funciona mais corretamente a partir do React 18"
+      - "Porque só o userEvent.setup() funciona com async/await, e o fireEvent não"
+      - "userEvent simula a sequência real de eventos (hover, focus, click); fireEvent dispara só um"
     correct: 3
 ---
 

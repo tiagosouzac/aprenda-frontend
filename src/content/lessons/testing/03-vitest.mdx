@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "Por que Vitest precisa de pouca configuração em projetos Vite?"
     options:
-      - "Porque o Vitest, ao contrário do que muitos imaginam, simplesmente não oferece nenhum tipo de suporte ao uso de TypeScript nos testes"
-      - "Porque Vitest reutiliza a configuração do Vite — os mesmos plugins, aliases e resolução de módulos já definidos no vite.config.ts funcionam automaticamente nos testes"
-      - "Porque o Vitest não precisa transpilar o código antes de rodar os testes, já que ele executa tudo exatamente como está escrito no arquivo"
-      - "Porque o Vitest roda em cima de Node.js puro, sem usar nenhum tipo de bundler por baixo durante a execução dos testes do projeto"
+      - "Porque o Vitest, ao contrário do que dizem, não dá suporte a TypeScript nos testes"
+      - "Vitest reutiliza a config do Vite: os mesmos plugins, aliases e resolução de módulos"
+      - "Porque o Vitest não precisa transpilar o código antes de rodar os testes"
+      - "Porque o Vitest roda em Node.js puro, sem nenhum bundler por baixo"
     correct: 1
   - question: "Qual é a diferença entre .toBe() e .toEqual()?"
     options:
-      - ".toBe() usa igualdade estrita (===) — falha para objetos com o mesmo conteúdo mas referências diferentes. .toEqual() faz comparação profunda de conteúdo — correto para objetos e arrays"
-      - "Não existe nenhuma diferença real entre .toBe() e .toEqual(): os dois matchers são totalmente intercambiáveis em qualquer caso de teste"
-      - "O matcher .toEqual() é executado de forma perceptivelmente mais rápida do que o matcher .toBe() durante a rodada completa dos testes"
-      - "O matcher .toBe() só funciona quando o valor comparado é uma string, enquanto o .toEqual() funciona com qualquer outro tipo de valor"
+      - ".toBe() usa igualdade estrita (===); .toEqual() compara o conteúdo, certo para objetos e arrays"
+      - "Não há diferença real: os dois matchers são intercambiáveis em qualquer caso"
+      - "O .toEqual() é executado perceptivelmente mais rápido do que o .toBe()"
+      - "O .toBe() só funciona com strings; o .toEqual(), com qualquer tipo de valor"
     correct: 0
   - question: "O que o modo --watch do Vitest faz?"
     options:
-      - "Fica monitorando o uso de memória do processo durante toda a execução dos testes, ajudando a encontrar possíveis vazamentos de memória"
-      - "Exibe os resultados de todos os testes do projeto dentro de uma janela com interface gráfica, em vez de mostrá-los direto no terminal"
-      - "Fica em execução contínua e re-roda automaticamente os testes afetados sempre que um arquivo é salvo — ciclo de feedback imediato durante o desenvolvimento"
-      - "Grava e guarda o tempo total de execução de cada um dos testes do projeto, montando um relatório de desempenho ao final da rodada"
+      - "Monitora o uso de memória durante os testes, para encontrar vazamentos"
+      - "Exibe os resultados dos testes numa janela gráfica, não no terminal"
+      - "Fica rodando e re-executa os testes afetados a cada arquivo salvo — feedback imediato"
+      - "Grava o tempo de execução de cada teste num relatório de desempenho"
     correct: 2
   - question: "Como você testa que uma função lança um erro?"
     options:
-      - "Você deve envolver a chamada da função em um bloco try/catch e então usar o expect dentro do bloco catch para verificar o erro lançado"
-      - "Você deve usar a forma expect(funcaoQueLanca()).toBe(Error), comparando o resultado direto da chamada da função com o próprio tipo Error"
-      - "Não é possível, de forma alguma, testar se uma função lança um erro usando o Vitest, já que ele não oferece suporte a esse tipo de teste"
-      - "expect(() => funcaoQueLanca()).toThrow() — passe a função como callback, não o resultado da chamada. Vitest captura o erro internamente"
+      - "Envolver a chamada em try/catch e usar o expect dentro do bloco catch"
+      - "Usar expect(funcaoQueLanca()).toBe(Error), comparando o retorno com Error"
+      - "Não é possível testar erros lançados usando o Vitest, ele não suporta isso"
+      - "expect(() => funcaoQueLanca()).toThrow() — passe a função como callback, não o resultado"
     correct: 3
 ---
 

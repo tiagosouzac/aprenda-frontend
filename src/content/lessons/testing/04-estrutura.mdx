@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "O que representa cada etapa do padrão Arrange/Act/Assert?"
     options:
-      - "Arrange é a etapa de escrever o teste, Act é a etapa de rodar o teste no terminal e Assert é a etapa de ler o resultado final dele"
-      - "Arrange: preparar o cenário e os dados necessários. Act: executar a ação testada (chamar a função, simular o clique). Assert: verificar que o resultado é o esperado"
-      - "Arrange é a etapa de importar os módulos necessários, Act é a etapa de chamar as funções e Assert é a etapa de usar o expect no final"
-      - "São, na verdade, três arquivos separados que ficam organizados dentro de um mesmo projeto de testes automatizados, em pastas distintas"
+      - "Arrange é escrever o teste, Act é rodar no terminal e Assert é ler o resultado"
+      - "Arrange prepara o cenário; Act executa a ação testada; Assert verifica o resultado"
+      - "Arrange é importar os módulos, Act é chamar as funções e Assert é usar o expect"
+      - "São três arquivos separados dentro de um projeto de testes, em pastas distintas"
     correct: 1
   - question: "Por que o nome do teste importa?"
     options:
-      - "Um bom nome documenta o comportamento esperado — quando o teste falha, você sabe imediatamente o que o sistema deveria fazer. 'test formatarData' não diz nada; 'retorna há 5 minutos para data de 5 minutos atrás' diz tudo"
-      - "Porque nomes de teste mais longos acabam deixando a execução de toda a suíte de testes do projeto perceptivelmente mais lenta no final"
-      - "Porque o nome do teste serve apenas como uma forma de organização visual dos testes dentro da saída que é exibida no terminal ao rodar"
-      - "Na verdade o nome do teste não tem nenhuma importância real: o que de fato importa em um teste é apenas o expect que está escrito nele"
+      - "Um bom nome descreve o comportamento esperado, então você sabe na hora o que falhou"
+      - "Porque nomes de teste mais longos deixam a suíte mais lenta de rodar"
+      - "Porque o nome serve só para organizar visualmente os testes no terminal"
+      - "Na verdade o nome não importa: o que importa em um teste é só o expect"
     correct: 0
   - question: "Para que serve o beforeEach?"
     options:
-      - "Serve para conseguir executar todos os testes daquele arquivo em paralelo entre si, o que acelera bastante a rodada completa da suíte"
-      - "Serve para importar as dependências usadas no teste apenas quando elas forem realmente necessárias, economizando memória do processo"
-      - "Para executar código antes de cada teste no describe — ideal para limpar estado compartilhado (localStorage, mocks) e preparar dados comuns, garantindo que cada teste começa em um estado limpo e previsível"
-      - "Serve para definir e controlar a ordem exata em que cada um dos testes daquele bloco describe vai acabar sendo executado pelo runner"
+      - "Serve para executar todos os testes daquele arquivo em paralelo entre si"
+      - "Serve para importar as dependências do teste só quando forem necessárias"
+      - "Roda antes de cada teste no describe — ideal para limpar estado e preparar dados comuns"
+      - "Serve para definir a ordem em que os testes do describe são executados"
     correct: 2
   - question: "Quais são os três tipos de caso que uma boa suite de testes deve cobrir?"
     options:
-      - "Os três tipos de caso são os testes considerados rápidos, os testes de velocidade média e os testes lentos dentro de uma suíte"
-      - "Os três tipos de caso que se deve cobrir são os testes unitários, os testes de integração e os testes de ponta a ponta (E2E)"
-      - "Os três tipos de caso são os testes síncronos, os testes assíncronos e os testes que verificam um componente isolado da interface"
-      - "Caso feliz (happy path) com entrada válida, casos limite (edge cases — vazio, zero, máximo) e caso de erro com entrada inválida ou estado inesperado"
+      - "Os testes rápidos, os de velocidade média e os testes lentos da suíte"
+      - "Os testes unitários, os de integração e os de ponta a ponta (E2E)"
+      - "Os testes síncronos, os assíncronos e os que verificam um componente"
+      - "Caso feliz (entrada válida), casos limite (vazio, zero, máximo) e caso de erro"
     correct: 3
 ---
 

@@ -9,31 +9,31 @@ hero:
 quiz:
   - question: "O que um teste de integração verifica que um teste unitário de componente não consegue?"
     options:
-      - "Consegue verificar especificamente a renderização visual do componente, garantindo que cada pixel apareça exatamente no lugar certo da tela"
-      - "Que múltiplas peças funcionam corretamente em conjunto — que o componente e seu hook de fetch se integram bem, que o estado persiste corretamente no localStorage, que o formulário e a validação interagem como esperado"
-      - "Consegue verificar se a sintaxe de todo o código do componente está correta e sem nenhum erro antes de a aplicação acabar indo para produção"
-      - "Consegue verificar se todas as props que são recebidas pelo componente estão devidamente tipadas de forma correta usando o TypeScript"
+      - "A renderização visual do componente, garantindo cada pixel no lugar certo da tela"
+      - "Que várias peças funcionam juntas — componente + hook de fetch, estado no localStorage, formulário"
+      - "Se a sintaxe de todo o código do componente está correta antes de ir para produção"
+      - "Se todas as props recebidas pelo componente estão tipadas corretamente"
     correct: 1
   - question: "Por que usar localStorage.clear() no beforeEach de testes que envolvem persistência?"
     options:
-      - "Para garantir que cada teste começa com localStorage vazio — sem dados de testes anteriores que possam mudar o comportamento esperado e tornar os resultados dependentes da ordem de execução"
-      - "Porque o localStorage, por algum motivo de compatibilidade, simplesmente não consegue funcionar dentro do ambiente jsdom enquanto não for limpo antes"
-      - "Para que o TypeScript consiga inferir e tipar corretamente todos os dados que ficam guardados dentro do localStorage durante a execução do teste"
-      - "É feito apenas por uma questão de convenção de estilo entre quem escreve os testes, sem nenhum impacto técnico real sobre o resultado deles"
+      - "Para cada teste começar com o localStorage vazio, sem depender da ordem de execução"
+      - "Porque o localStorage não consegue funcionar no jsdom enquanto não for limpo"
+      - "Para o TypeScript conseguir tipar os dados guardados dentro do localStorage"
+      - "É só convenção de estilo entre quem escreve os testes, sem impacto técnico"
     correct: 0
   - question: "Quando um teste de integração compensa mais do que vários testes unitários separados?"
     options:
-      - "Um teste de integração sempre compensa mais do que vários testes unitários, porque ele é, em todos os casos possíveis, bem mais completo que eles"
-      - "Um teste de integração passa a compensar mais especificamente a partir do momento em que o componente que está sendo testado tem mais de cem linhas"
-      - "Quando o valor está no fluxo completo e não nas peças isoladas — um teste de integração que verifica 'digitar na busca filtra a lista' cobre mais cenários reais que três unitários de filtro, input e lista separados"
-      - "Um teste de integração compensa mais sempre que o componente em questão chega a ter mais de cinco estados internos diferentes ao todo dentro dele"
+      - "Sempre — um teste de integração é, em qualquer caso, mais completo que os unitários"
+      - "A partir do momento em que o componente testado passa de cem linhas de código"
+      - "Quando o valor está no fluxo completo: 'digitar na busca filtra a lista' cobre mais que três unitários"
+      - "Sempre que o componente chega a ter mais de cinco estados internos diferentes"
     correct: 2
   - question: "Como testar que um componente exibe um estado de loading enquanto o fetch está pendente?"
     options:
-      - "Não é possível, de forma alguma, testar estados que são apenas transitórios, como o estado de loading, usando a biblioteca Testing Library"
-      - "Você deve usar o setTimeout dentro do teste para conseguir esperar até que a chamada de fetch daquele componente específico seja completada"
-      - "Você deve apenas verificar o estado final do componente, já depois que a chamada de fetch tiver sido completamente concluída com sucesso"
-      - "Renderizar o componente com fetch mockado mas ainda pendente (usando uma Promise que não resolve ainda), e verificar que o indicador de loading está presente antes de resolver a Promise"
+      - "Não é possível testar estados transitórios, como loading, com a Testing Library"
+      - "Usar setTimeout dentro do teste para esperar a chamada de fetch completar"
+      - "Apenas verificar o estado final, já depois que o fetch foi concluído com sucesso"
+      - "Renderizar com o fetch mockado ainda pendente e checar que o loading aparece antes de resolver"
     correct: 3
 ---
 
